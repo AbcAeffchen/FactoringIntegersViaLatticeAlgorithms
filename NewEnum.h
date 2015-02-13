@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   NewEnum.h
  * Author: AbcAeffchen
  *
@@ -39,7 +39,7 @@ struct NewEnumStage
     unsigned long t;            // current coordinate
     Vec<RR> target;             // the coordinates of the target vector
     RR v_adjust;                // the v value used to adjust the target vector
-    
+
     NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, Vec<RR> target, RR v_adjust);
 
     /**
@@ -122,13 +122,13 @@ private:
     void clearL();
 
     /**
-     * 
+     *
      * @param u
      * @param v
      * @param z
      */
     void computeUV(const Vec<RR>& input, ZZ& u, ZZ& v);
-    
+
     /**
      * starts the performing by setting the first stage to the values that are
      * described under point 1 in the NewEnum algorithm.
@@ -157,8 +157,33 @@ private:
      */
     bool getEquation(const Vec<RR>& input, RR& c_1 );
 
+    /**
+     * Computes the next continued fraction $h_n / k_n$ with $h_n = a_n * h_nm1 + h_nm2$
+     * and $k_n = a_n * k_nm1 + k_nm2$. $a_n$ is computed as $a_n = floor( (alpha_nm1 - a_nm1)^-1 )$
+     * It also sets $h_nm2 = h_nm1$ and $h_nm1 = k_n$ and $k_nm2 = k_nm1$ and $k_nm1 = k_n$ and
+     * $a_nm1 = a_n$ and $alpha_nm1 = (alpha_nm1 - a_nm1)^-1$, so the function can be called
+     * multiple times. To work correct, the function has to be called with correct values of the
+     * n-1th and n-2th path of the continued fraction. If the computation starts at all, it has
+     * to be called with h_nm1 = 1, k_nm1 = 0, h_nm2 = 0, k_nm2 = 1, a_nm1 = floor(x) and alpha_nm1 = x
+     * @param [out] h_n
+     * @param [out] k_n
+     * @param [in,out] h_nm1
+     * @param [in,out] k_nm1
+     * @param [in] h_nm2
+     * @param [in] k_nm2
+     * @param [in] a_nm1
+     * @param [in,out] alpha_nm1
+     */
+    void nextContinuedFraction(ZZ& h_n, ZZ& k_n, ZZ& h_nm1, ZZ& k_nm1, ZZ& h_nm2, ZZ& k_nm2, ZZ& a_nm1, RR& alpha_nm1);
+
+    /**
+     * Checks if k_n and left_side are p_n-smooth and stores the prime factors in equation.
+     * @return If k_n and the left side are smooth true is returned, else false.
+     */
+    bool isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_side);
+
     Vec<RR> getCurrentTargetCoordinates(RR v_old, RR v_new);
-    
+
 public:
 
     /**

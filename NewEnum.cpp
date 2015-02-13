@@ -6,7 +6,7 @@ NewEnumStage::NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const 
     this->y_t = y_t;
     this->c_t = c_t;
     this->c_tp1 = c_tp1;
-    this->u = conv<Vec<double> >(u);    
+    this->u = conv<Vec<double> >(u);
     this->t = t;
     this->target = target;
     this->v_adjust = v_adjust;
@@ -14,7 +14,7 @@ NewEnumStage::NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const 
 
 /**
  * Convertrs the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
- * @return 
+ * @return
  */
 Vec<RR> NewEnumStage::get_u()
 {
@@ -28,7 +28,7 @@ void NewEnum::precomputeLevelProbabilitys()
     for(long level = 10; level <= this->s_max; level++)
     {
         this->level_probabilitys(level) = power2_RR(level * (-1));
-    }        
+    }
 }
 
 /**
@@ -99,15 +99,15 @@ void NewEnum::perform()
 /**
  * performs all stages starting with a start stage
  * @param start The stage we are starting with
- * @param perform_delayed_stages If true, the method will also perform delayed 
+ * @param perform_delayed_stages If true, the method will also perform delayed
  * stages. Only the first call of this method should set this parameter to true.
  */
 void NewEnum::perform(NewEnumStage& current_stage, bool perform_delayed_stages)
 {
-    this->decrease_max_distance = true;   
+    this->decrease_max_distance = true;
 
     ZZ u_rel, v_rel;
-    
+
     long max_t = current_stage.t;
     long t = current_stage.t;                   // projection to the n-t-1 last coordinates
     Vec<RR> c,                          // Length in the projection
@@ -172,8 +172,8 @@ void NewEnum::perform(NewEnumStage& current_stage, bool perform_delayed_stages)
             // 2.1
             goto cleanup;
         }
-        
-        
+
+
         // compute the probability beta
         rho = SqrRoot(power(this->A_curr - c(t), t-1));
         beta = this->V(t-1) * rho;
@@ -218,7 +218,7 @@ void NewEnum::perform(NewEnumStage& current_stage, bool perform_delayed_stages)
         while(this->current_s <= this->s_max)
         {
             // Output of delayed stages status
-            
+
             cout << "#L[" << (this->current_s - 10) << "] = " << this->L[this->current_s - 10].size();
             this->delayedStagesCounter[this->current_s - 10] = this->L[this->current_s - 10].size();
             this->delayedStagesCounter[0] += this->L[this->current_s - 11].size();
@@ -318,55 +318,55 @@ bool NewEnum::getEquation(const Vec<RR>& input, RR& c_1)
     temp += this->shift;
     mul(close_vec, conv<Mat<RR> >(this->U), temp);
 
-    Vec<long> equation;
-    ZZ v = conv<ZZ>(1);
-    equation.SetLength(close_vec.length() + 1);     // exponents of the first primes and -1
+    Vec<long> raw_equation, equation;
+    raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
+    equation.SetLength(this->n + 1);         // exponents of the first primes and -1
 
     ZZ u = conv<ZZ>(1);
 
-    for(long i = 1; i <= close_vec.length(); i++)
+    for(long i = 1; i <= this->n; i++)
     {
         if(close_vec(i) > 0)
         {
             u *= power_ZZ(this->primes(i), conv<long>(close_vec(i)));
-            equation(i) = conv<long>(close_vec(i));
+            raw_equation(i) = conv<long>(close_vec(i));
         }
         else
         {
-            equation(i) = 0;
-            v *= power_ZZ(this->primes(i), conv<long>(-close_vec(i)));
+            raw_equation(i) = 0;
         }
     }
-    // diff = u-vN;
-    // v = conv<ZZ>(this->closest_RR(conv<RR>(u) / conv<RR>(this->N)));
-    ZZ diff = u - v * this->N;
 
-    if(diff < 0)
-        equation(this->primes.length() + 1) = 1;
-    else
-        equation(this->primes.length() + 1) = 0;
+    RR v = conv<RR>(u) / conv<RR>(this->N),
+       d = v - this->closest_RR(v),
+       alpha_nm1 = NTL::abs(d);
+    ZZ vN = conv<ZZ>(this->closest_RR(v)) * this->N,
+       h_n = conv<ZZ>(0), h_nm1 = conv<ZZ>(1), h_nm2 = conv<ZZ>(0),
+       k_n = conv<ZZ>(1), k_nm1 = conv<ZZ>(0), k_nm2 = conv<ZZ>(1),
+       a_nm1 = conv<ZZ>(0),
+       threshold = power_ZZ(this->primes(this->n),2),
+       left_side, right_side,ride_side_factor;
+    long sign = NTL::sign(d),
+         equation_counter = 0;
 
-    ZZ diff_abs = abs(diff);
-
-    // check smoothness of |u-vN|
-    for(long i = 1; i <= this->primes.length(); i++)
+    do
     {
-        while(diff_abs % this->primes(i) == 0)
+        this->nextContinuedFraction(h_n, k_n, h_nm1, k_nm1, h_nm2, k_nm2, a_nm1, alpha_nm1);
+
+        equation = raw_equation;
+        left_side = u * k_n;
+        right_side = abs(left_side - vN * k_n - sign * h_n * this->N);
+
+        if(this->isSmooth(equation, k_n, left_side, right_side))
         {
-            if(equation(i) > 0)       // cancel
-                u /= this->primes(i);
-            equation(i) -= 1;
-            diff_abs /= this->primes(i);
+            equation_counter++;
+            ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
+            this->equations.emplace_back(equation,ride_side_factor,this->current_s,conv<double>(c_1 / this->theoreticalMaxDistance),this->round, this->timer.step());
         }
     }
+    while(k_n < threshold);
 
-    if(diff_abs > 1 || u == 1)        // if not smooth or the equation is 1 = 1
-        return false;
-
-    v = conv<ZZ>(this->closest_RR(conv<RR>(u) / conv<RR>(this->N)));    // refresh v 
-    this->equations.emplace_back(equation,v,this->current_s,conv<double>(c_1 / this->theoreticalMaxDistance),this->round, this->timer.step());
-
-    return true;
+    return equation_counter > 0;
 }
 
 /**
@@ -376,19 +376,19 @@ bool NewEnum::getEquation(const Vec<RR>& input, RR& c_1)
  * @param N                     The N that is going to be factorized
  * @param primes                The vector of prime numbers used in the lattice
  * @param basis                 The strong reduced, random scaled and slight
- * reduced lattice basis. Required for the gram-schmidt-coefficents and the 
+ * reduced lattice basis. Required for the gram-schmidt-coefficents and the
  * length of the orthogonal basis vectors.
- * @param U                     The transition matrix, that does the strong 
+ * @param U                     The transition matrix, that does the strong
  * BKZ reduction. Required to get the coordinates of the close vector respecting
  * the prime number lattice.
- * @param U_scaled              The transition matrix, that does the slight 
+ * @param U_scaled              The transition matrix, that does the slight
  * BKZ reduction. Also required to get the coordinats of the close vector.
  * @param target                The coordinates of the (shifted) target vector
- * @param target_shift          The shift that was done. required to shift 
+ * @param target_shift          The shift that was done. required to shift
  * the close vector back where it should be.
  * @param s_max                 The maximal pruning level.
  * @param min_restart_ratio     The minimal ratio that is required to restart
- * NewEnum. 
+ * NewEnum.
  * @param start_factor_A        The factor to set the minimal distance at the
  * beginning.
  */
@@ -432,7 +432,7 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
     this->precomputeVolumes(this->R_ii_squared.length());
     this->precomputeLevelProbabilitys();
 
-    // start algorithm with a startparameter A 
+    // start algorithm with a startparameter A
     this->A_curr = 0;
     for(long i = 1; i <= this->R_ii_squared.length(); i++)
     {
@@ -442,7 +442,7 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
     this->A_curr *= 0.25;
     this->theoreticalMaxDistance = this->A_curr;
     this->A_curr *= start_factor_A;
-    RR heuristicalMaxDistance = this->A_curr;        
+    RR heuristicalMaxDistance = this->A_curr;
 
     this->perform();
 
@@ -458,4 +458,57 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
 list<Equation> NewEnum::getEquations()
 {
     return this->equations;
+}
+
+
+void NewEnum::nextContinuedFraction(ZZ &h_n, ZZ &k_n, ZZ &h_nm1, ZZ &k_nm1, ZZ &h_nm2, ZZ &k_nm2, ZZ &a_nm1, RR &alpha_nm1)
+{
+    h_n = a_nm1 * h_nm1 + h_nm2;
+    k_n = a_nm1 * k_nm1 + k_nm2;
+    h_nm2 = h_nm1;
+    h_nm1 = h_n;
+    k_nm2 = k_nm1;
+    k_nm1 = k_n;
+    alpha_nm1 = inv(alpha_nm1 - floor(alpha_nm1));       // this is actually alpha_n
+    a_nm1 = FloorToZZ(alpha_nm1);                        // this is actually a_n
+}
+
+bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_side)
+{
+    // check smoothness of k_n
+    for(long i = 1; i <= this->n; i++)
+    {
+        while(k_n % this->primes(i) == 0)
+        {
+            equation(i) += 1;
+            k_n /= this->primes(i);
+        }
+    }
+
+    if(k_n > 1)        // if not smooth
+        return false;
+
+    if(right_side < 0)
+        equation(this->n + 1) = 1;
+    else
+        equation(n + 1) = 0;
+
+    ZZ right_side_abs = abs(right_side);
+
+    // check smoothness of the right side
+    for(long i = 1; i <= this->n; i++)
+    {
+        while(right_side_abs % this->primes(i) == 0)
+        {
+            if(equation(i) > 0)       // cancel
+                left_side /= this->primes(i);
+            equation(i) -= 1;
+            right_side_abs /= this->primes(i);
+        }
+    }
+
+    if(right_side_abs > 1 || left_side == 1)        // if not smooth or the equation is 1 = 1
+        return false;
+
+    return true;
 }
