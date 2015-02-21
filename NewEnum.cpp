@@ -310,61 +310,54 @@ void NewEnum::computeUV(const Vec<RR>& input, ZZ& u, ZZ& v)
  */
 bool NewEnum::getEquation(const Vec<RR>& input, RR& c_1)
 {
-    // todo use this->computeUV(u,u_rel,v_rel);
-    Vec<RR> close_vec;
+    mul(this->temp_vec, conv<Mat<RR> >(this->U_scaled), input);
+    this->temp_vec += this->shift;
+    mul(this->close_vec, conv<Mat<RR> >(this->U), this->temp_vec);
 
-    Vec<RR> temp;
-    mul(temp, conv<Mat<RR> >(this->U_scaled), input);
-    temp += this->shift;
-    mul(close_vec, conv<Mat<RR> >(this->U), temp);
+    this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
+    this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
 
-    Vec<long> raw_equation, equation;
-    raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
-    equation.SetLength(this->n + 1);         // exponents of the first primes and -1
-
-    ZZ u = conv<ZZ>(1);
+    NTL::set(this->u);       // u = 1
 
     for(long i = 1; i <= this->n; i++)
     {
-        if(close_vec(i) > 0)
+        if(this->close_vec(i) > 0)
         {
-            u *= power_ZZ(this->primes(i), conv<long>(close_vec(i)));
-            raw_equation(i) = conv<long>(close_vec(i));
+            this->u *= power_ZZ(this->primes(i), conv<long>(this->close_vec(i)));
+            this->raw_equation(i) = conv<long>(this->close_vec(i));
         }
         else
         {
-            raw_equation(i) = 0;
+            this->raw_equation(i) = 0;
         }
     }
 
-    RR v = conv<RR>(u) / conv<RR>(this->N),
-       d = v - this->closest_RR(v),
-       alpha_nm1 = NTL::abs(d);
-    ZZ vN = conv<ZZ>(this->closest_RR(v)) * this->N,
-       h_n = conv<ZZ>(0), h_nm1 = conv<ZZ>(1), h_nm2 = conv<ZZ>(0),
-       k_n = conv<ZZ>(1), k_nm1 = conv<ZZ>(0), k_nm2 = conv<ZZ>(1),
-       a_nm1 = conv<ZZ>(0),
-       threshold = power_ZZ(this->primes(this->n),2),
-       left_side, right_side,ride_side_factor;
-    long sign = NTL::sign(d),
+    this->v = conv<RR>(this->u) / conv<RR>(this->N);
+    this->d = this->v - this->closest_RR(this->v);
+    this->alpha_nm1 = NTL::abs(this->d);
+    this->vN = conv<ZZ>(this->closest_RR(this->v)) * this->N;
+    NTL::clear(this->h_n); NTL::set(this->h_nm1); NTL::clear(this->h_nm2);
+    NTL::set(this->k_n); NTL::clear(this->k_nm1); NTL::set(this->k_nm2);
+    NTL::clear(this->a_nm1);
+    long sign = NTL::sign(this->d),
          equation_counter = 0;
 
     do
     {
-        this->nextContinuedFraction(h_n, k_n, h_nm1, k_nm1, h_nm2, k_nm2, a_nm1, alpha_nm1);
+        this->nextContinuedFraction(this->h_n, this->k_n, this->h_nm1, this->k_nm1, this->h_nm2, this->k_nm2, this->a_nm1, this->alpha_nm1);
 
-        equation = raw_equation;
-        left_side = u * k_n;
-        right_side = abs(left_side - vN * k_n - sign * h_n * this->N);
+        this->equation = this->raw_equation;
+        this->left_side = this->u * this->k_n;
+        this->right_side = abs(this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
 
-        if(this->isSmooth(equation, k_n, left_side, right_side))
+        if(this->isSmooth(this->equation, this->k_n, this->left_side, this->right_side))
         {
             equation_counter++;
-            ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
-            this->equations.emplace_back(equation,ride_side_factor,this->current_s,conv<double>(c_1 / this->theoreticalMaxDistance),this->round, this->timer.step());
+            this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
+            this->equations.emplace_back(this->equation,this->ride_side_factor,this->current_s,conv<double>(c_1 / this->theoreticalMaxDistance),this->round, this->timer.step());
         }
     }
-    while(k_n < threshold);
+    while(this->k_n < this->threshold);
 
     return equation_counter > 0;
 }
@@ -401,6 +394,11 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
     this->N = N;
     this->decrease_max_distance = true;
     this->n = this->primes.length();
+
+    // setting up the getEquation workspace
+    this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
+    this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
+    this->threshold = power_ZZ(this->primes(this->n),3),
 
     ComputeGS(transpose(this->B),this->mu, this->R_ii_squared);
 

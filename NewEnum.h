@@ -97,6 +97,13 @@ private:
     RR theoreticalMaxDistance;
     vector<long> delayedStagesCounter;
 
+    // working space for getEquation
+    Vec<RR> close_vec, temp_vec;
+    Vec<long> raw_equation, equation;
+    ZZ u,threshold,vN,h_n,k_n,h_nm1,k_nm1,h_nm2,k_nm2,a_nm1,left_side,right_side,ride_side_factor;
+    RR v,d,alpha_nm1;
+
+
     void precomputeLevelProbabilitys();
 
     /**
