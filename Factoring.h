@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   Factoring.h
  * Author: AbcAeffchen
  *
@@ -20,6 +20,46 @@
 
 using namespace std;
 using namespace NTL;
+
+struct FactoringSettings
+{
+    ZZ N;
+    unsigned long n;
+    RR c;
+    int s_max = 14;
+    double A_start_factor = 0.2;
+    double restart_ratio = 0;
+    double reduce_ratio = 0.8;
+    long accuracy_factor = 10000;
+    long strong_bkz = 32;
+    long slight_bkz = 20;
+    unsigned long min_eqns;
+    long long int seed_type = -2;
+
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c) : N(N), n(n), c(c), min_eqns(n+1)
+    { }
+
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, unsigned long min_eqns) : N(N), n(n), c(c), min_eqns(min_eqns)
+    { }
+
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max, double A_start_factor,
+                      double restart_ratio, double reduce_ratio, long accuracy_factor,
+                      long strong_bkz, long slight_bkz, unsigned long min_eqns) : N(N), n(
+            n), c(c), s_max(s_max), A_start_factor(A_start_factor), restart_ratio(
+            restart_ratio), reduce_ratio(reduce_ratio), accuracy_factor(
+            accuracy_factor), strong_bkz(strong_bkz), slight_bkz(slight_bkz), min_eqns(
+            min_eqns)
+    { }
+
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max, double A_start_factor,
+                      double restart_ratio, double reduce_ratio, long accuracy_factor,
+                      long strong_bkz, long slight_bkz, unsigned long min_eqns,
+                      long long int seed_type) : N(N), n(n), c(c), s_max(
+            s_max), A_start_factor(A_start_factor), restart_ratio(restart_ratio), reduce_ratio(
+            reduce_ratio), accuracy_factor(accuracy_factor), strong_bkz(
+            strong_bkz), slight_bkz(slight_bkz), min_eqns(min_eqns), seed_type(seed_type)
+    { }
+};
 
 class Factoring
 {
@@ -117,7 +157,7 @@ private:
 public:
 
     /**
-     * Starts the programm
+     * Starts the program
      *
      * @param N This is going to be factorized
      * @param n The dimension
