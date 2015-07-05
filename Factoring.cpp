@@ -4,8 +4,8 @@
 using namespace std;
 using namespace NTL;
 
-/** 
- * scales the lattice basis, BKZ-reduces it slightly, and also converting the 
+/**
+ * scales the lattice basis, BKZ-reduces it slightly, and also converting the
  * target coordinates
  */
 void Factoring::randomScale()
@@ -41,7 +41,7 @@ void Factoring::randomScale()
  * Generates the prime lattice basis and make a strong BKZ reduction with
  * block size strong_bkz. The entrys of the basis have to be (big) integers
  * so the basis is multiplied by accurancy_factor bevor rounding.
- * @param accuracy_factor 
+ * @param accuracy_factor
  */
 void Factoring::setBasis(long accuracy_factor)
 {
@@ -66,9 +66,9 @@ void Factoring::setBasis(long accuracy_factor)
 }
 
 /**
- * Computes the coordinates of the target vector projected orthogonaly into 
- * the lattice plane. This method runs fast since the coordinates of the 
- * projection are all the same an can be computed by a formular. NOTICE: 
+ * Computes the coordinates of the target vector projected orthogonally into
+ * the lattice plane. This method runs fast since the coordinates of the
+ * projection are all the same an can be computed by a formula. NOTICE:
  * This method works only for the standard target vector.
  * @return Coordinates of the projected target vector.
  */
@@ -98,7 +98,7 @@ Vec<RR> Factoring::orthogonalProjection_pl()
 /**
  * Computes the coordinates of the target vector respecting the strong reduced
  * basis and shifted to the ground mesh. Requires the the transition matrix
- * U_inv to be setted.
+ * U_inv to be set.
  */
 void Factoring::setTargetCoordinates()
 {
@@ -121,23 +121,22 @@ void Factoring::setTargetCoordinates()
 }
 
 /**
- * Performes a strong BKZ reduction and sets this->U
+ * Performs a strong BKZ reduction and sets this->U
  * @param strong_bkz Block size of the BKZ reduction
  */
 void Factoring::reduceBasis(long strong_bkz)
 {
     this->timer.startTimer();
-    Mat<ZZ> U;      // Tansition matrix
-    Mat<ZZ> basis = transpose(this->B);
+    Mat<ZZ> U,      // Transition matrix
+            basis = transpose(this->B);
     cout << "starting strong BKZ" << endl;
     BKZ_FP(basis, U, 0.99, strong_bkz);                 // strong reducing
-    this->B = transpose(basis);
 
     this->U = transpose(U);
     inv(this->U_inv, this->U);
 
     cout << "finished strong BKZ" << endl;
-    
+
     this->file.statisticsStrongBkzTime(this->timer.stopTimer());
 }
 /**
@@ -165,9 +164,9 @@ void Factoring::search()
 
 
         this->timer.startTimer();
-        NewEnum newEnum = NewEnum(this->timer, this->file, this->stats, round, this->N, this->primes, this->B_scaled, 
-                          this->U, this->U_scaled, this->target_scaled_coordinates, 
-                          this->shift, this->s_max, this->restart_ratio, 
+        NewEnum newEnum = NewEnum(this->timer, this->file, this->stats, round, this->N, this->primes, this->B_scaled,
+                          this->U, this->U_scaled, this->target_scaled_coordinates,
+                          this->shift, this->s_max, this->restart_ratio,
                           this->reduce_ratio, this->A_start_factor);
 
         newEquations = newEnum.getEquations();
@@ -191,7 +190,7 @@ void Factoring::search()
     this->file.writeSummary(this->stats, this->timer.getTotalTime());
     this->file.closeEquationFile();
     this->file.closeStatisticsFile();
-    
+
     this->file.texToPdf();
 }
 
@@ -237,8 +236,8 @@ void Factoring::setPrimes(long n)
 }
 
 /**
- * Starts the programm
- *  
+ * Starts the program
+ *
  * @param N This is going to be factorized
  * @param n The dimension
  * @param c The c of the prime number lattice
@@ -263,9 +262,9 @@ Factoring::Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, doubl
     this->slight_bkz = slight_bkz;
     this->s_max = s_max;
     // write the current settings
-    
+
     this->setPrimes(n);
-    
+
     // setup random number generator
     long long int seed;
     if(seed_type <= -2)
@@ -277,9 +276,9 @@ Factoring::Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, doubl
     }
     else
         seed = seed_type;
-    
+
     this->rgen = mt19937(seed);
-    
+
     this->file.writeSettings(N, c, accuracy_factor, s_max, A_start_factor, reduce_ratio, strong_bkz, slight_bkz, n, this->primes(n), seed);
 
     if(min_eqns <= 0)
