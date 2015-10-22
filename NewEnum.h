@@ -1,9 +1,3 @@
-/*
- * File:   NewEnum.h
- * Author: AbcAeffchen
- *
- * Created on 21. September 2014, 17:13
- */
 
 #ifndef NEWENUM_H
 #define	NEWENUM_H
@@ -35,7 +29,7 @@ struct NewEnumStage
     RR y_t;                     // equals y(t)
     RR c_t;                     // equals c(t)
     RR c_tp1;                   // equals c(t+1)
-    Vec<double> u;              // equals Vec<RR> u but need less momory. u contains only integers, so its not importend if they are stored in RR or double
+    Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not importent if they are stored in RR or double
     unsigned long t;            // current coordinate
     Vec<RR> target;             // the coordinates of the target vector
     RR v_adjust;                // the v value used to adjust the target vector
@@ -43,7 +37,7 @@ struct NewEnumStage
     NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, Vec<RR> target, RR v_adjust);
 
     /**
-     * Convertrs the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
+     * Converts the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
      * @return
      */
     Vec<RR> get_u();
@@ -65,17 +59,17 @@ private:
     Vec<RR> R_ii_squared;           /**< Contains \f$\|\hat{b}_i\|^2 = r_{ii}^2\f$ */
 
     Vec<RR> tau;                    /**< The shifted target vector coordinates in the lattice basis */
-    Vec<RR> shift;                  /**< The shift. This Vector contains only integral entrys */
+    Vec<RR> shift;                  /**< The shift. This Vector contains only integral entries */
     bool decrease_max_distance;     /**< if false, the minimal distance will not decrease any more */
     double min_restart_ratio;       /**< the algorithm starts from the beginning, if the new close vector is at least this factor closer.
                                          min_restart_factor = 0 -> never restart, min_restart_factor = 1 -> always restart */
     double min_reduce_ratio;        /**< the algorithm reduces A_Curr, if the reduce ratio is lower (greater reduction) than this value,
                                          also after a equation was found and the algorithm is supposed not to reduce A_curr */
 
-    const Mat<ZZ>& B;               /**< The reduced, scacled and again reduced Basis */
-    const Mat<ZZ>& U;               /**< Transitionmatrix of the strong BKZ reduction */
-    const Mat<ZZ>& U_scaled;        /**< Transitionmatrix of the slight BKZ reduction */
-    long n;                         /**< Lattice dimension and the number of prims */
+    const Mat<ZZ>& B;               /**< The reduced, scaled and again reduced Basis */
+    const Mat<ZZ>& U;               /**< Transition matrix of the strong BKZ reduction */
+    const Mat<ZZ>& U_scaled;        /**< Transition matrix of the slight BKZ reduction */
+    long n;                         /**< Lattice dimension and the number of primes */
 
     // Factoring extension
     ZZ N;
@@ -85,7 +79,7 @@ private:
     // statistics
     long stages = 0;                    /**< Counts the stages in total */
 
-    vector<queue<NewEnumStage> > L;     /**< array of lists of delayd stages */
+    vector<queue<NewEnumStage> > L;     /**< array of lists of delayed stages */
     queue<NewEnumStage> restart_list;   /**< queue of stages that require to be performed from start */
     // precomputed
     Vec<RR> V;                          /**< Contains the values \f$V_t / (r_11 * ... * r_tt)\f$ */
@@ -104,18 +98,18 @@ private:
     RR v,d,alpha_nm1;
 
 
-    void precomputeLevelProbabilitys();
+    void precomputeLevelProbabilities();
 
     /**
-     * returns the closest interger to x -> \f$\lceil x \rfloor\f$
+     * returns the closest integer to x -> \f$\lceil x \rfloor\f$
      * runs in \f$\mathcal{O}(1)\f$
-     * @param x realnumber which to round
+     * @param x real number which to round
      * @return closest integer
      */
     RR closest_RR (RR x);
 
     /**
-     * Returns the smalest integer to y with \f$|u-y| < |next(u,y) - y|\f$
+     * Returns the smallest integer to y with \f$|u-y| < |next(u,y) - y|\f$
      * runs in \f$\mathcal{O}(1)\f$
      * @param u integer with minimal distance
      * @param y the 'center'
@@ -195,18 +189,18 @@ public:
 
     /**
      * Starts the NewEnum Algorithm to find close vectors and extract equations
-     * @param file                  Reference to the file object, that handls th
+     * @param file                  Reference to the file object, that handles th
      * data output.
      * @param N                     The N that is going to be factorized
      * @param primes                The vector of prime numbers used in the lattice
      * @param basis                 The strong reduced, random scaled and slight
-     * reduced lattice basis. Required for the gram-schmidt-coefficents and the
+     * reduced lattice basis. Required for the gram-schmidt-coefficients and the
      * length of the orthogonal basis vectors.
      * @param U                     The transition matrix, that does the strong
      * BKZ reduction. Required to get the coordinates of the close vector respecting
      * the prime number lattice.
      * @param U_scaled              The transition matrix, that does the slight
-     * BKZ reduction. Also required to get the coordinats of the close vector.
+     * BKZ reduction. Also required to get the coordinates of the close vector.
      * @param target                The coordinates of the (shifted) target vector
      * @param target_shift          The shift that was done. required to shift
      * the close vector back where it should be.

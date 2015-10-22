@@ -1,9 +1,3 @@
-/* 
- * File:   FileOutput.h
- * Author: AbcAeffchen
- *
- * Created on 21. September 2014, 18:32
- */
 
 #ifndef FILEOUTPUT_H
 #define	FILEOUTPUT_H
@@ -20,7 +14,7 @@
 #include <set>
 #include <vector>
 #include <time.h>
-#include <cstdlib> 
+#include <cstdlib>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -56,11 +50,11 @@ private:
     void writeEqnStatistics(const Equation& eqn, const Vec<long>& primes);
 
     void createDirectory();
-    
+
     string getFilePrefix();
-    
+
     void debugSeparator(string separatorText);
-    
+
 public:
 
     /**
@@ -68,7 +62,7 @@ public:
      * equations.
      */
     fstream debug;
-    
+
     FileOutput();
 
     void statisticNewRound(long round);
@@ -86,7 +80,7 @@ public:
     void writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed);
 
     void statisticsStrongBkzTime(double time);
-    
+
     void prepareEquationTable();
 
     void closeEquationFile();
@@ -94,9 +88,9 @@ public:
     void closeStatisticsFile();
 
     void writeSummary(const Statistics& stats, double time);
-    
+
     void texToPdf();
-    
+
 };
 
 #endif	/* FILEOUTPUT_H */

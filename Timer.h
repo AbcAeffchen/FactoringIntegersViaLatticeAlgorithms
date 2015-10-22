@@ -1,9 +1,3 @@
-/* 
- * File:   Timer.h
- * Author: AbcAeffchen
- *
- * Created on 21. September 2014, 18:32
- */
 
 #ifndef TIMER_H
 #define	TIMER_H
@@ -39,6 +33,4 @@ public:
     double getTotalTime();
 };
 
-
 #endif	/* TIMER_H */
-

@@ -12,16 +12,12 @@ NewEnumStage::NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const 
     this->v_adjust = v_adjust;
 }
 
-/**
- * Convertrs the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
- * @return
- */
 Vec<RR> NewEnumStage::get_u()
 {
     return conv<Vec<RR> >(this->u);
 }
 
-void NewEnum::precomputeLevelProbabilitys()
+void NewEnum::precomputeLevelProbabilities()
 {
     this->level_probabilitys.SetLength(this->s_max);
 
@@ -31,24 +27,11 @@ void NewEnum::precomputeLevelProbabilitys()
     }
 }
 
-/**
- * returns the closest interger to x -> \f$\lceil x \rfloor\f$
- * runs in \f$\mathcal{O}(1)\f$
- * @param x realnumber which to round
- * @return closest integer
- */
 RR NewEnum::closest_RR (RR x)
 {
     return ceil(x-0.5);
 }
 
-/**
- * Returns the smalest integer to y with \f$|u-y| < |next(u,y) - y|\f$
- * runs in \f$\mathcal{O}(1)\f$
- * @param u integer with minimal distance
- * @param y the 'center'
- * @return the next integer
- */
 RR NewEnum::next(RR u, RR y)
 {
     long side1 = sign(this->closest_RR(y) - y);
@@ -67,19 +50,12 @@ RR NewEnum::next(RR u, RR y)
         return next;
 }
 
-/**
- * clears the list of delayed stages
- */
 void NewEnum::clearL()
 {
     vector<queue<NewEnumStage> > empty;
     swap(this->L,empty);
 }
 
-/*
- * starts the performing by setting the first stage to the values that are
- * described under point 1 in the NewEnum algorithm.
- */
 void NewEnum::perform()
 {
     // Reset list of delayed stages
@@ -96,12 +72,6 @@ void NewEnum::perform()
     this->perform(start, true);
 }
 
-/**
- * performs all stages starting with a start stage
- * @param start The stage we are starting with
- * @param perform_delayed_stages If true, the method will also perform delayed
- * stages. Only the first call of this method should set this parameter to true.
- */
 void NewEnum::perform(NewEnumStage& current_stage, bool perform_delayed_stages)
 {
     this->decrease_max_distance = true;
@@ -240,11 +210,6 @@ void NewEnum::perform(NewEnumStage& current_stage, bool perform_delayed_stages)
     }
 }
 
-/**
- * Precomputes some data used for the volumeheuristic
- * runs in \f$\mathcal{O}(n)\f$
- * @param dim The dimension n of the lattice
- */
 void NewEnum::precomputeVolumes(long dim)
 {
     RR pi = ComputePi_RR();
@@ -303,11 +268,6 @@ void NewEnum::computeUV(const Vec<RR>& input, ZZ& u, ZZ& v)
     }
 }
 
-/**
- * computes (if possible) an equation from a given close vector
- * @param input Coordinates of a close vector
- * @return true if an equation was found, else false.
- */
 bool NewEnum::getEquation(const Vec<RR>& input, RR& c_1)
 {
     mul(this->temp_vec, conv<Mat<RR> >(this->U_scaled), input);
@@ -362,29 +322,6 @@ bool NewEnum::getEquation(const Vec<RR>& input, RR& c_1)
     return equation_counter > 0;
 }
 
-/**
- * Starts the NewEnum Algorithm to find close vectors and extract equations
- * @param file                  Reference to the file object, that handls th
- * data output.
- * @param N                     The N that is going to be factorized
- * @param primes                The vector of prime numbers used in the lattice
- * @param basis                 The strong reduced, random scaled and slight
- * reduced lattice basis. Required for the gram-schmidt-coefficents and the
- * length of the orthogonal basis vectors.
- * @param U                     The transition matrix, that does the strong
- * BKZ reduction. Required to get the coordinates of the close vector respecting
- * the prime number lattice.
- * @param U_scaled              The transition matrix, that does the slight
- * BKZ reduction. Also required to get the coordinats of the close vector.
- * @param target                The coordinates of the (shifted) target vector
- * @param target_shift          The shift that was done. required to shift
- * the close vector back where it should be.
- * @param s_max                 The maximal pruning level.
- * @param min_restart_ratio     The minimal ratio that is required to restart
- * NewEnum.
- * @param start_factor_A        The factor to set the minimal distance at the
- * beginning.
- */
 NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, ZZ N, const Vec<long>& primes, const Mat<ZZ>& basis,
     const Mat<ZZ>& U, const Mat<ZZ>& U_scaled, Vec<RR> target_coordinates, Vec<RR> target_shift,
     int s_max, double min_restart_ratio, double min_reduce_ratio, double start_factor_A )
@@ -423,14 +360,14 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
     else
         this->min_reduce_ratio = min_reduce_ratio;
 
-    // setting the decreaseing beavior
+    // setting the decreasing behavior
     this->decrease_max_distance = true;
 
     // precompute (Ballvolume...)
     this->precomputeVolumes(this->R_ii_squared.length());
-    this->precomputeLevelProbabilitys();
+    this->precomputeLevelProbabilities();
 
-    // start algorithm with a startparameter A
+    // start algorithm with a start parameter A
     this->A_curr = 0;
     for(long i = 1; i <= this->R_ii_squared.length(); i++)
     {
@@ -440,19 +377,16 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
     this->A_curr *= 0.25;
     this->theoreticalMaxDistance = this->A_curr;
     this->A_curr *= start_factor_A;
-    RR heuristicalMaxDistance = this->A_curr;
+    RR heuristicMaxDistance = this->A_curr;
 
     this->perform();
 
     this->stats.updateRoundStats(this->delayedStagesCounter[0] > 0, this->equations.size() > 0);
-    this->stats.updateDistanceStats(this->theoreticalMaxDistance,heuristicalMaxDistance,this->A_curr);
-    this->file.statisticsDistances(this->theoreticalMaxDistance,heuristicalMaxDistance,this->A_curr);
+    this->stats.updateDistanceStats(this->theoreticalMaxDistance, heuristicMaxDistance, this->A_curr);
+    this->file.statisticsDistances(this->theoreticalMaxDistance, heuristicMaxDistance, this->A_curr);
     this->file.statisticsDelayedStagesOnLevel(this->delayedStagesCounter);
 }
 
-/**
- * Returns a list of equations that were found in this round.
- */
 list<Equation> NewEnum::getEquations()
 {
     return this->equations;
@@ -505,8 +439,5 @@ bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_si
         }
     }
 
-    if(right_side_abs > 1 || left_side == 1)        // if not smooth or the equation is 1 = 1
-        return false;
-
-    return true;
+    return !(right_side_abs > 1 || left_side == 1);     // if not smooth or the equation is 1 = 1
 }

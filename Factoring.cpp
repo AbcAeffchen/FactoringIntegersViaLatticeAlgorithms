@@ -4,10 +4,6 @@
 using namespace std;
 using namespace NTL;
 
-/**
- * scales the lattice basis, BKZ-reduces it slightly, and also converting the
- * target coordinates
- */
 void Factoring::randomScale()
 {
     // scale
@@ -37,12 +33,6 @@ void Factoring::randomScale()
     return;
 }
 
-/**
- * Generates the prime lattice basis and make a strong BKZ reduction with
- * block size strong_bkz. The entrys of the basis have to be (big) integers
- * so the basis is multiplied by accurancy_factor bevor rounding.
- * @param accuracy_factor
- */
 void Factoring::setBasis(long accuracy_factor)
 {
     cout << "Setting Prime Lattice Basis" << endl;
@@ -65,13 +55,6 @@ void Factoring::setBasis(long accuracy_factor)
     this->B = transpose(basis);
 }
 
-/**
- * Computes the coordinates of the target vector projected orthogonally into
- * the lattice plane. This method runs fast since the coordinates of the
- * projection are all the same an can be computed by a formula. NOTICE:
- * This method works only for the standard target vector.
- * @return Coordinates of the projected target vector.
- */
 Vec<RR> Factoring::orthogonalProjection_pl()
 {
     Vec<RR> orth_target;
@@ -95,11 +78,6 @@ Vec<RR> Factoring::orthogonalProjection_pl()
     return orth_target;
 }
 
-/**
- * Computes the coordinates of the target vector respecting the strong reduced
- * basis and shifted to the ground mesh. Requires the the transition matrix
- * U_inv to be set.
- */
 void Factoring::setTargetCoordinates()
 {
     // getting the coordinates respecting the prime number lattice
@@ -120,10 +98,6 @@ void Factoring::setTargetCoordinates()
     }
 }
 
-/**
- * Performs a strong BKZ reduction and sets this->U
- * @param strong_bkz Block size of the BKZ reduction
- */
 void Factoring::reduceBasis(long strong_bkz)
 {
     this->timer.startTimer();
@@ -141,10 +115,7 @@ void Factoring::reduceBasis(long strong_bkz)
 
     this->file.statisticsStrongBkzTime(this->timer.stopTimer());
 }
-/**
- * Runs the search for relations. This method runs a loop until 3*n relations
- * were found
- */
+
 void Factoring::search()
 {
 //        NewEnum newEnum;
@@ -196,11 +167,6 @@ void Factoring::search()
     this->file.texToPdf();
 }
 
-/**
- * Adds new equations to the equation set and count duplicate equations.
- * @param newEquations
- * @return the number of duplicate equations from the input list.
- */
 long Factoring::addEquations(list<Equation>& newEquations)
 {
     long duplicates = 0;
@@ -237,21 +203,6 @@ void Factoring::setPrimes(long n)
     }
 }
 
-/**
- * Starts the program
- *
- * @param N This is going to be factorized
- * @param n The dimension
- * @param c The c of the prime number lattice
- * @param s_max The maximum pruning level
- * @param A_start_factor The upper bound of the distance is reduced by this factor bevor starting NewEnum
- * @param restart_ratio If the ratio of distances of a old close vector and a new close vector is lower
- * than this value, NewEnum will e restarted with a new maximal distance.
- * @param accuracy_factor Factor for the accurancy of the Basis
- * @param strong_bkz Block size for the string BKZ reduction
- * @param slight_bkz Block size for the slight BKZ reduction
- * @param seed_type -1 = random, -2 = timestamp (default), >= 0 cosntant
- */
 Factoring::Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, double restart_ratio, double reduce_ratio, long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns, long long int seed_type)
 {
     this->timer = Timer();
@@ -301,4 +252,3 @@ ZZ getN(long e)
     ZZ p2 = NextPrime(p1 + 2);
     return p1 * p2;
 }
-

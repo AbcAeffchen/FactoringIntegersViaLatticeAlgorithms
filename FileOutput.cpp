@@ -119,7 +119,7 @@ void FileOutput::writeEqnStatistics(const Equation& eqn, const Vec<long>& primes
 
 void FileOutput::createDirectory()
 {
-    system("mkdir output"); 
+    system("mkdir output");
 }
 
 /**
@@ -132,7 +132,7 @@ string FileOutput::getFilePrefix()
     tstruct = *localtime(&now);
     char buf[80];
     strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", &tstruct);
-    
+
     return buf;
 }
 
@@ -148,7 +148,7 @@ void FileOutput::debugSeparator(string separatorText)
 FileOutput::FileOutput()
 {
     this->createDirectory();
-    
+
     string filePrefix = this->getFilePrefix();
     std::stringstream formattedName;
     formattedName << "./output/" << filePrefix << "_equations.tex";
@@ -156,10 +156,10 @@ FileOutput::FileOutput()
     std::stringstream statisticsName;
     statisticsName << "./output/" << filePrefix << "_statistics.tex";
     statsName = filePrefix + "_statistics";
-    
+
     this->debug.open("./output/debug.txt", ios::out | ios::app);
     this->debugSeparator(filePrefix);
-    
+
     this->equations.open(formattedName.str().c_str(), ios::out);
     this->statistics.open(statisticsName.str().c_str(), ios::out);
 
@@ -195,7 +195,7 @@ FileOutput::FileOutput()
 void FileOutput::statisticNewRound(long round)
 {
     this->statistics << "\\section*{Round " << round << "}" << endl
-                     << "\\begin{longtable}{p{7.3cm}p{5.3cm}p{4.3cm}}" << endl;        
+                     << "\\begin{longtable}{p{7.3cm}p{5.3cm}p{4.3cm}}" << endl;
 }
 
 void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
@@ -209,10 +209,10 @@ void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
 void FileOutput::statisticsDistances(RR theoretical, RR heuristical, RR reduced)
 {
     this->statistics << "\\textbf{Distances:} \\newline " << endl;
-    this->statistics << "Theoretical: " << trunc(theoretical) << "\\newline" << endl;        
-    this->statistics << "Heuristical: " << trunc(heuristical) << "\\newline" << endl;        
-    this->statistics << "Reduced: " << trunc(reduced) << "\\newline" << endl;        
-    this->statistics << "Ratio: " << conv<double>(reduced/theoretical) << endl;        
+    this->statistics << "Theoretical: " << trunc(theoretical) << "\\newline" << endl;
+    this->statistics << "Heuristical: " << trunc(heuristical) << "\\newline" << endl;
+    this->statistics << "Reduced: " << trunc(reduced) << "\\newline" << endl;
+    this->statistics << "Ratio: " << conv<double>(reduced/theoretical) << endl;
 }
 
 void FileOutput::statisticsDelayedStagesOnLevel(vector<long> delayedStagesCounter)
@@ -230,7 +230,7 @@ void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<lo
     {
         this->statistics << "\\subsection*{No Equations found}" << endl;
         return;
-    }        
+    }
 
     this->statistics << "\\subsection*{Equations}" << endl;
     this->statistics << "\\begin{longtable}{llp{6cm}rp{4cm}rcr}" << endl
@@ -245,7 +245,7 @@ void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<lo
         this->writeEqnStatistics(*it, primes);
     }
     this->statistics << "\\end{longtable}" << endl;
-}    
+}
 
 void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes)
 {
@@ -274,7 +274,7 @@ void FileOutput::writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, doub
                     << "Slight BKZ block size: & $" << slight_bkz << "$\\\\" << endl
                     << "Seed for random number generator: & $" << seed << "$" << endl
                     << "\\end{tabular}\\\\" << endl;
-    
+
     this->statistics << "\\begin{tabular}{ll}" << endl
                      << "$N$ & $" << N << "\\approx 10^{" << round(log(N)/log(10)) << "}$ (ca. " << round(log(N)/log(2)) << " Bits)\\\\"
                      << "$c$ & $" << c << "$\\\\" << endl
@@ -297,7 +297,7 @@ void FileOutput::statisticsStrongBkzTime(double time)
 
 void FileOutput::prepareEquationTable()
 {
-    // start equationtable
+    // start equation table
     this->equations << "%\\begin{landscape}" << endl
                     << "\\begin{longtable}{rrp{6cm}rp{5cm}r}" << endl
                     << "\\toprule" << endl
@@ -324,7 +324,7 @@ void FileOutput::closeStatisticsFile()
 
 void FileOutput::writeSummary(const Statistics& stats, double time)
 {
-    this->statistics << endl << endl 
+    this->statistics << endl << endl
                     << "\\section*{Summary}" << endl
                     << "\\begin{tabular}{ll}" << endl
                     << "Rounds (total): & $" << stats.roundsTotal << "$\\\\" << endl
@@ -335,7 +335,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time)
                     << "Duplicate Equations & $" << stats.eqnDuplicates << "$\\\\" << endl
                     << "Unique equations per round & $" << 1.0 * stats.eqnUniqueTotal/stats.roundsTotal << "$\\\\" << endl
                     << "Unique equations per round with 1+ eqn. & $" << stats.avgNumUniqEqnPerRoundWithEqn << "$\\\\" << endl
-                    << "Total equations per round with 1+ eqn.   & $" << stats.avgNumEqnPerRoundWithEqn << "$\\\\\\midrule" << endl 
+                    << "Total equations per round with 1+ eqn.   & $" << stats.avgNumEqnPerRoundWithEqn << "$\\\\\\midrule" << endl
                     << "Runtime (total): & $" << time << "$s\\\\" << endl
                     << "Runtime (per unique equation): & $" << time/stats.eqnUniqueTotal << "$s\\\\\\midrule[0.05pt]" << endl
                     << "Min. time slight BKZ: & " << stats.minSlightBkz << "s\\\\" << endl

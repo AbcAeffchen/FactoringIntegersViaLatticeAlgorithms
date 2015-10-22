@@ -1,11 +1,5 @@
 
 #include "Factoring.h"
-#include <iostream>
-#include <cstdint>
-#include <vector>
-#include <set>
-#include <unordered_map>
-#include <algorithm>
 
 using namespace std;
 

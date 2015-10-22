@@ -1,9 +1,3 @@
-/* 
- * File:   Statistics.h
- * Author: AbcAeffchen
- *
- * Created on 21. September 2014, 21:37
- */
 
 #ifndef STATISTICS_H
 #define	STATISTICS_H
@@ -25,7 +19,7 @@ public:
     long roundsWithEquations = 0;           // rounds that found at least one equations
     long roundsWithoutDelayedStages = 0;
     long roundsWithoutReduction = 0;
-    
+
     long eqnUniqueTotal = 0;
     long eqnDuplicates = 0;
     double avgNumEqnPerRoundWithEqn = 0;
@@ -47,13 +41,13 @@ public:
     double minDistanceReduction = 0;
     double avgDistanceReduction = 0;
 
-    Statistics();
+    Statistics() {}
 
     void newSlightBkzTime(double time);
 
     void newNewEnumTime(double time, bool eqn);
 
-    void updateDistanceStats(const RR& theoretical, const RR& heuristical, const RR& reduced);
+    void updateDistanceStats(const RR& theoretical, const RR&heuristic, const RR& reduced);
 
     void updateRoundStats(bool delayed, bool eqn);
 
@@ -61,4 +55,3 @@ public:
 };
 
 #endif	/* STATISTICS_H */
-

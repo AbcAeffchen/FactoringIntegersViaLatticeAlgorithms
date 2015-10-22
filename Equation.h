@@ -1,9 +1,3 @@
-/* 
- * File:   Equation.h
- * Author: AbcAeffchen
- *
- * Created on 21. September 2014, 18:16
- */
 
 #ifndef EQUATION_H
 #define	EQUATION_H
