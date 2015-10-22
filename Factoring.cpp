@@ -132,6 +132,8 @@ void Factoring::reduceBasis(long strong_bkz)
     cout << "starting strong BKZ" << endl;
     BKZ_FP(basis, U, 0.99, strong_bkz);                 // strong reducing
 
+    this->B = transpose(basis);
+
     this->U = transpose(U);
     inv(this->U_inv, this->U);
 
