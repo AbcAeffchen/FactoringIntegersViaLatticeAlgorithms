@@ -1,7 +1,7 @@
 
 #include "NewEnum.h"
 
-void NewEnumStage::get_u(Vec<RR> &u)
+void NewEnumStage::get_u(Vec<RR> &u) const
 {
     conv(u,this->u);
 }
@@ -89,7 +89,7 @@ void NewEnum::run()
     cout << endl;
 }
 
-void NewEnum::perform(NewEnumStage& current_stage)
+void NewEnum::perform(const NewEnumStage& current_stage)
 {
     this->decrease_max_distance = true;
 

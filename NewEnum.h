@@ -40,7 +40,7 @@ struct NewEnumStage
      * Converts the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
      * @return
      */
-    void get_u(Vec<RR> &u);
+    void get_u(Vec<RR> &u) const;
 
 };
 
@@ -138,10 +138,10 @@ private:
      * @param perform_delayed_stages If true, the method will also perform delayed
      * stages. Only the first call of this method should set this parameter to true.
      */
-    void perform(NewEnumStage& start);
+    void perform(const NewEnumStage& start);
 
     /**
-     * Precomputes some data used for the volumeheuristic
+     * Precomputes some data used for the volume heuristic
      * runs in \f$\mathcal{O}(n)\f$
      * @param dim The dimension n of the lattice
      */
