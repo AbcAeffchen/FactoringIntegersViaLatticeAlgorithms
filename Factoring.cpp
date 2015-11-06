@@ -4,6 +4,34 @@
 using namespace std;
 using namespace NTL;
 
+// first 300 prime numbers
+const vector<long> _primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
+                              61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127,
+                              131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193,
+                              197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269,
+                              271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
+                              353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431,
+                              433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503,
+                              509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599,
+                              601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673,
+                              677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761,
+                              769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857,
+                              859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947,
+                              953, 967, 971, 977, 983, 991, 997, 1009, 1013, 1019, 1021, 1031,
+                              1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097,
+                              1103, 1109, 1117, 1123, 1129, 1151, 1153, 1163, 1171, 1181, 1187,
+                              1193, 1201, 1213, 1217, 1223, 1229, 1231, 1237, 1249, 1259, 1277,
+                              1279, 1283, 1289, 1291, 1297, 1301, 1303, 1307, 1319, 1321, 1327,
+                              1361, 1367, 1373, 1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439,
+                              1447, 1451, 1453, 1459, 1471, 1481, 1483, 1487, 1489, 1493, 1499,
+                              1511, 1523, 1531, 1543, 1549, 1553, 1559, 1567, 1571, 1579, 1583,
+                              1597, 1601, 1607, 1609, 1613, 1619, 1621, 1627, 1637, 1657, 1663,
+                              1667, 1669, 1693, 1697, 1699, 1709, 1721, 1723, 1733, 1741, 1747,
+                              1753, 1759, 1777, 1783, 1787, 1789, 1801, 1811, 1823, 1831, 1847,
+                              1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
+                              1933, 1949, 1951, 1973, 1979, 1987};
+
+
 void Factoring::randomScale()
 {
     // scale
@@ -19,40 +47,36 @@ void Factoring::randomScale()
         }
     }
     // reduce
-    Mat<ZZ> U_scaled;  // Transition Matrix for the following BKZ-reduction
-    this->B_scaled = transpose(this->B_scaled);
-    BKZ_FP(this->B_scaled, U_scaled, 0.99, this->slight_bkz);
-    this->B_scaled = transpose(this->B_scaled);
+    transpose(this->B_scaled,this->B_scaled);
+    BKZ_FP(this->B_scaled, this->U_scaled, 0.99, this->slight_bkz);
+    transpose(this->B_scaled,this->B_scaled);
 
-    this->U_scaled = transpose(U_scaled);
+    transpose(this->U_scaled,this->U_scaled);
     inv(this->U_scaled_inv, this->U_scaled);
 
     // apply the reduction to the coordinate vector
-    mul(this->target_scaled_coordinates, conv<Mat<RR> >(this->U_scaled_inv), this->target_coordinates);
+    mul(this->target_scaled_coordinates, conv<Mat<RR>>(this->U_scaled_inv), this->target_coordinates);
 
     return;
 }
 
 void Factoring::setBasis(long accuracy_factor)
 {
-    cout << "Setting Prime Lattice Basis" << endl;
-    RR c = this->c;
+    cout << "Setting Prime Lattice Basis: ";
     long n = this->primes.length();
 
-    Mat<ZZ> basis;
-
-    basis.SetDims(n, n + 1);    // transposed
+    this->B.SetDims(n, n + 1);    // transposed
     // Setting the basis
     for(long i = 1; i <= n; i++)
     {
-        basis(i,i) = conv<ZZ>(accuracy_factor * SqrRoot(log(conv<RR>(this->primes(i)))));
-        if(c < 1)
-            basis(i, n + 1) = conv<ZZ>(pow(conv<RR>(this->N),c) * accuracy_factor * log(conv<RR>(this->primes(i))));        // todo N^c can be precomputed
+        this->B(i,i) = conv<ZZ>(accuracy_factor * SqrRoot(log(conv<RR>(this->primes(i)))));
+        if(this->c < 1)
+            this->B(i, n + 1) = conv<ZZ>(pow(conv<RR>(this->N),this->c) * accuracy_factor * log(conv<RR>(this->primes(i))));        // todo N^c can be precomputed
         else
-            basis(i, n + 1) = conv<ZZ>(conv<RR>(this->N * accuracy_factor) * log(conv<RR>(this->primes(i))));
+            this->B(i, n + 1) = conv<ZZ>(conv<RR>(this->N * accuracy_factor) * log(conv<RR>(this->primes(i))));
     }
 
-    this->B = transpose(basis);
+    cout << "finished" << endl;
 }
 
 Vec<RR> Factoring::orthogonalProjection_pl()
@@ -64,13 +88,11 @@ Vec<RR> Factoring::orthogonalProjection_pl()
     RR N_RR = conv<RR>(this->N);
     RR N_RR_2c = pow(N_RR, 2 * this->c);
 
-    RR prime_prod;
-    NTL::set(prime_prod); // prim_prod = 1;
-
+    double log_prim_prod = 0;
     for(long i = 1; i <= n; i++)
-        prime_prod *= conv<RR>(this->primes(i));
+        log_prim_prod += log(this->primes(i));
 
-    RR a = ( N_RR_2c * log(N_RR) ) / (1 + N_RR_2c * log(prime_prod) );
+    RR a = ( N_RR_2c * log(N_RR) ) / (1 + N_RR_2c * log_prim_prod);
 
     for(long i = 1; i <= n; i++)
         orth_target(i) = a;
@@ -101,17 +123,18 @@ void Factoring::setTargetCoordinates()
 void Factoring::reduceBasis(long strong_bkz)
 {
     this->timer.startTimer();
-    Mat<ZZ> U,      // Transition matrix
-            basis = transpose(this->B);
-    cout << "starting strong BKZ" << endl;
-    BKZ_FP(basis, U, 0.99, strong_bkz);                 // strong reducing
+    // this->B is still transposed
+//    transpose(this->B,this->B);
 
-    this->B = transpose(basis);
+    cout << "Strong BKZ reduction: ";
+    BKZ_FP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
 
-    this->U = transpose(U);
+    transpose(this->B,this->B);
+    transpose(this->U,this->U);
+
     inv(this->U_inv, this->U);
 
-    cout << "finished strong BKZ" << endl;
+    cout << "finished" << endl;
 
     this->file.statisticsStrongBkzTime(this->timer.stopTimer());
 }
@@ -138,9 +161,9 @@ void Factoring::search()
 
         this->timer.startTimer();
         NewEnum newEnum = NewEnum(this->timer, this->file, this->stats, round, this->N, this->primes, this->B_scaled,
-                          this->U, this->U_scaled, this->target_scaled_coordinates,
-                          this->shift, this->s_max, this->restart_ratio,
-                          this->reduce_ratio, this->A_start_factor);
+                                  this->U, this->U_scaled, this->target_scaled_coordinates,
+                                  this->shift, this->max_level, this->restart_ratio,
+                                  this->reduce_ratio, this->A_start_factor);
 
         newEquations = newEnum.getEquations();
         newEnumTime = this->timer.stopTimer();
@@ -153,8 +176,8 @@ void Factoring::search()
 
         newDuplicates = this->addEquations(newEquations);
         // display round results
-        cout << " -> new equations:         " << newEquations.size() << "  |  " << this->uniqueEquations.size() << endl;
-        cout << " -> duplicate equations:   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
+        cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->min_eqns << ")" << endl;
+        cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
     }
     this->stats.closeStatistics(round,this->uniqueEquations.size(),this->eqnDuplicates);
 
@@ -191,30 +214,28 @@ long Factoring::addEquations(list<Equation>& newEquations)
 
 void Factoring::setPrimes(long n)
 {
-    long prime_num = n;
+    this->primes.SetLength(n);
 
-    this->primes.SetLength(prime_num);
+    for(long i = 0; i < min(n,300); ++i)
+        this->primes[i] = _primes[i];
 
-    long prime = 1;
-    for(long i = 1; i <= prime_num; i++)
-    {
-        prime = NextPrime(prime+1);
-        this->primes(i) = prime;
-    }
+    for(long i = 301; i <= n; i++)
+        NextPrime(this->primes(i),this->primes(i-1)+2);
 }
 
-Factoring::Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, double restart_ratio, double reduce_ratio, long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns, long long int seed_type)
+Factoring::Factoring(ZZ N, long n, RR c, int max_level, double A_start_factor,
+                     double restart_ratio, double reduce_ratio, long accuracy_factor,
+                     long strong_bkz, long slight_bkz, unsigned long min_eqns,
+                     long long int seed_type)
+        : N(N), c(c)
 {
     this->timer = Timer();
-    // save the programm parameters
-    this->N = N;
-    this->c = c;
+    // save the program parameters
     this->A_start_factor = A_start_factor;
     this->restart_ratio = restart_ratio;
     this->reduce_ratio = reduce_ratio;
     this->slight_bkz = slight_bkz;
-    this->s_max = s_max;
-    // write the current settings
+    this->max_level = max_level;
 
     this->setPrimes(n);
 
@@ -232,7 +253,8 @@ Factoring::Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, doubl
 
     this->rgen = mt19937(seed);
 
-    this->file.writeSettings(N, c, accuracy_factor, s_max, A_start_factor, reduce_ratio, strong_bkz, slight_bkz, n, this->primes(n), seed);
+    // write the current settings
+    this->file.writeSettings(N, c, accuracy_factor, max_level, A_start_factor, reduce_ratio, strong_bkz, slight_bkz, n, this->primes(n), seed);
 
     if(min_eqns <= 0)
         this->min_eqns = n + 1;

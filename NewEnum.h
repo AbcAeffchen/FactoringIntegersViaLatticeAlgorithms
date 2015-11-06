@@ -29,18 +29,18 @@ struct NewEnumStage
     RR y_t;                     // equals y(t)
     RR c_t;                     // equals c(t)
     RR c_tp1;                   // equals c(t+1)
-    Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not importent if they are stored in RR or double
+    Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not important if they are stored in RR or double
     unsigned long t;            // current coordinate
-    Vec<RR> target;             // the coordinates of the target vector
-    RR v_adjust;                // the v value used to adjust the target vector
 
-    NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, Vec<RR> target, RR v_adjust);
+    NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
+            : y_t(y_t), c_t(c_t), c_tp1(c_tp1), u(conv<Vec<double>>(u)), t(t)
+    {}
 
     /**
      * Converts the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
      * @return
      */
-    Vec<RR> get_u();
+    void get_u(Vec<RR> &u);
 
 };
 
@@ -58,8 +58,8 @@ private:
     Mat<RR> mu;                     /**< Contains the Gram-Schmidt coefficients */
     Vec<RR> R_ii_squared;           /**< Contains \f$\|\hat{b}_i\|^2 = r_{ii}^2\f$ */
 
-    Vec<RR> tau;                    /**< The shifted target vector coordinates in the lattice basis */
-    Vec<RR> shift;                  /**< The shift. This Vector contains only integral entries */
+    const Vec<RR> tau;              /**< The shifted target vector coordinates in the lattice basis */
+    const Vec<RR> shift;            /**< The shift. This Vector contains only integral entries */
     bool decrease_max_distance;     /**< if false, the minimal distance will not decrease any more */
     double min_restart_ratio;       /**< the algorithm starts from the beginning, if the new close vector is at least this factor closer.
                                          min_restart_factor = 0 -> never restart, min_restart_factor = 1 -> always restart */
@@ -68,37 +68,40 @@ private:
 
     const Mat<ZZ>& B;               /**< The reduced, scaled and again reduced Basis */
     const Mat<ZZ>& U;               /**< Transition matrix of the strong BKZ reduction */
+    const Mat<RR>& U_RR;
     const Mat<ZZ>& U_scaled;        /**< Transition matrix of the slight BKZ reduction */
-    long n;                         /**< Lattice dimension and the number of primes */
+    const Mat<RR>& U_scaled_RR;
+    const long n;                   /**< Lattice dimension and the number of primes */
 
     // Factoring extension
-    ZZ N;
+    const ZZ N;
     const Vec<long>& primes;
     list<Equation> equations;
 
     // statistics
-    long stages = 0;                    /**< Counts the stages in total */
+    long stages = 0;                        /**< Counts the stages in total */
 
-    vector<queue<NewEnumStage> > L;     /**< array of lists of delayed stages */
-    queue<NewEnumStage> restart_list;   /**< queue of stages that require to be performed from start */
+    vector<queue<NewEnumStage>> L;          /**< array of lists of delayed stages */
     // precomputed
-    Vec<RR> V;                          /**< Contains the values \f$V_t / (r_11 * ... * r_tt)\f$ */
-    Vec<RR> level_probabilitys;         /**< the probability a stage must have to belong to the levels */
+    Vec<RR> V;                              /**< Contains the values \f$V_t / (r_11 * ... * r_tt)\f$ */
+    Vec<double> log_V;
+    Vec<RR> level_probabilities;            /**< the probability a stage must have to belong to the levels */
+    Vec<double> log_t;                      /**< contains the values log(t) for t = 1...n */
 
-    int s_max;                          /**< maximum level */
-    int current_s = 10;                 /**< current level */
+    int max_level;                          /**< maximum level */
+    int current_level = 10;                 /**< current level */
     RR A_curr;
     RR theoreticalMaxDistance;
     vector<long> delayedStagesCounter;
 
-    // working space for getEquation
+    // working space for checkForEquation()
     Vec<RR> close_vec, temp_vec;
-    Vec<long> raw_equation, equation;
-    ZZ u,threshold,vN,h_n,k_n,h_nm1,k_nm1,h_nm2,k_nm2,a_nm1,left_side,right_side,ride_side_factor;
-    RR v,d,alpha_nm1;
+    Vec<long> raw_equation, equation, close_vec_long;
+    ZZ u, threshold, vN, h_n, k_n, h_nm1, k_nm1, h_nm2,
+       k_nm2, a_nm1, left_side, right_side, ride_side_factor;
+    RR v, d, alpha_nm1;
 
-
-    void precomputeLevelProbabilities();
+    void precompute();
 
     /**
      * returns the closest integer to x -> \f$\lceil x \rfloor\f$
@@ -106,7 +109,7 @@ private:
      * @param x real number which to round
      * @return closest integer
      */
-    RR closest_RR (RR x);
+    inline RR closest_RR (const RR &x);
 
     /**
      * Returns the smallest integer to y with \f$|u-y| < |next(u,y) - y|\f$
@@ -115,7 +118,7 @@ private:
      * @param y the 'center'
      * @return the next integer
      */
-    RR next(RR u, RR y);
+    inline RR next(const RR &u, const RR &y);
 
     /**
      * clears the list of delayed stages
@@ -123,18 +126,10 @@ private:
     void clearL();
 
     /**
-     *
-     * @param u
-     * @param v
-     * @param z
-     */
-    void computeUV(const Vec<RR>& input, ZZ& u, ZZ& v);
-
-    /**
      * starts the performing by setting the first stage to the values that are
      * described under point 1 in the NewEnum algorithm.
      */
-    void perform();
+    void run();
 
     /**
      * performs all stages starting with a start stage
@@ -142,7 +137,7 @@ private:
      * @param perform_delayed_stages If true, the method will also perform delayed
      * stages. Only the first call of this method should set this parameter to true.
      */
-    void perform(NewEnumStage& start, bool perform_delayed_stages);
+    void perform(NewEnumStage& start);
 
     /**
      * Precomputes some data used for the volumeheuristic
@@ -156,7 +151,7 @@ private:
      * @param input Coordinates of a close vector
      * @return true if an equation was found, else false.
      */
-    bool getEquation(const Vec<RR>& input, RR& c_1 );
+    bool checkForEquation(const Vec<RR> &input, RR &c_1);
 
     /**
      * Computes the next continued fraction $h_n / k_n$ with $h_n = a_n * h_nm1 + h_nm2$
@@ -183,7 +178,10 @@ private:
      */
     bool isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_side);
 
-    Vec<RR> getCurrentTargetCoordinates(RR v_old, RR v_new);
+    inline long calculateLevel(long t, const RR &c_t)
+    {
+        return conv<long>(ceil(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V(t - 1) - this->log_t(t)) / log(2)));
+    }
 
 public:
 
@@ -204,15 +202,15 @@ public:
      * @param target                The coordinates of the (shifted) target vector
      * @param target_shift          The shift that was done. required to shift
      * the close vector back where it should be.
-     * @param s_max                 The maximal pruning level.
+     * @param max_level                 The maximal pruning level.
      * @param min_restart_ratio     The minimal ratio that is required to restart
      * NewEnum.
      * @param start_factor_A        The factor to set the minimal distance at the
      * beginning.
      */
-    NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, ZZ N, const Vec<long>& primes, const Mat<ZZ>& basis,
-        const Mat<ZZ>& U, const Mat<ZZ>& U_scaled, Vec<RR> target_coordinates, Vec<RR> target_shift,
-        int s_max, double min_restart_ratio, double min_reduce_ratio, double start_factor_A );
+    NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, const ZZ &N, const Vec<long>& primes, const Mat<ZZ>& basis,
+            const Mat<ZZ>& U, const Mat<ZZ>& U_scaled, const Vec<RR> &target_coordinates, const Vec<RR> &target_shift,
+            int max_level, double min_restart_ratio, double min_reduce_ratio, double start_factor_A );
 
     /**
      * Returns a list of equations that were found in this round.

@@ -17,41 +17,41 @@ using namespace NTL;
 
 struct FactoringSettings
 {
-    ZZ N;
-    unsigned long n;
-    RR c;
-    int s_max = 14;
-    double A_start_factor = 0.2;
-    double restart_ratio = 0;
-    double reduce_ratio = 0.8;
-    long accuracy_factor = 10000;
-    long strong_bkz = 32;
-    long slight_bkz = 20;
-    unsigned long min_eqns;
-    long long int seed_type = -2;
+    const ZZ N;
+    const unsigned long n;
+    const RR c;
+    const int max_level = 14;
+    const double A_start_factor = 0.2;
+    const double reduce_ratio = 0.8;
+    const long accuracy_factor = 10000;
+    const long strong_bkz = 32;
+    const long slight_bkz = 20;
+    const unsigned long min_eqns;
+    const long long int seed_type = -2;
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c) : N(N), n(n), c(c), min_eqns(n+1)
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c)
+            : N(N), n(n), c(c), min_eqns(n+1)
     { }
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, unsigned long min_eqns) : N(N), n(n), c(c), min_eqns(min_eqns)
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, unsigned long min_eqns)
+            : N(N), n(n), c(c), min_eqns(min_eqns)
     { }
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max, double A_start_factor,
-                      double restart_ratio, double reduce_ratio, long accuracy_factor,
-                      long strong_bkz, long slight_bkz, unsigned long min_eqns) : N(N), n(
-            n), c(c), s_max(s_max), A_start_factor(A_start_factor), restart_ratio(
-            restart_ratio), reduce_ratio(reduce_ratio), accuracy_factor(
-            accuracy_factor), strong_bkz(strong_bkz), slight_bkz(slight_bkz), min_eqns(
-            min_eqns)
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max,
+                      double A_start_factor,double restart_ratio, double reduce_ratio,
+                      long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns)
+            : N(N), n(n), c(c), max_level(s_max), A_start_factor(A_start_factor),
+              reduce_ratio(reduce_ratio), accuracy_factor(accuracy_factor), strong_bkz(strong_bkz),
+              slight_bkz(slight_bkz), min_eqns(min_eqns)
     { }
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max, double A_start_factor,
-                      double restart_ratio, double reduce_ratio, long accuracy_factor,
+    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int s_max,
+                      double A_start_factor, double reduce_ratio, long accuracy_factor,
                       long strong_bkz, long slight_bkz, unsigned long min_eqns,
-                      long long int seed_type) : N(N), n(n), c(c), s_max(
-            s_max), A_start_factor(A_start_factor), restart_ratio(restart_ratio), reduce_ratio(
-            reduce_ratio), accuracy_factor(accuracy_factor), strong_bkz(
-            strong_bkz), slight_bkz(slight_bkz), min_eqns(min_eqns), seed_type(seed_type)
+                      long long int seed_type)
+            : N(N), n(n), c(c), max_level(s_max), A_start_factor(A_start_factor),
+              reduce_ratio(reduce_ratio), accuracy_factor(accuracy_factor), strong_bkz(strong_bkz),
+              slight_bkz(slight_bkz), min_eqns(min_eqns), seed_type(seed_type)
     { }
 };
 
@@ -59,11 +59,11 @@ class Factoring
 {
 private:
 
-    ZZ N;                               /**< the number which is going to be factorized */
-    RR c;                               /**< */
-    double A_start_factor;              /**< */
-    double restart_ratio;               /**< */
-    double reduce_ratio;                /**< */
+    const ZZ N;                         /**< the number which is going to be factorized */
+    const RR c;                         /**< */
+    double A_start_factor,              /**< */
+           restart_ratio,               /**< */
+           reduce_ratio;                /**< */
 
     long slight_bkz;                    /**< */
     Vec<long> primes;                   /**< the primes used for factoring */
@@ -72,29 +72,29 @@ private:
     mt19937 rgen;
 
     // Parameters used in NewEnum
-    int s_max;                          /**< The maximum pruning level */
+    int max_level;                      /**< The maximum pruning level */
     // Mat<ZZ> B_scaled;                /**< The scaled lattice basis */
 
     // Data often used
-    Mat<ZZ> B;                          /**< The used strong reduced prim lattice basis */
-    Mat<ZZ> U;                          /**< The transition matrix with B_old*U = BKZ */
-    Mat<ZZ> U_inv;                      /**< The inverse of U */
-    Vec<RR> target_coordinates;         /**< The coordinates of th target vector (reduced and shifted) */
-    Vec<RR> shift;                      /**< The shift */
+    Mat<ZZ> B,                          /**< The used strong reduced prim lattice basis */
+            U,                          /**< The transition matrix with B_old*U = BKZ */
+            U_inv;                      /**< The inverse of U */
+    Vec<RR> target_coordinates,         /**< The coordinates of th target vector (reduced and shifted) */
+            shift;                      /**< The shift */
 
     // Buffer
-    Mat<ZZ> B_scaled;                   /**< The scaled BKZ-basis */
-    Mat<ZZ> U_scaled;                   /**< The transition matrix to the scaled BKZ basis */
-    Mat<ZZ> U_scaled_inv;               /**< The inverse of U_scale */
+    Mat<ZZ> B_scaled,                   /**< The scaled BKZ-basis */
+            U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
+            U_scaled_inv;               /**< The inverse of U_scale */
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
 
     // Output
     Timer timer;
     FileOutput file;
-    std::set<Equation> uniqueEquations;       /**< contains the equations that will be found */
+    std::set<Equation> uniqueEquations;         /**< contains the equations that will be found */
 
 
-    Statistics stats;                   /**< all the statistics */
+    Statistics stats;                           /**< all the statistics */
     long eqnDuplicates = 0;
 
     /**
@@ -133,7 +133,7 @@ private:
      */
     void reduceBasis(long strong_bkz);
 
-     /**
+    /**
      * Runs the search for relations. This method runs a loop until 3*n relations
      * were found
      */
@@ -156,7 +156,7 @@ public:
      * @param N This is going to be factorized
      * @param n The dimension
      * @param c The c of the prime number lattice
-     * @param s_max The maximum pruning level
+     * @param max_level The maximum pruning level
      * @param A_start_factor The upper bound of the distance is reduced by this factor before starting NewEnum
      * @param restart_ratio If the ratio of distances of a old close vector and a new close vector is lower
      * than this value, NewEnum will e restarted with a new maximal distance.
@@ -164,7 +164,7 @@ public:
      * @param strong_bkz Block size for the string BKZ reduction
      * @param slight_bkz Block size for the slight BKZ reduction
      */
-    Factoring(ZZ N, long n, RR c, int s_max, double A_start_factor, double restart_ratio, double reduce_ratio, long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns, long long int seed_type = -2);
+    Factoring(ZZ N, long n, RR c, int max_level, double A_start_factor, double restart_ratio, double reduce_ratio, long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns, long long int seed_type = -2);
 
 };
 
@@ -176,4 +176,3 @@ public:
 ZZ getN(long e);
 
 #endif	/* FACTORINGINTEGERS_H */
-

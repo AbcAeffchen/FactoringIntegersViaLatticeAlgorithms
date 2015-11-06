@@ -106,7 +106,7 @@ void default_settings()
 
 void speedTest()
 {
-    Factoring(getN(14), 90, conv<RR>(0.5), 19, 0.2, 0, 0.82, 10000, 32, 20, 20,34992116121LL);
+    Factoring(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0, 0.8, 10000, 32, 20, 91,1446721645);
 }
 
 void fast_test()
