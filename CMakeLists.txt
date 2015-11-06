@@ -4,12 +4,12 @@ project(FactoringIntegersViaLatticeAlgorithms C CXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -lpthread")
 
 set(SOURCE_FILES startProgram.cpp
-                 Equation.h Equation.cpp
-                 Factoring.h Factoring.cpp
-                 FileOutput.h FileOutput.cpp
-                 NewEnum.h NewEnum.cpp
-                 Statistics.h Statistics.cpp
-                 Timer.h Timer.cpp)
+        Equation.h Equation.cpp
+        Factoring.h Factoring.cpp
+        NewEnum.h NewEnum.cpp
+        FileOutput.h FileOutput.cpp
+        Statistics.h Statistics.cpp
+        Timer.h Timer.cpp FactoringSettings.h)
 
 add_executable(FactoringIntegersViaLatticeAlgorithms ${SOURCE_FILES})
 

@@ -57,66 +57,66 @@ void manual_settings_input()
 
     cout << endl << endl;
 
-    Factoring(getN(N_size), n, c, s, A_factor, 0, reduce_ratio, 10000, bkz_strong, bkz_slight, min_eqns, seed_type);
+    Factoring(FactoringSettings(getN(N_size), n, c, s, A_factor, reduce_ratio, 10000, bkz_strong, bkz_slight, min_eqns, seed_type));
 }
 
 void test_series_n()
 {
-    Factoring(getN(20), 120, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 120, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 130, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 130, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 150, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 160, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 160, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
 void test_series_c()
 {
-    Factoring(getN(20), 140, conv<RR>(0.4), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.4), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.5), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.5), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.7), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.7), 17, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.8), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.8), 17, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
 void test_series_prune()
 {
-    Factoring(getN(20), 140, conv<RR>(0.6), 15, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 15, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 16, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 16, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2,0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 18, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 18, 0.2, 0.82, 10000, 32, 20, 25));
 
-    Factoring(getN(20), 140, conv<RR>(0.6), 19, 0.2, 0, 0.82, 10000, 32, 20, 25);
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 19, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
 void default_settings()
 {
-    Factoring(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0, 0.8, 10000, 32, 20, 91);
+    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91));
 }
 
 void speedTest()
 {
-    Factoring(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0, 0.8, 10000, 32, 20, 91,1446721645);
+    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1446721645));
 }
 
 void fast_test()
 {
-    Factoring(getN(14), 90, conv<RR>(0.5), 14, 0.2, 0, 0.8, 10000, 32, 20, 40,34992116121LL);
+    Factoring(FactoringSettings(getN(14), 90, conv<RR>(0.5), 14, 0.2, 0.8, 10000, 32, 20, 40,34992116121LL));
 }
 
 void default_settings_big_N()
 {
-    Factoring(getN(20), 150, conv<RR>(1.0/2.0), 19, 0.2, 0, 0.75, 10000, 32, 20, 20);
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1.0/2.0), 19, 0.2, 0.75, 10000, 32, 20, 20));
 }
 
 void menu()

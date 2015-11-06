@@ -11,7 +11,6 @@ void NewEnum::precompute()
     this->level_probabilities.SetLength(this->max_level);
     for(long level = 10; level <= this->max_level; level++)
     {
-//        this->level_probabilities(level) = power2_RR(level * (-1));
          power2(this->level_probabilities(level),level * (-1));
     }
 
@@ -23,6 +22,11 @@ void NewEnum::precompute()
 RR NewEnum::closest_RR(const RR &x)
 {
     return ceil(x-0.5);
+}
+
+void NewEnum::closest_RR(RR &out, const RR &x)
+{
+    ceil(out, x-0.5);
 }
 
 RR NewEnum::next(const RR &u, const RR &y)
@@ -55,12 +59,12 @@ void NewEnum::run()
     // Reset list of delayed stages
     this->current_level = 10;
     this->clearL();
-    this->L = vector<queue<NewEnumStage> > (this->max_level - 9);          // setting the number of queues of stages
+    this->L = vector<queue<NewEnumStage>>(this->max_level - 9);          // setting the number of queues of stages
 
     Vec<RR> u;                              // coordinates of a close vector
     u.SetLength(this->n);
 
-    u(this->n) = this->closest_RR(this->tau(this->n));
+    this->closest_RR(u(this->n),this->tau(this->n));
 
     NewEnumStage start = NewEnumStage(this->tau(this->n), conv<RR>(0), conv<RR>(0),u, this->n);
     this->perform(start);
@@ -107,7 +111,7 @@ void NewEnum::perform(NewEnumStage& current_stage)
 
     bool success;
 
-    // perform stages with s = current_s
+    // perform stages with s = current_level
     while(t <= max_t)
     {
         c(t) = c(t+1) + power(abs(u(t) - y(t)), 2) * this->R_ii_squared(t);
@@ -127,7 +131,7 @@ void NewEnum::perform(NewEnumStage& current_stage)
                 if(this->decrease_max_distance || c(1) / this->A_curr < this->min_reduce_ratio)
                 {
                     this->A_curr = c(1);        // reduce max distance
-//                        if(this->current_s == 10 && reduce_ratio < this->min_restart_ratio)      // min_restart_factor = 0 -> never restart, min_restart_factor = 1 -> always restart
+                    // todo add stage level recalculation
                     if(this->current_level == 10)
                     {
 //                        this->run();        // restart
@@ -161,7 +165,7 @@ void NewEnum::perform(NewEnumStage& current_stage)
                 y(t) += (this->tau(i) - u(i)) * this->mu(i,t);
             y(t) += this->tau(t);
 
-            u(t) = this->closest_RR(y(t));
+            this->closest_RR(u(t),y(t));
             continue;
         }
 
@@ -331,12 +335,13 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
     return equation_counter > 0;
 }
 
-NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, const ZZ &N, const Vec<long>& primes, const Mat<ZZ>& basis,
-                 const Mat<ZZ>& U, const Mat<ZZ>& U_scaled, const Vec<RR> &target_coordinates, const Vec<RR> &target_shift,
-                 int max_level, double min_restart_ratio, double min_reduce_ratio, double start_factor_A )
-: timer(timer), file(file), stats(stats), round(round), N(N),B(basis), U(U), U_RR(conv<Mat<RR>>(U)),
+NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &file,
+                 Statistics &stats, long round, const Vec<long> &primes, const Mat<ZZ> &basis,
+                 const Mat<ZZ> &U, const Mat<ZZ> &U_scaled, const Vec<RR> &target_coordinates,
+                 const Vec<RR> &target_shift)
+        : timer(timer), file(file), stats(stats), round(round), N(settings.N),B(basis), U(U), U_RR(conv<Mat<RR>>(U)),
   U_scaled(U_scaled), U_scaled_RR(conv<Mat<RR>>(U_scaled)), primes(primes), tau(target_coordinates),
-  shift(target_shift), n(primes.length())
+  shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio), max_level(settings.max_level)
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
@@ -345,23 +350,7 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
 
     ComputeGS(transpose(this->B),this->mu, this->R_ii_squared);
 
-    // Setting the maximum pruning level
-    if(max_level > 10)
-        this->max_level = max_level;
-    else
-        this->max_level = 10;
-
     this->delayedStagesCounter.resize(this->max_level - 9, 0);     // 0 is used for total counter
-
-    if(min_restart_ratio < 0)
-        this->min_restart_ratio = 0;        // never restart
-    else
-        this->min_restart_ratio = min_restart_ratio;
-
-    if(min_reduce_ratio < 0)
-        this->min_reduce_ratio = 0;        // never reduce
-    else
-        this->min_reduce_ratio = min_reduce_ratio;
 
     // setting the decreasing behavior
     this->decrease_max_distance = true;
@@ -379,7 +368,7 @@ NewEnum::NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, 
 
     this->A_curr *= 0.25;
     this->theoreticalMaxDistance = this->A_curr;
-    this->A_curr *= start_factor_A;
+    this->A_curr *= settings.A_start_factor;
     RR heuristicMaxDistance = this->A_curr;
     this->run();
 

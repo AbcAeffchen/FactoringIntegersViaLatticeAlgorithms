@@ -110,6 +110,7 @@ private:
      * @return closest integer
      */
     inline RR closest_RR (const RR &x);
+    inline void closest_RR (RR &out, const RR &x);
 
     /**
      * Returns the smallest integer to y with \f$|u-y| < |next(u,y) - y|\f$
@@ -187,30 +188,27 @@ public:
 
     /**
      * Starts the NewEnum Algorithm to find close vectors and extract equations
-     * @param file                  Reference to the file object, that handles th
-     * data output.
-     * @param N                     The N that is going to be factorized
-     * @param primes                The vector of prime numbers used in the lattice
-     * @param basis                 The strong reduced, random scaled and slight
-     * reduced lattice basis. Required for the gram-schmidt-coefficients and the
-     * length of the orthogonal basis vectors.
-     * @param U                     The transition matrix, that does the strong
-     * BKZ reduction. Required to get the coordinates of the close vector respecting
-     * the prime number lattice.
-     * @param U_scaled              The transition matrix, that does the slight
-     * BKZ reduction. Also required to get the coordinates of the close vector.
-     * @param target                The coordinates of the (shifted) target vector
-     * @param target_shift          The shift that was done. required to shift
-     * the close vector back where it should be.
-     * @param max_level                 The maximal pruning level.
-     * @param min_restart_ratio     The minimal ratio that is required to restart
-     * NewEnum.
-     * @param start_factor_A        The factor to set the minimal distance at the
-     * beginning.
+     * @param settings      Contains the settings for the whole program.
+     * @param file          Reference to the file object, that handles th
+     *                      data output.
+     * @param primes        The vector of prime numbers used in the lattice
+     * @param basis         The strong reduced, random scaled and slight
+     *                      reduced lattice basis. Required for the Gram-Schmidt
+     *                      coefficients and the length of the orthogonal basis vectors.
+     * @param U             The transition matrix, that does the strong
+     *                      BKZ reduction. Required to get the coordinates
+     *                      of the close vector respecting  the prime number lattice.
+     * @param U_scaled      The transition matrix, that does the slight
+     *                      BKZ reduction. Also required to get the
+     *                      coordinates of the close vector.
+     * @param target        The coordinates of the (shifted) target vector
+     * @param target_shift  The shift that was done. required to shift
+     *                      the close vector back where it should be.
      */
-    NewEnum(Timer& timer, FileOutput& file, Statistics& stats, long round, const ZZ &N, const Vec<long>& primes, const Mat<ZZ>& basis,
-            const Mat<ZZ>& U, const Mat<ZZ>& U_scaled, const Vec<RR> &target_coordinates, const Vec<RR> &target_shift,
-            int max_level, double min_restart_ratio, double min_reduce_ratio, double start_factor_A );
+    NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &file,
+            Statistics &stats, long round, const Vec<long> &primes, const Mat<ZZ> &basis,
+            const Mat<ZZ> &U, const Mat<ZZ> &U_scaled, const Vec<RR> &target_coordinates,
+            const Vec<RR> &target_shift);
 
     /**
      * Returns a list of equations that were found in this round.

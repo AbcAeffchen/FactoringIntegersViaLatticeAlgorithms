@@ -259,33 +259,34 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
 
 }
 
-void FileOutput::writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed)
+//void FileOutput::writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed)
+void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime, long long int seed)
 {
     this->equations << "\\begin{tabular}{ll}" << endl
-                    << "$N$ & $" << N << "\\approx 10^{" << round(log(N)/log(10)) << "}$ (ca. " << round(log(N)/log(2)) << " Bits)\\\\"
-                    << "$c$ & $" << c << "$\\\\" << endl
-                    << "$n$ & $ " << prime_num << "$\\\\" << endl
+                    << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
+                    << "$c$ & $" << settings.c << "$\\\\" << endl
+                    << "$n$ & $ " << settings.n << "$\\\\" << endl
                     << "$p_n$ & $ " << max_prime << "$\\\\" << endl
-                    << "Pruning Level: & $" << s_max << "$\\\\" << endl
-                    << "Basis accuracy factor: & $" << accuracy_factor << "$\\\\" << endl
-                    << "Reduce ratio: & $" << reduce_ratio << "$\\\\" << endl
-                    << "Start reduction factor: & $" << A_start_factor << "$\\\\" << endl
-                    << "Strong BKZ block size: & $" << strong_bkz << "$\\\\" << endl
-                    << "Slight BKZ block size: & $" << slight_bkz << "$\\\\" << endl
+                    << "Pruning Level: & $" << settings.max_level << "$\\\\" << endl
+                    << "Basis accuracy factor: & $" << settings.accuracy_factor << "$\\\\" << endl
+                    << "Reduce ratio: & $" << settings.reduce_ratio << "$\\\\" << endl
+                    << "Start reduction factor: & $" << settings.A_start_factor << "$\\\\" << endl
+                    << "Strong BKZ block size: & $" << settings.strong_bkz << "$\\\\" << endl
+                    << "Slight BKZ block size: & $" << settings.slight_bkz << "$\\\\" << endl
                     << "Seed for random number generator: & $" << seed << "$" << endl
                     << "\\end{tabular}\\\\" << endl;
 
     this->statistics << "\\begin{tabular}{ll}" << endl
-                     << "$N$ & $" << N << "\\approx 10^{" << round(log(N)/log(10)) << "}$ (ca. " << round(log(N)/log(2)) << " Bits)\\\\"
-                     << "$c$ & $" << c << "$\\\\" << endl
-                     << "$n$ & $ " << prime_num << "$\\\\" << endl
+                     << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
+                     << "$c$ & $" << settings.c << "$\\\\" << endl
+                     << "$n$ & $ " << settings.n << "$\\\\" << endl
                      << "$p_n$ & $ " << max_prime << "$\\\\" << endl
-                     << "Pruning Level: & $" << s_max << "$\\\\" << endl
-                     << "Basis accuracy factor: & $" << accuracy_factor << "$\\\\" << endl
-                     << "Reduce ratio: & $" << reduce_ratio << "$\\\\" << endl
-                     << "Start reduction factor: & $" << A_start_factor << "$\\\\" << endl
-                     << "Strong BKZ block size: & $" << strong_bkz << "$\\\\" << endl
-                     << "Slight BKZ block size: & $" << slight_bkz << "$\\\\" << endl
+                     << "Pruning Level: & $" << settings.max_level << "$\\\\" << endl
+                     << "Basis accuracy factor: & $" << settings.accuracy_factor << "$\\\\" << endl
+                     << "Reduce ratio: & $" << settings.reduce_ratio << "$\\\\" << endl
+                     << "Start reduction factor: & $" << settings.A_start_factor << "$\\\\" << endl
+                     << "Strong BKZ block size: & $" << settings.strong_bkz << "$\\\\" << endl
+                     << "Slight BKZ block size: & $" << settings.slight_bkz << "$\\\\" << endl
                      << "Seed for random number generator: & $" << seed << "$" << endl
                      << "\\end{tabular}\\\\" << endl;
 }

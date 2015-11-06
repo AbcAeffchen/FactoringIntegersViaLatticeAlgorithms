@@ -4,6 +4,7 @@
 
 #include "Equation.h"
 #include "Statistics.h"
+#include "FactoringSettings.h"
 
 #include <NTL/RR.h>
 #include <NTL/matrix.h>
@@ -22,6 +23,8 @@
 
 using namespace NTL;
 using namespace std;
+
+struct FactoringSettings;
 
 /**
  * FileOutput This class just writes stuff into some files. Add all file output
@@ -77,7 +80,8 @@ public:
 
     void writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes);
 
-    void writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed);
+//    void writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed);
+    void writeSettings(const FactoringSettings &settings, long max_prime, long long int seed);
 
     void statisticsStrongBkzTime(double time);
 
@@ -94,4 +98,3 @@ public:
 };
 
 #endif	/* FILEOUTPUT_H */
-

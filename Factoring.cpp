@@ -48,7 +48,7 @@ void Factoring::randomScale()
     }
     // reduce
     transpose(this->B_scaled,this->B_scaled);
-    BKZ_FP(this->B_scaled, this->U_scaled, 0.99, this->slight_bkz);
+    BKZ_FP(this->B_scaled, this->U_scaled, 0.99, this->settings.slight_bkz);
     transpose(this->B_scaled,this->B_scaled);
 
     transpose(this->U_scaled,this->U_scaled);
@@ -148,7 +148,7 @@ void Factoring::search()
     long newDuplicates;
     long round = 0;
 
-    while(this->uniqueEquations.size() < this->min_eqns)
+    while(this->uniqueEquations.size() < this->settings.min_eqns)
     {
         round++;
         cout << "Round " << round << endl;
@@ -160,10 +160,9 @@ void Factoring::search()
 
 
         this->timer.startTimer();
-        NewEnum newEnum = NewEnum(this->timer, this->file, this->stats, round, this->N, this->primes, this->B_scaled,
-                                  this->U, this->U_scaled, this->target_scaled_coordinates,
-                                  this->shift, this->max_level, this->restart_ratio,
-                                  this->reduce_ratio, this->A_start_factor);
+        NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats, round,
+                                  this->primes, this->B_scaled, this->U, this->U_scaled,
+                                  this->target_scaled_coordinates, this->shift);
 
         newEquations = newEnum.getEquations();
         newEnumTime = this->timer.stopTimer();
@@ -176,9 +175,10 @@ void Factoring::search()
 
         newDuplicates = this->addEquations(newEquations);
         // display round results
-        cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->min_eqns << ")" << endl;
+        cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns << ")" << endl;
         cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
     }
+
     this->stats.closeStatistics(round,this->uniqueEquations.size(),this->eqnDuplicates);
 
     this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
@@ -223,47 +223,33 @@ void Factoring::setPrimes(long n)
         NextPrime(this->primes(i),this->primes(i-1)+2);
 }
 
-Factoring::Factoring(ZZ N, long n, RR c, int max_level, double A_start_factor,
-                     double restart_ratio, double reduce_ratio, long accuracy_factor,
-                     long strong_bkz, long slight_bkz, unsigned long min_eqns,
-                     long long int seed_type)
-        : N(N), c(c)
+Factoring::Factoring(const FactoringSettings &settings)
+        : settings(settings), N(settings.N), c(settings.c)
 {
     this->timer = Timer();
-    // save the program parameters
-    this->A_start_factor = A_start_factor;
-    this->restart_ratio = restart_ratio;
-    this->reduce_ratio = reduce_ratio;
-    this->slight_bkz = slight_bkz;
-    this->max_level = max_level;
 
-    this->setPrimes(n);
+    this->setPrimes(settings.n);
 
     // setup random number generator
     long long int seed;
-    if(seed_type <= -2)
+    if(settings.seed_type <= -2)
         seed = time(NULL);
-    else if(seed_type == -1)
+    else if(settings.seed_type == -1)
     {
         random_device rd;
         seed = rd();
     }
     else
-        seed = seed_type;
+        seed = settings.seed_type;
 
     this->rgen = mt19937(seed);
 
     // write the current settings
-    this->file.writeSettings(N, c, accuracy_factor, max_level, A_start_factor, reduce_ratio, strong_bkz, slight_bkz, n, this->primes(n), seed);
-
-    if(min_eqns <= 0)
-        this->min_eqns = n + 1;
-    else
-        this->min_eqns = min_eqns;
+    this->file.writeSettings(this->settings, this->primes(settings.n), seed);
 
     this->file.prepareEquationTable();
-    this->setBasis(accuracy_factor);
-    this->reduceBasis(strong_bkz);
+    this->setBasis(settings.accuracy_factor);
+    this->reduceBasis(settings.strong_bkz);
     this->setTargetCoordinates();
     this->search();
 }
