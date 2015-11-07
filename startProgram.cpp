@@ -104,9 +104,14 @@ void default_settings()
     Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91));
 }
 
-void speedTest()
+void speedTestSmall()
 {
     Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1446721645));
+}
+
+void speedTestBig()
+{
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,1411729533));
 }
 
 void fast_test()
@@ -135,7 +140,8 @@ void menu()
          << "    -> N = 10^20, n = 140, c = 0.6, prune = 15 to 19 by steps of 1," << endl
          << "       min. equations = 50" << endl << endl
          << "(9) Run with custom settings" << endl << endl
-         << "(0) Run the speedTest" << endl << endl
+         << "(14) Run the speedTest (N~10^14)" << endl << endl
+         << "(20) Run the speedTest (N~10^20)" << endl << endl
          << "Quit by [Ctrl]+[C]" << endl
          << "Selection: ";
         cin >> choice;
@@ -157,8 +163,11 @@ void menu()
     case 9:
         manual_settings_input();
         break;
-    case 0:
-        speedTest();
+    case 14:
+        speedTestSmall();
+        break;
+    case 20:
+        speedTestBig();
         break;
     default:
         menu();
