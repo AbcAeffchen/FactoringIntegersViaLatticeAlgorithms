@@ -138,7 +138,7 @@ private:
      * @param perform_delayed_stages If true, the method will also perform delayed
      * stages. Only the first call of this method should set this parameter to true.
      */
-    void perform(const NewEnumStage& start);
+    inline void perform(const NewEnumStage& start);
 
     /**
      * Precomputes some data used for the volume heuristic
