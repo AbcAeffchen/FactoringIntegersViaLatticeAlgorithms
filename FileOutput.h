@@ -72,7 +72,7 @@ public:
 
     void statisticSlightBKZ(double slightBkz, double newEnum);
 
-    void statisticsDistances(RR theoretical, RR heuristical, RR reduced);
+    void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
     void statisticsDelayedStagesOnLevel(vector<long> delayedStagesCounter);
 

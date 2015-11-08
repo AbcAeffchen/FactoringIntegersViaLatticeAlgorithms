@@ -6,17 +6,14 @@ void NewEnumStage::get_u(Vec<RR> &u) const
     conv(u,this->u);
 }
 
-void NewEnum::precompute()
+Vec<double> NewEnum::precomputeLogT(long n)
 {
-    this->level_probabilities.SetLength(this->max_level);
-    for(long level = 10; level <= this->max_level; level++)
-    {
-         power2(this->level_probabilities(level),level * (-1));
-    }
+    Vec<double> log_t;
+    log_t.SetLength(n);
+    for(long t = 1; t <= n; t++)
+        log_t(t) = log(t);
 
-    this->log_t.SetLength(this->n);
-    for(long t = 1; t <= this->n; t++)
-        this->log_t(t) = log(t);
+    return log_t;
 }
 
 RR NewEnum::closest_RR(const RR &x)
@@ -28,7 +25,7 @@ void NewEnum::closest_RR(RR &out, const RR &x)
 {
     ceil(out, x-0.5);
 }
-
+// todo use reference instead of return!!!
 RR NewEnum::next(const RR &u, const RR &y)
 {
     long side1 = sign(this->closest_RR(y) - y);
@@ -49,44 +46,51 @@ RR NewEnum::next(const RR &u, const RR &y)
 
 void NewEnum::clearL()
 {
-    vector<queue<NewEnumStage>> empty;
+    vector<queue<NewEnumStage>> empty = vector<queue<NewEnumStage>>(this->max_level - 10);
     swap(this->L,empty);
 }
 
-void NewEnum::run()
+void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &new_U_scaled,
+                  const Vec<RR> &new_target_coordinates)
 {
+    this->prepare(round, newBasis, new_U_scaled, new_target_coordinates);
+
     cout << "Performing: ";
     // Reset list of delayed stages
     this->current_level = 10;
     this->clearL();
-    this->L = vector<queue<NewEnumStage>>(this->max_level - 9);          // setting the number of queues of stages
 
     Vec<RR> u;                              // coordinates of a close vector
     u.SetLength(this->n);
-
     this->closest_RR(u(this->n),this->tau(this->n));
 
-    NewEnumStage start = NewEnumStage(this->tau(this->n), conv<RR>(0), conv<RR>(0),u, this->n);
-    this->perform(start);
+    this->perform(NewEnumStage(this->tau(this->n), conv<RR>(0), conv<RR>(0),u, this->n));
 
     this->delayedStagesCounter[0] = 0;
 
-    for(/* this->current_level is 10 */; this->current_level <= this->max_level; this->current_level++)
+    for(this->current_level = 11; this->current_level <= this->max_level; this->current_level++)
     {
-        this->delayedStagesCounter[this->current_level - 10] = this->L[this->current_level - 10].size();
+        this->delayedStagesCounter[this->current_level - 10] = this->L[this->current_level - 11].size();
         this->delayedStagesCounter[0] += this->L[this->current_level - 11].size();
 
         // perform delayed stages
-        while(!this->L[this->current_level - 10].empty())
+        while(!this->L[this->current_level - 11].empty())
         {
-            this->perform(this->L[this->current_level - 10].front());
-            this->L[this->current_level - 10].pop();
+            this->perform(this->L[this->current_level - 11].front());
+            this->L[this->current_level - 11].pop();
         }
 
         cout << ".";
     }
 
     cout << endl;
+
+    // statistics
+    this->stats.updateRoundStats(this->delayedStagesCounter[0] > 0, this->equations.size() > 0);
+    this->stats.updateDistanceStats(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
+    this->file.statisticsDistances(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
+    this->file.statisticsDelayedStagesOnLevel(this->delayedStagesCounter);
+
 }
 
 void NewEnum::perform(const NewEnumStage& current_stage)
@@ -134,7 +138,7 @@ void NewEnum::perform(const NewEnumStage& current_stage)
                     // todo add stage level recalculation
                     if(this->current_level == 10)
                     {
-//                        this->run();        // restart
+                        // do something???
                         return;
                     }
                 }
@@ -172,7 +176,7 @@ void NewEnum::perform(const NewEnumStage& current_stage)
         // the program comes only this far, if level > current_s holds
         if(level <= this->max_level)
         {
-            this->L[level - 10].emplace(y(t),c(t),c(t+1),u,t);      // store the stage for later
+            this->L[level - 11].emplace(y(t),c(t),c(t+1),u,t);      // store the stage for later
         }
 
         // 2.1
@@ -182,71 +186,41 @@ void NewEnum::perform(const NewEnumStage& current_stage)
             break;
         u(t) = this->next(u(t), y(t));
     }
-
-    // 3
-    // perform the stages with 10 < s <= max_level
-//    long delayed_before = 0;
-//    long delayed_now = 0;
-//    if(perform_delayed_stages)
-//    {
-//        this->delayedStagesCounter[0] = 0;
-//        while(this->current_s <= this->max_level)
-//        {
-//            // Output of delayed stages status
-//
-//            cout << "#L[" << (this->current_s - 10) << "] = " << this->L[this->current_s - 10].size();
-//            this->delayedStagesCounter[this->current_s - 10] = this->L[this->current_s - 10].size();
-//            this->delayedStagesCounter[0] += this->L[this->current_s - 11].size();
-//            delayed_now = 0;
-//            for(int i = 0; i < this->max_level - 10; i++)
-//                delayed_now += this->L[i].size();
-//
-//            cout << "  |  " << delayed_now << "  |  " << (delayed_now - delayed_before) << endl;
-//            delayed_before = delayed_now;
-//
-//            // perform delayed stages
-//            while(!this->L[this->current_s - 10].empty())
-//            {
-//                this->perform(this->L[this->current_s - 10].front(), false);
-//                this->L[this->current_s - 10].pop();
-//            }
-//            this->current_s++;
-//        }
-//    }
 }
 
 void NewEnum::precomputeVolumes(long dim)
 {
+    Vec<RR> V;
+    V.SetLength(this->n);
+
     RR pi = ComputePi_RR();
-    this->V.SetLength(dim);
+    V.SetLength(this->n);
     Vec<RR> R_diag_prod;
-    R_diag_prod.SetLength(dim);
+    R_diag_prod.SetLength(this->n);
 
-    if(dim >= 1)
-        this->V(1) = conv<RR>(2);
-    if(dim >= 2)
-        this->V(2) = pi;
+    if(this->n >= 1)
+        V(1) = conv<RR>(2);
+    if(this->n >= 2)
+        V(2) = pi;
 
-    for(long i = 3; i <= dim; i++)
+    for(long i = 3; i <= this->n; i++)
     {
-        this->V(i) = this->V(i-2) * pi / (i/2.0);
+        V(i) = V(i-2) * pi / (i/2.0);
     }
 
     R_diag_prod(1) = SqrRoot(this->R_ii_squared(1));
-    this->V(1) /= R_diag_prod(1);
-    for(long i = 2; i <= dim; i++)
+    V(1) /= R_diag_prod(1);
+    for(long i = 2; i <= this->n; i++)
     {
         R_diag_prod(i) = SqrRoot(this->R_ii_squared(i)) * R_diag_prod(i-1);
-        this->V(i) /= R_diag_prod(i);
+        V(i) /= R_diag_prod(i);
     }
 
-    this->log_V.SetLength(dim);
-    for(long i = 1; i <= dim; i++)
+    this->log_V.SetLength(this->n);
+    for(long i = 1; i <= this->n; i++)
     {
-        this->log_V(i) = conv<double>(log(this->V(i)));
+        this->log_V(i) = conv<double>(log(V(i)));
     }
-
-    return;
 }
 
 //void NewEnum::computeUV(const Vec<RR>& input, ZZ& u, ZZ& v)
@@ -336,53 +310,22 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
 }
 
 NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &file,
-                 Statistics &stats, long round, const Vec<long> &primes, const Mat<ZZ> &basis,
-                 const Mat<ZZ> &U, const Mat<ZZ> &U_scaled, const Vec<RR> &target_coordinates,
-                 const Vec<RR> &target_shift)
-        : timer(timer), file(file), stats(stats), round(round), N(settings.N),B(basis), U(U), U_RR(conv<Mat<RR>>(U)),
-  U_scaled(U_scaled), U_scaled_RR(conv<Mat<RR>>(U_scaled)), primes(primes), tau(target_coordinates),
-  shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio), max_level(settings.max_level)
+                 Statistics &stats, const Vec<long> &primes, const Mat<ZZ> &U, const Vec<RR> &target_shift)
+        : settings(settings), timer(timer), file(file), stats(stats), N(settings.N), U_RR(conv<Mat<RR>>(U)),
+          primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
+          max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3))
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
     this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
-    power(this->threshold,this->primes(this->n),3),
-
-    ComputeGS(transpose(this->B),this->mu, this->R_ii_squared);
 
     this->delayedStagesCounter.resize(this->max_level - 9, 0);     // 0 is used for total counter
-
-    // setting the decreasing behavior
-    this->decrease_max_distance = true;
-
-    // precompute (Ballvolume...)
-    this->precomputeVolumes(this->R_ii_squared.length());
-    this->precompute();
-
-    // start algorithm with a start parameter A
-    this->A_curr = 0;
-    for(long i = 1; i <= this->R_ii_squared.length(); i++)
-    {
-        this->A_curr += this->R_ii_squared(i);
-    }
-
-    this->A_curr *= 0.25;
-    this->theoreticalMaxDistance = this->A_curr;
-    this->A_curr *= settings.A_start_factor;
-    RR heuristicMaxDistance = this->A_curr;
-    this->run();
-
-    this->stats.updateRoundStats(this->delayedStagesCounter[0] > 0, this->equations.size() > 0);
-    this->stats.updateDistanceStats(this->theoreticalMaxDistance, heuristicMaxDistance, this->A_curr);
-    this->file.statisticsDistances(this->theoreticalMaxDistance, heuristicMaxDistance, this->A_curr);
-    this->file.statisticsDelayedStagesOnLevel(this->delayedStagesCounter);
 }
 
 list<Equation> NewEnum::getEquations()
 {
     return this->equations;
 }
-
 
 void NewEnum::nextContinuedFraction(ZZ &h_n, ZZ &k_n, ZZ &h_nm1, ZZ &k_nm1, ZZ &h_nm2, ZZ &k_nm2, ZZ &a_nm1, RR &alpha_nm1)
 {
@@ -431,4 +374,39 @@ bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_si
     }
 
     return !(right_side_abs > 1 || left_side == 1);     // if not smooth or the equation is 1 = 1
+}
+
+void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &newU_scaled,
+                      const Vec<RR> &new_target_coordinates)
+{
+    this->round = round;
+    conv(this->U_scaled_RR,newU_scaled);
+    this->tau = new_target_coordinates;
+
+    this->current_level = 10; //this->min_level;
+    this->clearL();
+
+    ComputeGS(transpose(newBasis),this->mu, this->R_ii_squared);
+
+    this->equations.clear();
+    for(long i = 0; i < this->max_level - 10 + 1; i++)
+        this->delayedStagesCounter[i] = 0;
+
+    // setting the decreasing behavior
+    this->decrease_max_distance = true;
+
+    // precomputeLogT (Ballvolume...)
+    this->precomputeVolumes(this->n);
+
+    // start algorithm with a start parameter A
+    this->A_curr = 0;
+    for(long i = 1; i <= this->R_ii_squared.length(); i++)
+    {
+        this->A_curr += this->R_ii_squared(i);
+    }
+
+    this->A_curr *= 0.25;
+    this->theoreticalMaxDistance = this->A_curr;
+    this->A_curr *= this->settings.A_start_factor;
+    this->heuristicMaxDistance = this->A_curr;
 }

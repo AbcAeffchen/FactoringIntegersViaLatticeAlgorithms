@@ -48,6 +48,8 @@ class NewEnum
 {
 
 private:
+    const FactoringSettings settings;
+
     // Output
     Timer& timer;
     FileOutput& file;
@@ -58,19 +60,14 @@ private:
     Mat<RR> mu;                     /**< Contains the Gram-Schmidt coefficients */
     Vec<RR> R_ii_squared;           /**< Contains \f$\|\hat{b}_i\|^2 = r_{ii}^2\f$ */
 
-    const Vec<RR> tau;              /**< The shifted target vector coordinates in the lattice basis */
+    Vec<RR> tau;              /**< The shifted target vector coordinates in the lattice basis */
     const Vec<RR> shift;            /**< The shift. This Vector contains only integral entries */
     bool decrease_max_distance;     /**< if false, the minimal distance will not decrease any more */
-    double min_restart_ratio;       /**< the algorithm starts from the beginning, if the new close vector is at least this factor closer.
-                                         min_restart_factor = 0 -> never restart, min_restart_factor = 1 -> always restart */
     double min_reduce_ratio;        /**< the algorithm reduces A_Curr, if the reduce ratio is lower (greater reduction) than this value,
                                          also after a equation was found and the algorithm is supposed not to reduce A_curr */
 
-    const Mat<ZZ>& B;               /**< The reduced, scaled and again reduced Basis */
-    const Mat<ZZ>& U;               /**< Transition matrix of the strong BKZ reduction */
-    const Mat<RR>& U_RR;
-    const Mat<ZZ>& U_scaled;        /**< Transition matrix of the slight BKZ reduction */
-    const Mat<RR>& U_scaled_RR;
+    const Mat<RR> U_RR;
+    Mat<RR> U_scaled_RR;
     const long n;                   /**< Lattice dimension and the number of primes */
 
     // Factoring extension
@@ -83,25 +80,28 @@ private:
 
     vector<queue<NewEnumStage>> L;          /**< array of lists of delayed stages */
     // precomputed
-    Vec<RR> V;                              /**< Contains the values \f$V_t / (r_11 * ... * r_tt)\f$ */
-    Vec<double> log_V;
-    Vec<RR> level_probabilities;            /**< the probability a stage must have to belong to the levels */
-    Vec<double> log_t;                      /**< contains the values log(t) for t = 1...n */
+    Vec<double> log_V;                      /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
+    const Vec<double> log_t;                /**< contains the values log(t) for t = 1...n */
 
     int max_level;                          /**< maximum level */
     int current_level = 10;                 /**< current level */
     RR A_curr;
     RR theoreticalMaxDistance;
+    RR heuristicMaxDistance;
     vector<long> delayedStagesCounter;
 
     // working space for checkForEquation()
     Vec<RR> close_vec, temp_vec;
     Vec<long> raw_equation, equation, close_vec_long;
-    ZZ u, threshold, vN, h_n, k_n, h_nm1, k_nm1, h_nm2,
+    const ZZ threshold;
+    ZZ u, vN, h_n, k_n, h_nm1, k_nm1, h_nm2,
        k_nm2, a_nm1, left_side, right_side, ride_side_factor;
     RR v, d, alpha_nm1;
 
-    void precompute();
+    static Vec<double> precomputeLogT(long n);
+
+    void prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &newU_scaled,
+                 const Vec<RR> &new_target_coordinates);
 
     /**
      * returns the closest integer to x -> \f$\lceil x \rfloor\f$
@@ -125,12 +125,6 @@ private:
      * clears the list of delayed stages
      */
     void clearL();
-
-    /**
-     * starts the performing by setting the first stage to the values that are
-     * described under point 1 in the NewEnum algorithm.
-     */
-    void run();
 
     /**
      * performs all stages starting with a start stage
@@ -206,14 +200,19 @@ public:
      *                      the close vector back where it should be.
      */
     NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &file,
-            Statistics &stats, long round, const Vec<long> &primes, const Mat<ZZ> &basis,
-            const Mat<ZZ> &U, const Mat<ZZ> &U_scaled, const Vec<RR> &target_coordinates,
-            const Vec<RR> &target_shift);
+            Statistics &stats, const Vec<long> &primes, const Mat<ZZ> &U, const Vec<RR> &target_shift);
 
     /**
      * Returns a list of equations that were found in this round.
      */
     list<Equation> getEquations();
+
+    /**
+     * starts the performing by setting the first stage to the values that are
+     * described under point 1 in the NewEnum algorithm.
+     */
+    void run(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &new_U_scaled,
+             const Vec<RR> &new_target_coordinates);
 
 };
 

@@ -206,11 +206,11 @@ void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
     this->statistics << "\\end{longtable}" << endl;
 }
 
-void FileOutput::statisticsDistances(RR theoretical, RR heuristical, RR reduced)
+void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
 {
     this->statistics << "\\textbf{Distances:} \\newline " << endl;
     this->statistics << "Theoretical: " << trunc(theoretical) << "\\newline" << endl;
-    this->statistics << "Heuristical: " << trunc(heuristical) << "\\newline" << endl;
+    this->statistics << "Heuristical: " << trunc(heuristic) << "\\newline" << endl;
     this->statistics << "Reduced: " << trunc(reduced) << "\\newline" << endl;
     this->statistics << "Ratio: " << conv<double>(reduced/theoretical) << endl;
 }

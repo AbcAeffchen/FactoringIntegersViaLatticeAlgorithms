@@ -146,7 +146,10 @@ void Factoring::search()
     double newEnumTime;
     double slightBkzTime;
     long newDuplicates;
-    long round = 0;
+    unsigned long round = 0;
+
+    NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats,
+                              this->primes, this->U, this->shift);
 
     while(this->uniqueEquations.size() < this->settings.min_eqns)
     {
@@ -158,11 +161,9 @@ void Factoring::search()
         this->randomScale();    // scale and slight bkz
         slightBkzTime = this->timer.stopTimer();
 
-
         this->timer.startTimer();
-        NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats, round,
-                                  this->primes, this->B_scaled, this->U, this->U_scaled,
-                                  this->target_scaled_coordinates, this->shift);
+
+        newEnum.run(round,this->B_scaled, this->U_scaled, this->target_scaled_coordinates);
 
         newEquations = newEnum.getEquations();
         newEnumTime = this->timer.stopTimer();
