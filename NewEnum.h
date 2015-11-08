@@ -80,7 +80,8 @@ private:
 
     vector<queue<NewEnumStage>> L;          /**< array of lists of delayed stages */
     // precomputed
-    Vec<double> log_V;                      /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
+    const Vec<double> log_V;                /**< Contains the values \f$V_t\f$ */
+    Vec<double> log_V_minus_log_R_prod;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
     const Vec<double> log_t;                /**< contains the values log(t) for t = 1...n */
 
     int max_level;                          /**< maximum level */
@@ -98,7 +99,6 @@ private:
        k_nm2, a_nm1, left_side, right_side, ride_side_factor;
     RR v, d, alpha_nm1;
 
-    static Vec<double> precomputeLogT(long n);
 
     void prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &newU_scaled,
                  const Vec<RR> &new_target_coordinates);
@@ -139,7 +139,10 @@ private:
      * runs in \f$\mathcal{O}(n)\f$
      * @param dim The dimension n of the lattice
      */
-    void precomputeVolumes(long dim);
+    static Vec<double> precomputeVolumes(long n);
+    void precomputeLogV();
+
+    static Vec<double> precomputeLogT(long n);
 
     /**
      * computes (if possible) an equation from a given close vector
@@ -175,7 +178,7 @@ private:
 
     inline long calculateLevel(long t, const RR &c_t)
     {
-        return conv<long>(ceil(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V(t - 1) - this->log_t(t)) / log(2)));
+        return conv<long>(ceil(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V_minus_log_R_prod(t - 1) - this->log_t(t)) / log(2)));
     }
 
 public:

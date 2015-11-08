@@ -184,70 +184,54 @@ void NewEnum::perform(const NewEnumStage& current_stage)
     }
 }
 
-void NewEnum::precomputeVolumes(long dim)
+Vec<double> NewEnum::precomputeVolumes(long n)
 {
     Vec<RR> V;
-    V.SetLength(this->n);
+    Vec<double> log_V;
+    V.SetLength(n);
+    log_V.SetLength(n);
 
     RR pi = ComputePi_RR();
-    V.SetLength(this->n);
+    V.SetLength(n);
     Vec<RR> R_diag_prod;
-    R_diag_prod.SetLength(this->n);
+    R_diag_prod.SetLength(n);
 
-    if(this->n >= 1)
+    if(n >= 1)
         V(1) = conv<RR>(2);
-    if(this->n >= 2)
+    if(n >= 2)
         V(2) = pi;
 
-    for(long i = 3; i <= this->n; i++)
+    for(long i = 3; i <= n; i++)
     {
         V(i) = V(i-2) * pi / (i/2.0);
+        log_V(i) = log(conv<double>(V(i)));
     }
 
-    R_diag_prod(1) = SqrRoot(this->R_ii_squared(1));
-    V(1) /= R_diag_prod(1);
-    for(long i = 2; i <= this->n; i++)
-    {
-        R_diag_prod(i) = SqrRoot(this->R_ii_squared(i)) * R_diag_prod(i-1);
-        V(i) /= R_diag_prod(i);
-    }
-
-    this->log_V.SetLength(this->n);
-    for(long i = 1; i <= this->n; i++)
-    {
-        this->log_V(i) = conv<double>(log(V(i)));
-    }
+    return log_V;
 }
 
-//void NewEnum::computeUV(const Vec<RR>& input, ZZ& u, ZZ& v)
-//{
-//    Vec<RR> close_vec;
-//
-//    Vec<RR> temp;
-//    mul(temp, conv<Mat<RR> >(this->U_scaled), input);
-//    temp += this->shift;
-//    mul(close_vec, conv<Mat<RR> >(this->U), temp);
-//
-//    Vec<long> equation;
-//    v = conv<ZZ>(1);
-//    equation.SetLength(close_vec.length() + 1);     // exponents of the first primes and -1
-//
-//    u = conv<ZZ>(1);
-//
-//    for(long i = 1; i <= close_vec.length(); i++)
-//    {
-//        if(close_vec(i) > 0)
-//        {
-//            u *= power_ZZ(this->primes(i), conv<long>(close_vec(i)));
-//            equation(i) = conv<long>(close_vec(i));
-//        }
-//        else
-//        {
-//            equation(i) = 0;
-//            v *= power_ZZ(this->primes(i), conv<long>(-close_vec(i)));
-//        }
-//    }
-//}
+void NewEnum::precomputeLogV()
+{
+    Vec<double> log_R_diag_prod;
+    conv(log_R_diag_prod, this->R_ii_squared);
+
+    for(long i = 1; i <= this->n; i++)
+    {
+        log_R_diag_prod(i) = log(log_R_diag_prod(i)) / 2.0;
+    }
+
+    for(long i = 2; i <= this->n; i++)
+    {
+        log_R_diag_prod(i) += log_R_diag_prod(i - 1);
+    }
+
+    this->log_V_minus_log_R_prod = this->log_V;
+
+    for(long i = 1; i <= this->n; i++)
+    {
+        this->log_V_minus_log_R_prod(i) -= log_R_diag_prod(i);
+    }
+}
 
 bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
 {
@@ -309,7 +293,8 @@ NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &fi
                  Statistics &stats, const Vec<long> &primes, const Mat<ZZ> &U, const Vec<RR> &target_shift)
         : settings(settings), timer(timer), file(file), stats(stats), N(settings.N), U_RR(conv<Mat<RR>>(U)),
           primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
-          max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3))
+          max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3)),
+          log_V(NewEnum::precomputeVolumes(n))
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
@@ -391,8 +376,7 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ
     // setting the decreasing behavior
     this->decrease_max_distance = true;
 
-    // precomputeLogT (Ballvolume...)
-    this->precomputeVolumes(this->n);
+    this->precomputeLogV();
 
     // start algorithm with a start parameter A
     this->A_curr = 0;
