@@ -90,7 +90,7 @@ private:
     RR heuristicMaxDistance;
     vector<long> delayedStagesCounter;
 
-    // working space for checkForEquation()
+    // working space of checkForEquation()
     Vec<RR> close_vec, temp_vec;
     Vec<long> raw_equation, equation, close_vec_long;
     const ZZ threshold;
@@ -119,7 +119,7 @@ private:
      * @param y the 'center'
      * @return the next integer
      */
-    inline RR next(const RR &u, const RR &y);
+    inline void next(RR &out, const RR &u, const RR &y);
 
     /**
      * clears the list of delayed stages

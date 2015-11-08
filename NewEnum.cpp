@@ -25,23 +25,19 @@ void NewEnum::closest_RR(RR &out, const RR &x)
 {
     ceil(out, x-0.5);
 }
-// todo use reference instead of return!!!
-RR NewEnum::next(const RR &u, const RR &y)
+
+void NewEnum::next(RR &out, const RR &u, const RR &y)
 {
-    long side1 = sign(this->closest_RR(y) - y);
-    if(side1 == 0)
-        side1 = 1;
+    RR closest_y;
+    this->closest_RR(closest_y,y);
 
-    long side2 = sign(u - y);
-    if(side2 == 0)
-        side2 = 1;
+    int side1 = closest_y >= y ? 1 : -1;
+    int side2 = u >= y ? 1 : -1;
 
-    RR next = 2 * this->closest_RR(y) - u;
+    out = 2 * closest_y - u;
 
-    if(side1 == side2 || this->closest_RR(y) == u)
-        return next - side2;
-    else
-        return next;
+    if(side1 == side2 || closest_y == u)
+        out -= side2;
 }
 
 void NewEnum::clearL()
@@ -184,7 +180,7 @@ void NewEnum::perform(const NewEnumStage& current_stage)
         t++;
         if(t > max_t)
             break;
-        u(t) = this->next(u(t), y(t));
+        this->next(u(t), u(t), y(t));
     }
 }
 
