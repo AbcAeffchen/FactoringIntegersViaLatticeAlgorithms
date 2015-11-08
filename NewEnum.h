@@ -84,7 +84,8 @@ private:
     Vec<double> log_V_minus_log_R_prod;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
     const Vec<double> log_t;                /**< contains the values log(t) for t = 1...n */
 
-    int max_level;                          /**< maximum level */
+    const int min_level = 10;               /**< minimum level */
+    const int max_level;                    /**< maximum level */
     int current_level = 10;                 /**< current level */
     RR A_curr;
     RR theoreticalMaxDistance;

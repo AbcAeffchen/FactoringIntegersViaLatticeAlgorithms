@@ -246,11 +246,15 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
 
     NTL::set(this->u);       // u = 1
 
+    ZZ temp_ZZ;
+    RR temp_RR;
+
     for(long i = 1; i <= this->n; i++)
     {
         if(this->close_vec(i) > 0)
         {
-            this->u *= power_ZZ(this->primes(i), this->close_vec_long(i));
+            power(temp_ZZ, this->primes(i), this->close_vec_long(i));
+            this->u *= temp_ZZ;
             this->raw_equation(i) = this->close_vec_long(i);
         }
         else
@@ -259,13 +263,25 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
         }
     }
 
-    this->v = conv<RR>(this->u) / conv<RR>(this->N);
-    this->d = this->v - this->closest_RR(this->v);
-    this->alpha_nm1 = NTL::abs(this->d);
-    this->vN = conv<ZZ>(this->closest_RR(this->v)) * this->N;
+//    this->v = conv<RR>(this->u) / conv<RR>(this->N);
+    conv(this->v,this->u); conv(temp_RR,this->N);
+    this->v /= temp_RR;
+
+//    this->d = this->v - this->closest_RR(this->v);
+    this->closest_RR(temp_RR,this->v);
+    this->d = this->v - temp_RR;
+
+    NTL::abs(this->alpha_nm1,this->d);
+
+//    this->vN = conv<ZZ>(this->closest_RR(this->v)) * this->N;
+    this->closest_RR(temp_RR,this->v);
+    conv(this->vN,temp_RR);
+    this->vN *= this->N;
+
     NTL::clear(this->h_n); NTL::set(this->h_nm1); NTL::clear(this->h_nm2);
     NTL::set(this->k_n); NTL::clear(this->k_nm1); NTL::set(this->k_nm2);
     NTL::clear(this->a_nm1);
+
     long sign = NTL::sign(this->d),
          equation_counter = 0;
 
@@ -275,7 +291,7 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
 
         this->equation = this->raw_equation;
         this->left_side = this->u * this->k_n;
-        this->right_side = abs(this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
+        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
 
         if(this->isSmooth(this->equation, this->k_n, this->left_side, this->right_side))
         {
