@@ -35,21 +35,20 @@ const vector<long> _primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43
 void Factoring::randomScale()
 {
     // scale
-    this->B_scaled = this->B;
+    this->B_scaled_transposed = this->B;    // not yet transposed
 
     uniform_int_distribution<int> dist(0,1);   // [0,1] random numbers uniform distribution
 
-    for(long i = 1; i <= this->B_scaled.NumCols(); i++)
+    for(long i = 1; i <= this->B_scaled_transposed.NumCols(); i++)
     {
         if(dist(this->rgen) == 1)       // P(scale row) = 1/2
         {
-            this->B_scaled(i) *= 2;     // multiply the whole row by 2
+            this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
         }
     }
     // reduce
-    transpose(this->B_scaled,this->B_scaled);
-    BKZ_FP(this->B_scaled, this->U_scaled, 0.99, this->settings.slight_bkz);
-    transpose(this->B_scaled,this->B_scaled);
+    transpose(this->B_scaled_transposed, this->B_scaled_transposed);    // now it is transposed
+    BKZ_FP(this->B_scaled_transposed, this->U_scaled, 0.99, this->settings.slight_bkz);
 
     transpose(this->U_scaled,this->U_scaled);
     inv(this->U_scaled_inv, this->U_scaled);
@@ -163,7 +162,7 @@ void Factoring::search()
 
         this->timer.startTimer();
 
-        newEnum.run(round,this->B_scaled, this->U_scaled, this->target_scaled_coordinates);
+        newEnum.run(round, this->B_scaled_transposed, this->U_scaled, this->target_scaled_coordinates);
 
         newEquations = newEnum.getEquations();
         newEnumTime = this->timer.stopTimer();

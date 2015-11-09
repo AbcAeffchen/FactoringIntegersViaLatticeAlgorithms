@@ -36,7 +36,7 @@ private:
             shift;                      /**< The shift */
 
     // Buffer
-    Mat<ZZ> B_scaled,                   /**< The scaled BKZ-basis */
+    Mat<ZZ> B_scaled_transposed,                   /**< The scaled BKZ-basis */
             U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
             U_scaled_inv;               /**< The inverse of U_scale */
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */

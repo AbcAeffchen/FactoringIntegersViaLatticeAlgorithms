@@ -101,7 +101,7 @@ private:
     RR v, d, alpha_nm1;
 
 
-    void prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &newU_scaled,
+    void prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &newU_scaled,
                  const Vec<RR> &new_target_coordinates);
 
     /**
@@ -215,7 +215,7 @@ public:
      * starts the performing by setting the first stage to the values that are
      * described under point 1 in the NewEnum algorithm.
      */
-    void run(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &new_U_scaled,
+    void run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &new_U_scaled,
              const Vec<RR> &new_target_coordinates);
 
 };

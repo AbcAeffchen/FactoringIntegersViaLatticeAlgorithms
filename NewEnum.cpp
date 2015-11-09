@@ -46,10 +46,10 @@ void NewEnum::clearL()
     swap(this->L,empty);
 }
 
-void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &new_U_scaled,
+void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &new_U_scaled,
                   const Vec<RR> &new_target_coordinates)
 {
-    this->prepare(round, newBasis, new_U_scaled, new_target_coordinates);
+    this->prepare(round, newBasis_transposed, new_U_scaled, new_target_coordinates);
 
     cout << "Performing: ";
     // Reset list of delayed stages
@@ -373,7 +373,7 @@ bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_si
     return !(right_side_abs > 1 || left_side == 1);     // if not smooth or the equation is 1 = 1
 }
 
-void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ> &newU_scaled,
+void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &newU_scaled,
                       const Vec<RR> &new_target_coordinates)
 {
     this->round = round;
@@ -383,7 +383,7 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis, const Mat<ZZ
     this->current_level = 10; //this->min_level;
     this->clearL();
 
-    ComputeGS(transpose(newBasis),this->mu, this->R_ii_squared);
+    ComputeGS(newBasis_transposed, this->mu, this->R_ii_squared);
 
     this->equations.clear();
     for(long i = 0; i < this->max_level - 10 + 1; i++)
