@@ -17,7 +17,6 @@
 #include <vector>
 #include <iostream>
 
-
 using namespace std;
 using namespace NTL;
 
@@ -27,14 +26,23 @@ using namespace NTL;
 struct NewEnumStage
 {
     RR y_t;                     // equals y(t)
-    RR c_t;                     // equals c(t)
     RR c_tp1;                   // equals c(t+1)
     Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not important if they are stored in RR or double
     unsigned long t;            // current coordinate
 
-    NewEnumStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
-            : y_t(y_t), c_t(c_t), c_tp1(c_tp1), u(conv<Vec<double>>(u)), t(t)
+    NewEnumStage() {}
+
+    NewEnumStage(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
+            : y_t(y_t), c_tp1(c_tp1), u(conv<Vec<double>>(u)), t(t)
     {}
+
+    void set(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
+    {
+        this->y_t = y_t;
+        this->c_tp1 = c_tp1;
+        conv(this->u, u);
+        this->t = t;
+    }
 
     /**
      * Converts the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
@@ -42,6 +50,108 @@ struct NewEnumStage
      */
     void get_u(Vec<RR> &u) const;
 
+};
+
+class StageStorage
+{
+public:
+
+    // statistics
+    vector<unsigned long long> maxDelayedStages;
+    unsigned long long totalDelayedStages = 0;
+
+    StageStorage(unsigned long dim, unsigned long pruningLevel)
+            : dim(dim), pruningLevel(pruningLevel), stageCounterByLevel(vector<unsigned long long>(pruningLevel - this->min_level + 3,0)),
+              storage(vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - this->min_level + 3)))),
+              maxDelayedStages(vector<unsigned long long>(pruningLevel-this->min_level+3,0))
+    {
+        this->maxDelayedStages = vector<unsigned long long>(pruningLevel-this->min_level+3,0);
+        // allocate 1000 stages for the beginning
+        for(int i = 0; i < 1000; ++i)
+            this->pool.push_back(new NewEnumStage);
+    }
+
+    bool getNext(NewEnumStage* &stage);
+
+    void incrementCurrentLevel();
+
+    void storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, unsigned long level);
+
+    void updateMaxDistance(const RR &distance);
+
+    void resetStorage(const RR &A)
+    {
+        // reset counters/statistics
+        this->totalDelayedStages = 0;
+        for(int i = 0; i < this->pruningLevel - this->min_level + 3; i++)
+            this->maxDelayedStages[i] = 0;
+
+        // todo reset storage (clear stages delayed for case of success)
+
+        this->maxDistance = A;
+        this->currentLevel = this->min_level;
+    }
+
+    /**
+     * returns the stage to the pool of available stages. This prevents to much allocating
+     */
+    void returnStage(NewEnumStage* stage)
+    {
+        this->pool.push_back(stage);
+    }
+
+private:
+    const unsigned long dim;
+
+    const double alpha_1_threshold = 0.99;     /**< A_new/A_old = alpha_1 < alpha_1_threshold.
+                                                    Used to prevent to much useless level recalculations. */
+
+    const unsigned int pruningLevel;
+    const unsigned int min_level = 10;      /**< minimum level */
+
+    unsigned long long stageCounterTotal = 0;
+    vector<unsigned long long> stageCounterByLevel;
+
+    unsigned int currentLevel = 10;
+
+    RR maxDistance;
+
+    vector<double> alpha_2_min = {1,1,1};
+
+    list<NewEnumStage*> pool;
+    vector<vector<vector<list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
+                                                                      organized as storage[t_indicator][alpha_2_indicator][s-11]. */
+
+    inline long alpha_2_indicator(const double &alpha_2)
+    {
+        return (alpha_2 > 0.65) ? 2 : (alpha_2 > 0.4 ? 1 : 0);
+    }
+
+    inline long t_indicator(const long &t)
+    {
+        return (t >= 50) ? 2 : (t >= 20 ? 1 : 0);
+    }
+
+    NewEnumStage* getStage()
+    {
+        if(this->pool.empty())
+        {
+            return new NewEnumStage;
+        }
+
+        NewEnumStage* stage = this->pool.front();
+        this->pool.pop_front();
+        return stage;
+    }
+
+    void recalculateLevels(const double &newDistance);
+
+    inline long levelChange(const double &alpha_1, const double &alpha_2, long t_indicator);
+
+    inline void returnStages(list<NewEnumStage*> &stages)
+    {
+        this->pool.splice(this->pool.end(),stages);
+    }
 };
 
 class NewEnum
@@ -55,12 +165,12 @@ private:
     FileOutput& file;
     Statistics& stats;
     long round;
-    // Lattice Data
 
+    // Lattice Data
     Mat<RR> mu;                     /**< Contains the Gram-Schmidt coefficients */
     Vec<RR> R_ii_squared;           /**< Contains \f$\|\hat{b}_i\|^2 = r_{ii}^2\f$ */
 
-    Vec<RR> tau;              /**< The shifted target vector coordinates in the lattice basis */
+    Vec<RR> tau;                    /**< The shifted target vector coordinates in the lattice basis */
     const Vec<RR> shift;            /**< The shift. This Vector contains only integral entries */
     bool decrease_max_distance;     /**< if false, the minimal distance will not decrease any more */
     double min_reduce_ratio;        /**< the algorithm reduces A_Curr, if the reduce ratio is lower (greater reduction) than this value,
@@ -78,7 +188,7 @@ private:
     // statistics
     long stages = 0;                        /**< Counts the stages in total */
 
-    vector<queue<NewEnumStage>> L;          /**< array of lists of delayed stages */
+    StageStorage L;
     // precomputed
     const Vec<double> log_V;                /**< Contains the values \f$V_t\f$ */
     Vec<double> log_V_minus_log_R_prod;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
@@ -123,17 +233,12 @@ private:
     inline void next(RR &out, const RR &u, const RR &y);
 
     /**
-     * clears the list of delayed stages
-     */
-    void clearL();
-
-    /**
      * performs all stages starting with a start stage
      * @param start The stage we are starting with
      * @param perform_delayed_stages If true, the method will also perform delayed
      * stages. Only the first call of this method should set this parameter to true.
      */
-    inline void perform(const NewEnumStage& start);
+    inline void perform(NewEnumStage* start);
 
     /**
      * Precomputes some data used for the volume heuristic
@@ -221,4 +326,3 @@ public:
 };
 
 #endif	/* NEWENUM_H */
-

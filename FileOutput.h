@@ -74,13 +74,12 @@ public:
 
     void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
-    void statisticsDelayedStagesOnLevel(vector<long> delayedStagesCounter);
+    void statisticsDelayedStagesOnLevel(const vector<unsigned long long> &delayedStagesPerLevel, unsigned long long totalDelayedStages);
 
     void statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes);
 
     void writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes);
 
-//    void writeSettings(ZZ N, RR c, long accuracy_factor, int s_max, double A_start_factor, double reduce_ratio, long strong_bkz, long slight_bkz, long prime_num, long max_prime, long long int seed);
     void writeSettings(const FactoringSettings &settings, long max_prime, long long int seed);
 
     void statisticsStrongBkzTime(double time);

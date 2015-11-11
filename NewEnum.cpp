@@ -6,6 +6,117 @@ void NewEnumStage::get_u(Vec<RR> &u) const
     conv(u,this->u);
 }
 
+void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, unsigned long level)
+{
+    NewEnumStage* stage = this->getStage();
+    stage->set(y_t,c_tp1,u,t);
+
+    double alpha_2;
+    conv(alpha_2, c_t / this->maxDistance);
+    long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
+    this->storage[this->t_indicator(stage->t)][alpha_2_indicator][level - this->min_level -1].push_back(stage);
+    if(this->alpha_2_min[alpha_2_indicator] > alpha_2)
+        this->alpha_2_min[alpha_2_indicator] = alpha_2;
+    this->stageCounterTotal++;
+    this->stageCounterByLevel[level - this->min_level -1]++;
+}
+
+bool StageStorage::getNext(NewEnumStage* &stage)
+{
+    if(this->stageCounterByLevel[this->currentLevel - this->min_level-1] <= 0)
+        return false;
+
+    for(unsigned long t_indicator = 0; t_indicator < 3; ++t_indicator)
+    {
+        for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; ++alpha_2_indicator)
+        {
+            if(!this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].empty())
+            {
+                stage = this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].front();
+                this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].pop_front();
+                this->stageCounterByLevel[this->currentLevel - this->min_level-1]--;
+                this->stageCounterTotal--;
+                return true;
+            }
+        }
+    }
+
+    // It never should come this far, but who knows...
+    return false;
+}
+
+void StageStorage::incrementCurrentLevel()
+{
+    this->currentLevel++;
+    this->maxDelayedStages[this->currentLevel - this->min_level - 1] = this->stageCounterByLevel[this->currentLevel - this->min_level - 1];
+    this->totalDelayedStages += this->maxDelayedStages[this->currentLevel - this->min_level - 1];
+}
+
+void StageStorage::updateMaxDistance(const RR &distance)
+{
+    // todo do statistics here
+    double alpha_1;
+    conv(alpha_1, distance/this->maxDistance);
+
+    // todo activate level recalculation
+//    if(alpha_1 < this->alpha_1_threshold && this->totalDelayedStages > 250)
+//        this->recalculateLevels(alpha_1);
+
+    this->maxDistance = distance;
+}
+
+void StageStorage::recalculateLevels(const double &alpha_1)
+{
+    double new_alpha_2;
+    long level_change;
+    unsigned long s_max = this->pruningLevel - this->min_level + 3 -1;
+    // todo statistics
+
+    /*
+     * skip t_indicator = 0, since the stages here have t between 4 and 20.
+     * So in almost all cases the will be no change.
+     */
+    for(int t_indicator = 2; t_indicator >= 1; t_indicator--)
+    {
+        for(int alpha_2_indicator = 2; alpha_2_indicator >= 0; alpha_2_indicator--)
+        {
+            new_alpha_2 = this->alpha_2_min[alpha_2_indicator] / alpha_1;
+            level_change = this->levelChange(alpha_1,new_alpha_2,t_indicator);
+            if(level_change <= 0)
+                continue;
+
+            // remove stages
+            for(unsigned long s = s_max; s > s_max - level_change; s--)
+            {
+                if(this->storage[t_indicator][alpha_2_indicator][s].empty())
+                    continue;
+
+                // todo update counters
+                this->returnStages(this->storage[t_indicator][alpha_2_indicator][s]);
+            }
+
+            // move stages
+            for(unsigned long s = s_max-level_change; s > this->min_level; s--)
+            {
+                if(this->storage[t_indicator][alpha_2_indicator][s].empty())
+                    continue;
+
+                // todo update counters
+                this->storage[t_indicator][alpha_2_indicator][s+level_change].splice(
+                        this->storage[t_indicator][alpha_2_indicator][s+level_change].end(),
+                        this->storage[t_indicator][alpha_2_indicator][s]);
+            }
+        }
+    }
+}
+
+long StageStorage::levelChange(const double &alpha_1, const double &alpha_2, long t_indicator)
+{
+    return t_indicator == 0
+           ? 0
+           : (long) floor((t_indicator == 2 ? 50.0 : 20.0) / log((1.0-alpha_2) / alpha_1 - alpha_2));
+}
+
 Vec<double> NewEnum::precomputeLogT(long n)
 {
     Vec<double> log_t;
@@ -40,12 +151,6 @@ void NewEnum::next(RR &out, const RR &u, const RR &y)
         out -= side2;
 }
 
-void NewEnum::clearL()
-{
-    vector<queue<NewEnumStage>> empty = vector<queue<NewEnumStage>>(this->max_level - 10);
-    swap(this->L,empty);
-}
-
 void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &new_U_scaled,
                   const Vec<RR> &new_target_coordinates)
 {
@@ -53,27 +158,29 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
 
     cout << "Performing: ";
     // Reset list of delayed stages
-    this->current_level = 10;
-    this->clearL();
+    this->current_level = this->min_level;
 
     Vec<RR> u;                              // coordinates of a close vector
     u.SetLength(this->n);
     this->closest_RR(u(this->n),this->tau(this->n));
 
-    this->perform(NewEnumStage(this->tau(this->n), conv<RR>(0), conv<RR>(0),u, this->n));
+    NewEnumStage* stage = new NewEnumStage(this->tau(this->n), conv<RR>(0), u, this->n);
+
+    this->perform(stage);
+    this->L.returnStage(stage);
 
     this->delayedStagesCounter[0] = 0;
 
-    for(this->current_level = 11; this->current_level <= this->max_level; this->current_level++)
+    for(long l = 0; l <= this->max_level - this->min_level - 1; l++)
     {
-        this->delayedStagesCounter[this->current_level - 10] = this->L[this->current_level - 11].size();
-        this->delayedStagesCounter[0] += this->L[this->current_level - 11].size();
+        this->L.incrementCurrentLevel();
+        this->current_level++;
 
         // perform delayed stages
-        while(!this->L[this->current_level - 11].empty())
+        while(this->L.getNext(stage))
         {
-            this->perform(this->L[this->current_level - 11].front());
-            this->L[this->current_level - 11].pop();
+            this->perform(stage);
+            this->L.returnStage(stage);
         }
 
         cout << ".";
@@ -82,28 +189,26 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
     cout << endl;
 
     // statistics
-    this->stats.updateRoundStats(this->delayedStagesCounter[0] > 0, this->equations.size() > 0);
+    this->stats.updateRoundStats(this->L.totalDelayedStages > 0, this->equations.size() > 0);
     this->stats.updateDistanceStats(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
     this->file.statisticsDistances(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
-    this->file.statisticsDelayedStagesOnLevel(this->delayedStagesCounter);
-
+    this->file.statisticsDelayedStagesOnLevel(this->L.maxDelayedStages,this->L.totalDelayedStages);
 }
 
-void NewEnum::perform(const NewEnumStage& current_stage)
+void NewEnum::perform(NewEnumStage* current_stage)
 {
     this->decrease_max_distance = true;
 
-    long max_t = current_stage.t;
-    long t = current_stage.t;           // projection to the n-t-1 last coordinates
+    long max_t = current_stage->t;
+    long t = current_stage->t;          // projection to the n-t-1 last coordinates
     Vec<RR> c,                          // Length in the projection
             u,                          // coordinates of a close vector
             y;                          // uncovered parts of the target vector
     c.SetLength(t+1);
-    c(t) = current_stage.c_t;
-    c(t+1) = current_stage.c_tp1;
-    current_stage.get_u(u);
+    c(t+1) = current_stage->c_tp1;
+    current_stage->get_u(u);
     y.SetLength(t);
-    y(t) = current_stage.y_t;
+    y(t) = current_stage->y_t;
 
     RR reduce_ratio;
 
@@ -131,7 +236,8 @@ void NewEnum::perform(const NewEnumStage& current_stage)
                 if(this->decrease_max_distance || c(1) / this->A_curr < this->min_reduce_ratio)
                 {
                     this->A_curr = c(1);        // reduce max distance
-                    // todo add stage level recalculation
+                    this->L.updateMaxDistance(this->A_curr);
+
                     if(this->current_level == 10)
                     {
                         // do something???
@@ -170,9 +276,10 @@ void NewEnum::perform(const NewEnumStage& current_stage)
         }
 
         // the program comes only this far, if level > current_s holds
+        // todo add extra storage in case of success
         if(level <= this->max_level)
         {
-            this->L[level - 11].emplace(y(t),c(t),c(t+1),u,t);      // store the stage for later
+            this->L.storeStage(y(t),c(t),c(t+1),u,t,level);      // store the stage for later
         }
 
         // 2.1
@@ -263,17 +370,14 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, RR &c_1)
         }
     }
 
-//    this->v = conv<RR>(this->u) / conv<RR>(this->N);
     conv(this->v,this->u); conv(temp_RR,this->N);
     this->v /= temp_RR;
 
-//    this->d = this->v - this->closest_RR(this->v);
     this->closest_RR(temp_RR,this->v);
     this->d = this->v - temp_RR;
 
     NTL::abs(this->alpha_nm1,this->d);
 
-//    this->vN = conv<ZZ>(this->closest_RR(this->v)) * this->N;
     this->closest_RR(temp_RR,this->v);
     conv(this->vN,temp_RR);
     this->vN *= this->N;
@@ -310,13 +414,13 @@ NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &fi
         : settings(settings), timer(timer), file(file), stats(stats), N(settings.N), U_RR(conv<Mat<RR>>(U)),
           primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
           max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3)),
-          log_V(NewEnum::precomputeVolumes(n))
+          log_V(NewEnum::precomputeVolumes(n)), L(StageStorage(n,settings.max_level))
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
     this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
 
-    this->delayedStagesCounter.resize(this->max_level - 9, 0);     // 0 is used for total counter
+    this->delayedStagesCounter.resize(this->max_level - this->min_level+1, 0);     // 0 is used for total counter
 }
 
 list<Equation> NewEnum::getEquations()
@@ -380,13 +484,12 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, c
     conv(this->U_scaled_RR,newU_scaled);
     this->tau = new_target_coordinates;
 
-    this->current_level = 10; //this->min_level;
-    this->clearL();
+    this->current_level = this->min_level;
 
     ComputeGS(newBasis_transposed, this->mu, this->R_ii_squared);
 
     this->equations.clear();
-    for(long i = 0; i < this->max_level - 10 + 1; i++)
+    for(long i = 0; i < this->max_level - this->min_level + 1; i++)
         this->delayedStagesCounter[i] = 0;
 
     // setting the decreasing behavior
@@ -405,4 +508,6 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, c
     this->theoreticalMaxDistance = this->A_curr;
     this->A_curr *= this->settings.A_start_factor;
     this->heuristicMaxDistance = this->A_curr;
+
+    this->L.resetStorage(this->A_curr);
 }

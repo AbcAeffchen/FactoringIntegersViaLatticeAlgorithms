@@ -215,13 +215,14 @@ void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
     this->statistics << "Ratio: " << conv<double>(reduced/theoretical) << endl;
 }
 
-void FileOutput::statisticsDelayedStagesOnLevel(vector<long> delayedStagesCounter)
+void FileOutput::statisticsDelayedStagesOnLevel(const vector<unsigned long long> &delayedStagesPerLevel,
+                                                unsigned long long totalDelayedStages)
 {
     this->statistics << "& \\textbf{Delayed Stages:} " << endl;
-    for(unsigned long i = 1; i < delayedStagesCounter.size(); i++)
-        this->statistics << "\\newline " << "Lvl " << (i + 10) << ": " << delayedStagesCounter[i] << endl;
+    for(unsigned long i = 0; i < delayedStagesPerLevel.size(); i++)
+        this->statistics << "\\newline " << "Lvl " << (i + 11) << ": " << delayedStagesPerLevel[i] << endl;
 
-    this->statistics << "\\newline " << "Total: " << delayedStagesCounter[0] << endl;
+    this->statistics << "\\newline " << "\\textbf{Total: " << totalDelayedStages << "}" << endl;
 }
 
 void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes)
