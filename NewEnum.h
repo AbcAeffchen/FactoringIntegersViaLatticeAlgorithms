@@ -16,6 +16,7 @@
 #include <queue>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 using namespace NTL;
@@ -106,8 +107,8 @@ private:
     const double alpha_1_threshold = 0.99;     /**< A_new/A_old = alpha_1 < alpha_1_threshold.
                                                     Used to prevent to much useless level recalculations. */
 
-    const unsigned int pruningLevel;
-    const unsigned int min_level = 10;      /**< minimum level */
+    const long pruningLevel;
+    const long min_level = 10;      /**< minimum level */
 
     unsigned long long stageCounterTotal = 0;
     vector<unsigned long long> stageCounterByLevel;
@@ -146,7 +147,7 @@ private:
 
     void recalculateLevels(const double &newDistance);
 
-    inline long levelChange(const double &alpha_1, const double &alpha_2, long t_indicator);
+    inline unsigned long levelChange(const double &alpha_1, const double &alpha_2, long t_indicator);
 
     inline void returnStages(list<NewEnumStage*> &stages)
     {
@@ -185,9 +186,6 @@ private:
     const Vec<long>& primes;
     list<Equation> equations;
 
-    // statistics
-    long stages = 0;                        /**< Counts the stages in total */
-
     StageStorage L;
     // precomputed
     const Vec<double> log_V;                /**< Contains the values \f$V_t\f$ */
@@ -200,7 +198,6 @@ private:
     RR A_curr;
     RR theoreticalMaxDistance;
     RR heuristicMaxDistance;
-    vector<long> delayedStagesCounter;
 
     // working space of checkForEquation()
     Vec<RR> close_vec, temp_vec;
@@ -252,10 +249,11 @@ private:
 
     /**
      * computes (if possible) an equation from a given close vector
-     * @param input Coordinates of a close vector
+     * @param [in] input Coordinates of a close vector
+     * @param [in] c_1 Distance of this vector to the target vector
      * @return true if an equation was found, else false.
      */
-    bool checkForEquation(const Vec<RR> &input, RR &c_1);
+    bool checkForEquation(const Vec<RR> &input, const RR &c_1);
 
     /**
      * Computes the next continued fraction $h_n / k_n$ with $h_n = a_n * h_nm1 + h_nm2$
@@ -269,9 +267,9 @@ private:
      * @param [out] k_n
      * @param [in,out] h_nm1
      * @param [in,out] k_nm1
-     * @param [in] h_nm2
-     * @param [in] k_nm2
-     * @param [in] a_nm1
+     * @param [in,out] h_nm2
+     * @param [in,out] k_nm2
+     * @param [in,out] a_nm1
      * @param [in,out] alpha_nm1
      */
     void nextContinuedFraction(ZZ& h_n, ZZ& k_n, ZZ& h_nm1, ZZ& k_nm1, ZZ& h_nm2, ZZ& k_nm2, ZZ& a_nm1, RR& alpha_nm1);
