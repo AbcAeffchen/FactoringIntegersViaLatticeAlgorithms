@@ -1,5 +1,6 @@
 
 #include "Factoring.h"
+#include <NTL/version.h>
 
 using namespace std;
 
@@ -179,6 +180,9 @@ int main()
 {
     RR::SetPrecision(175);
     RR::SetOutputPrecision(20);
+
+    cout << "GCC: " << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << endl;
+    cout << "NTL: " << NTL_VERSION << endl << endl;
 
     menu();
 
