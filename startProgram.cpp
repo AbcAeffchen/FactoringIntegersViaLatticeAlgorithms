@@ -178,7 +178,7 @@ void menu()
 
 int main()
 {
-    RR::SetPrecision(175);
+    RR::SetPrecision(150);
     RR::SetOutputPrecision(20);
 
     cout << "GCC: " << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << endl;
