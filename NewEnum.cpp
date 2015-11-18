@@ -14,9 +14,10 @@ void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, con
     double alpha_2;
     conv(alpha_2, c_t / this->maxDistance);
     long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
-    this->storage[this->t_indicator(stage->t)][alpha_2_indicator][level - this->min_level -1].push_back(stage);
-    if(this->alpha_2_min[alpha_2_indicator] > alpha_2)
-        this->alpha_2_min[alpha_2_indicator] = alpha_2;
+    long t_indicator = this->t_indicator(stage->t);
+    this->storage[t_indicator][alpha_2_indicator][level - this->min_level -1].push_back(stage);
+    if(this->alpha_2_min[alpha_2_indicator][t_indicator] > alpha_2)
+        this->alpha_2_min[alpha_2_indicator][t_indicator] = alpha_2;
     this->stageCounterTotal++;
     this->stageCounterByLevel[level - this->min_level -1]++;
 }
@@ -61,8 +62,9 @@ void StageStorage::updateMaxDistance(const RR &distance)
     if(alpha_1 < this->alpha_1_threshold && this->totalDelayedStages > 250)
         this->recalculateLevels(alpha_1);
 
-    for(long i = 0; i < 3; i++)
-        this->alpha_2_min[i] /= alpha_1;
+    for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
+        for(long t_indicator = 0; t_indicator < 3; t_indicator++)
+            this->alpha_2_min[alpha_2_indicator][t_indicator] /= alpha_1;
 
     this->maxDistance = distance;
 }
@@ -83,7 +85,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
     {
         for(int alpha_2_indicator = 2; alpha_2_indicator >= 0; alpha_2_indicator--)
         {
-            new_alpha_2 = this->alpha_2_min[alpha_2_indicator] / alpha_1;
+            new_alpha_2 = this->alpha_2_min[alpha_2_indicator][t_indicator] / alpha_1;
             new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
             level_change = this->levelChange(alpha_1,new_alpha_2,t_indicator);
             if(level_change <= 0)

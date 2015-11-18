@@ -117,7 +117,7 @@ private:
 
     RR maxDistance;
 
-    vector<double> alpha_2_min = {1,1,1};
+    vector<vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
 
     list<NewEnumStage*> pool;
     vector<vector<vector<list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
