@@ -62,11 +62,11 @@ public:
     unsigned long long totalDelayedStages = 0;
 
     StageStorage(unsigned long dim, unsigned long pruningLevel)
-            : dim(dim), pruningLevel(pruningLevel), stageCounterByLevel(vector<unsigned long long>(pruningLevel - this->min_level + 3,0)),
-              storage(vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - this->min_level + 3)))),
-              maxDelayedStages(vector<unsigned long long>(pruningLevel-this->min_level+3,0))
+            : dim(dim), pruningLevel(pruningLevel), stageCounterByLevel(vector<unsigned long long>(pruningLevel - this->min_level,0)),
+              storage(vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - this->min_level)))),
+              maxDelayedStages(vector<unsigned long long>(pruningLevel-this->min_level,0))
     {
-        this->maxDelayedStages = vector<unsigned long long>(pruningLevel-this->min_level+3,0);
+        this->maxDelayedStages = vector<unsigned long long>(pruningLevel-this->min_level,0);
         // allocate 1000 stages for the beginning
         for(int i = 0; i < 1000; ++i)
             this->pool.push_back(new NewEnumStage);
@@ -84,10 +84,8 @@ public:
     {
         // reset counters/statistics
         this->totalDelayedStages = 0;
-        for(int i = 0; i < this->pruningLevel - this->min_level + 3; i++)
+        for(int i = 0; i < this->pruningLevel - this->min_level; i++)
             this->maxDelayedStages[i] = 0;
-
-        // todo reset storage (clear stages delayed for case of success)
 
         this->maxDistance = A;
         this->currentLevel = this->min_level;

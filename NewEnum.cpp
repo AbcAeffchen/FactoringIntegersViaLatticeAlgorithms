@@ -74,7 +74,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
     double new_alpha_2;
     long new_alpha_2_indicator;
     long level_change;
-    long s_max = this->pruningLevel - this->min_level + 3 -1;
+    long s_max = this->pruningLevel - this->min_level - 1;
     // todo statistics
 
     /*
@@ -123,7 +123,7 @@ unsigned long StageStorage::levelChange(const double &alpha_1, const double &alp
     return t_indicator == 0
            ? 0
            : (alpha_1 <= alpha_2
-              ? this->pruningLevel - this->min_level + 3 - 1
+              ? this->pruningLevel - this->min_level - 1
               : (unsigned long) floor((t_indicator == 2 ? 50.0 : 20.0) / log((1.0-alpha_2) / (alpha_1 - alpha_2))));
 }
 
