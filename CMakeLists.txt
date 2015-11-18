@@ -9,7 +9,8 @@ set(SOURCE_FILES startProgram.cpp
         NewEnum.h NewEnum.cpp
         FileOutput.h FileOutput.cpp
         Statistics.h Statistics.cpp
-        Timer.h Timer.cpp FactoringSettings.h)
+        Timer.h Timer.cpp
+        FactoringSettings.h)
 
 add_executable(FactoringIntegersViaLatticeAlgorithms ${SOURCE_FILES})
 

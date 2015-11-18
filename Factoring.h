@@ -18,7 +18,7 @@ using namespace NTL;
 
 class Factoring
 {
-private:
+protected:
 
     const FactoringSettings settings;
     const ZZ N;                         /**< the number which is going to be factorized */
@@ -51,10 +51,19 @@ private:
     long eqnDuplicates = 0;
 
     /**
+     * Scales every row with probability 1/2
+     */
+    void randomScale1(Mat<ZZ> &basis);
+    /**
+     * Scales every row with probability 1/4
+     */
+    void randomScale2(Mat<ZZ> &basis);
+
+    /**
      * scales the lattice basis, BKZ-reduces it slightly, and also converting the
      * target coordinates
      */
-    void randomScale();
+    void setScaledAndReducedBasis();
 
     /**
      * Generates the prime lattice basis and make a strong BKZ reduction with
@@ -117,8 +126,6 @@ public:
      * @param strong_bkz Block size for the string BKZ reduction
      * @param slight_bkz Block size for the slight BKZ reduction
      */
-//    Factoring(ZZ N, long n, RR c, int max_level, double A_start_factor, double restart_ratio, double reduce_ratio, long accuracy_factor, long strong_bkz, long slight_bkz, unsigned long min_eqns, long long int seed_type = -2);
-
     Factoring(const FactoringSettings &settings);
 
 };

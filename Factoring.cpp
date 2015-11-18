@@ -31,21 +31,47 @@ const vector<long> _primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43
                               1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
                               1933, 1949, 1951, 1973, 1979, 1987};
 
+void Factoring::randomScale1(Mat<ZZ> &basis)
+{
+    uniform_int_distribution<int> dist(0,1);   // [0,1] random numbers uniform distribution
 
-void Factoring::randomScale()
+    for(long i = 1; i <= basis.NumCols(); i++)
+    {
+        if(dist(this->rgen) == 1)       // P(scale row) = 1/2
+        {
+            basis(i) *= 2;     // multiply the whole row by 2
+        }
+    }
+}
+
+void Factoring::randomScale2(Mat<ZZ> &basis)
+{
+    uniform_int_distribution<int> dist(0,3);   // [0,3] random numbers uniform distribution
+
+    for(long i = 1; i <= basis.NumCols(); i++)
+    {
+        if(dist(this->rgen) == 1)       // P(scale row) = 1/4
+        {
+            basis(i) *= 2;     // multiply the whole row by 2
+        }
+    }
+}
+
+void Factoring::setScaledAndReducedBasis()
 {
     // scale
     this->B_scaled_transposed = this->B;    // not yet transposed
 
-    uniform_int_distribution<int> dist(0,1);   // [0,1] random numbers uniform distribution
-
-    for(long i = 1; i <= this->B_scaled_transposed.NumCols(); i++)
+    switch(this->settings.scalingType)
     {
-        if(dist(this->rgen) == 1)       // P(scale row) = 1/2
-        {
-            this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
-        }
+        case 2:
+            this->randomScale2(this->B_scaled_transposed);
+            break;
+        default:
+            this->randomScale1(this->B_scaled_transposed);
+            break;
     }
+
     // reduce
     transpose(this->B_scaled_transposed, this->B_scaled_transposed);    // now it is transposed
     BKZ_FP(this->B_scaled_transposed, this->U_scaled, 0.99, this->settings.slight_bkz);
@@ -122,8 +148,8 @@ void Factoring::setTargetCoordinates()
 void Factoring::reduceBasis(long strong_bkz)
 {
     this->timer.startTimer();
+
     // this->B is still transposed
-//    transpose(this->B,this->B);
 
     cout << "Strong BKZ reduction: ";
     BKZ_FP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
@@ -140,7 +166,6 @@ void Factoring::reduceBasis(long strong_bkz)
 
 void Factoring::search()
 {
-//        NewEnum newEnum;
     list<Equation> newEquations;
     double newEnumTime;
     double slightBkzTime;
@@ -157,7 +182,7 @@ void Factoring::search()
         this->file.statisticNewRound(round);
 
         this->timer.startTimer();
-        this->randomScale();    // scale and slight bkz
+        this->setScaledAndReducedBasis();    // scale and slight bkz
         slightBkzTime = this->timer.stopTimer();
 
         this->timer.startTimer();
