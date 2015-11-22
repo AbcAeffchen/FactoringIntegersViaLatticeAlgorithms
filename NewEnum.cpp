@@ -203,15 +203,6 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
     }
 
     cout << endl;
-
-    // statistics
-    this->stats.updateRoundStats(this->L.totalDelayedAndPerformedStages > 0, this->equations.size() > 0);
-    this->stats.updateDistanceStats(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
-    this->file.statisticsDelayedStagesOnLevel(this->max_level,this->L.alpha_2_min,
-                                              this->L.maxDelayedAndPerformedStages,
-                                              this->L.delayedStages,
-                                              this->L.totalDelayedAndPerformedStages);
-    this->file.statisticsDistances(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
 }
 
 void NewEnum::perform(NewEnumStage* current_stage)
@@ -511,4 +502,11 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, c
     this->heuristicMaxDistance = this->A_curr;
 
     this->L.resetStorage(this->A_curr);
+}
+
+void NewEnum::getDistances(RR &theoretical,RR &heuristic,RR &reduced)
+{
+    theoretical = this->theoreticalMaxDistance;
+    heuristic = this->heuristicMaxDistance;
+    reduced = this->A_curr;
 }

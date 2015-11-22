@@ -8,6 +8,7 @@
 
 #include <NTL/RR.h>
 #include <NTL/matrix.h>
+#include <NTL/version.h>
 #include <fstream>
 #include <sstream>
 #include <string>

@@ -200,7 +200,7 @@ private:
     const Vec<long>& primes;
     list<Equation> equations;
 
-    StageStorage L;
+
     // precomputed
     const Vec<double> log_V;                /**< Contains the values \f$V_t\f$ */
     Vec<double> log_V_minus_log_R_prod;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
@@ -300,7 +300,10 @@ private:
     }
 
 public:
-
+    /**
+     * This is for performance reasons public. Never use this from outside of NewEnum
+     */
+    StageStorage L;
     /**
      * Starts the NewEnum Algorithm to find close vectors and extract equations
      * @param settings      Contains the settings for the whole program.
@@ -328,6 +331,7 @@ public:
      */
     list<Equation> getEquations();
 
+    void getDistances(RR &theoretical,RR &heuristic,RR &reduced);
     /**
      * starts the performing by setting the first stage to the values that are
      * described under point 1 in the NewEnum algorithm.

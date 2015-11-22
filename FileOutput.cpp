@@ -9,9 +9,14 @@ void FileOutput::writeEqnFormatted(const Equation& eqn, const Vec<long>& primes)
     this->equations << eqn.round << " & ";
     this->equations << eqn.counter << " & ";
 
+    if(eqn.fromContinuedFraction)
+        this->equations << "\\checkmark";
+    else
+        this->equations << "\\cross";
+
     bool nEmp = false;
 
-    this->equations << "$";
+    this->equations << "& $";
 
     for(long i = 1; i <= primes.length(); i++)
     {
@@ -383,6 +388,10 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
 {
     this->equations << "\\section*{Settings}" << endl
                     << "\\begin{tabular}{ll}" << endl
+                    << "NTL Version: & " << NTL_VERSION << "\\\\"
+                #ifdef __GNUC__
+                    << "GCC: &" << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << "\\\\" << endl
+                #endif
                     << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
                     << "$c$ & $" << settings.c << "$\\\\" << endl
                     << "$n$ & $ " << settings.n << "$\\\\" << endl
@@ -408,6 +417,10 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
 
     this->statistics << "\\section*{Settings}" << endl
                      << "\\begin{tabular}{ll}" << endl
+                     << "NTL Version: & " << NTL_VERSION << "\\\\"
+                #ifdef __GNUC__
+                     << "GCC: &" << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << "\\\\" << endl
+                #endif
                      << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
                      << "$c$ & $" << settings.c << "$\\\\" << endl
                      << "$n$ & $ " << settings.n << "$\\\\" << endl
@@ -443,12 +456,12 @@ void FileOutput::prepareEquationTable()
 {
     // start equation table
     this->equations << "%\\begin{landscape}" << endl
-                    << "\\begin{longtable}{rrp{6cm}rp{5cm}r}" << endl
+                    << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
                     << "\\toprule" << endl
-                    << "round & \\# & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+                    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
                     << "\\endfirsthead" << endl
                     << "\\toprule" << endl
-                    << "round & \\# & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+                    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
                     << "\\endhead" << endl;
 }
 

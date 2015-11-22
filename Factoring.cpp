@@ -175,6 +175,8 @@ void Factoring::search()
     NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats,
                               this->primes, this->U, this->shift);
 
+    RR theoretical, heuristic, reduced;
+
     while(this->uniqueEquations.size() < this->settings.min_eqns)
     {
         round++;
@@ -193,7 +195,16 @@ void Factoring::search()
 
         newEnumTime = this->timer.stopTimer();
 
+        newEnum.getDistances(theoretical,heuristic,reduced);
+
         // statistics
+        this->stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, newEquations.size() > 0);
+        this->stats.updateDistanceStats(theoretical,heuristic,reduced);
+        this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,newEnum.L.alpha_2_min,
+                                                  newEnum.L.maxDelayedAndPerformedStages,
+                                                  newEnum.L.delayedStages,
+                                                  newEnum.L.totalDelayedAndPerformedStages);
+        this->file.statisticsDistances(theoretical,heuristic,reduced);
         this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
         this->file.statisticsNewEquations(newEquations,this->primes);
         this->stats.newSlightBkzTime(slightBkzTime);
