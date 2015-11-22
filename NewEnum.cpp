@@ -83,9 +83,8 @@ void StageStorage::recalculateLevels(const double &alpha_1)
     long new_alpha_2_indicator;
     long level_change;
     long s_max = this->pruningLevel - this->min_level - 1;
-    // todo statistics
 
-    /*
+    /**
      * skip t_indicator = 0, since the stages here have t between 4 and 20.
      * So in almost all cases the will be no change.
      */
@@ -100,7 +99,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
                 continue;
 
             // return stages
-            for(long s = s_max; s > std::max((long) -1,s_max - level_change); s--)
+            for(long s = s_max; s > std::max(this->currentLevel-11,s_max - level_change); s--)
             {
                 if(this->storage[t_indicator][alpha_2_indicator][s].empty())
                     continue;
@@ -111,7 +110,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
             }
 
             // move stages
-            for(long s = s_max-level_change; s >= 0; s--)
+            for(long s = s_max-level_change; s > this->currentLevel-11; s--)
             {
                 if(this->storage[t_indicator][alpha_2_indicator][s].empty())
                     continue;
@@ -269,7 +268,6 @@ void NewEnum::perform(NewEnumStage* current_stage)
         }
 
         // the program comes only this far, if level > current_s holds
-        // todo add extra storage in case of success
         if(level <= this->max_level)
         {
             this->L.storeStage(y(t),c(t),c(t+1),u,t,level);      // store the stage for later

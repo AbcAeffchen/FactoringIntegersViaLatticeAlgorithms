@@ -129,7 +129,7 @@ private:
     unsigned long long stageCounterTotal = 0;
     vector<unsigned long long> stageCounterByLevel;
 
-    unsigned int currentLevel = 10;
+    long currentLevel = 10;
 
     RR maxDistance;
 
