@@ -4,8 +4,8 @@
 /**
  * Class Equation Data structure to save the equation data
  */
-Equation::Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time) :
-    e(e), v(v), level(level), reduced(reduced), round(round), time(time),  counter(1)
+Equation::Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time, bool fromContinuedFraction) :
+    e(e), v(v), level(level), reduced(reduced), round(round), time(time),  counter(1), fromContinuedFraction(fromContinuedFraction)
 {}
 
 /**
@@ -52,7 +52,7 @@ bool operator< (const Equation &left, const Equation &right)
  * @param right
  * @return
  */
-bool sort_equations(Equation left, Equation right)
+bool sort_equations(const Equation &left, const Equation &right)
 {
     if(left.round < right.round)
         return true;
@@ -60,4 +60,15 @@ bool sort_equations(Equation left, Equation right)
         return false;
 
     return left.time < right.time;
+}
+
+/**
+ * Sorts equations by the value of v
+ * @param left
+ * @param right
+ * @return
+ */
+bool sort_equations_by_v(const Equation &left, const Equation &right)
+{
+    return left.v < right.v != 0;
 }

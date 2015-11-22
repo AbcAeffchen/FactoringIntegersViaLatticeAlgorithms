@@ -15,11 +15,14 @@ void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, con
     conv(alpha_2, c_t / this->maxDistance);
     long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
     long t_indicator = this->t_indicator(stage->t);
-    this->storage[t_indicator][alpha_2_indicator][level - this->min_level -1].push_back(stage);
+    this->storage[t_indicator][alpha_2_indicator][level - this->min_level - 1].push_back(stage);
     if(this->alpha_2_min[alpha_2_indicator][t_indicator] > alpha_2)
         this->alpha_2_min[alpha_2_indicator][t_indicator] = alpha_2;
     this->stageCounterTotal++;
-    this->stageCounterByLevel[level - this->min_level -1]++;
+    this->stageCounterByLevel[level - this->min_level - 1]++;
+
+    // statistics
+    this->delayedStages[alpha_2_indicator][t_indicator][level - this->min_level - 1]++;
 }
 
 bool StageStorage::getNext(NewEnumStage* &stage)
@@ -49,8 +52,13 @@ bool StageStorage::getNext(NewEnumStage* &stage)
 void StageStorage::incrementCurrentLevel()
 {
     this->currentLevel++;
-    this->maxDelayedStages[this->currentLevel - this->min_level - 1] = this->stageCounterByLevel[this->currentLevel - this->min_level - 1];
-    this->totalDelayedStages += this->maxDelayedStages[this->currentLevel - this->min_level - 1];
+
+    for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
+        for(long t_indicator = 0; t_indicator < 3; t_indicator++)
+        {
+            this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][this->currentLevel - this->min_level - 1] = this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].size();
+            this->totalDelayedAndPerformedStages += this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].size();
+        }
 }
 
 void StageStorage::updateMaxDistance(const RR &distance)
@@ -59,7 +67,7 @@ void StageStorage::updateMaxDistance(const RR &distance)
     double alpha_1;
     conv(alpha_1, distance/this->maxDistance);
 
-    if(alpha_1 < this->alpha_1_threshold && this->totalDelayedStages > 250)
+    if(alpha_1 < this->alpha_1_threshold && this->stageCounterTotal > 250)
         this->recalculateLevels(alpha_1);
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
@@ -87,7 +95,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
         {
             new_alpha_2 = this->alpha_2_min[alpha_2_indicator][t_indicator] / alpha_1;
             new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
-            level_change = this->levelChange(alpha_1,new_alpha_2,t_indicator);
+            level_change = this->levelChange(alpha_1,this->alpha_2_min[alpha_2_indicator][t_indicator],t_indicator);
             if(level_change <= 0)
                 continue;
 
@@ -197,10 +205,13 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
     cout << endl;
 
     // statistics
-    this->stats.updateRoundStats(this->L.totalDelayedStages > 0, this->equations.size() > 0);
+    this->stats.updateRoundStats(this->L.totalDelayedAndPerformedStages > 0, this->equations.size() > 0);
     this->stats.updateDistanceStats(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
+    this->file.statisticsDelayedStagesOnLevel(this->max_level,this->L.alpha_2_min,
+                                              this->L.maxDelayedAndPerformedStages,
+                                              this->L.delayedStages,
+                                              this->L.totalDelayedAndPerformedStages);
     this->file.statisticsDistances(this->theoreticalMaxDistance, this->heuristicMaxDistance, this->A_curr);
-    this->file.statisticsDelayedStagesOnLevel(this->L.maxDelayedStages,this->L.totalDelayedStages);
 }
 
 void NewEnum::perform(NewEnumStage* current_stage)
@@ -379,6 +390,7 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
 
     long sign = NTL::sign(this->d),
          equation_counter = 0;
+    bool cf_equation = false;
 
     do
     {
@@ -392,10 +404,12 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
         {
             equation_counter++;
             this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
-            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(c_1 / this->theoreticalMaxDistance), this->round, this->timer.step());
+            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(c_1 / this->theoreticalMaxDistance), this->round, this->timer.step(),cf_equation);
         }
+
+        cf_equation = true;
     }
-    while(this->k_n < this->threshold);
+    while(this->k_n < this->threshold && this->settings.useContinuedFractions);
 
     return equation_counter > 0;
 }

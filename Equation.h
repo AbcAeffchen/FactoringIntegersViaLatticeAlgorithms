@@ -17,8 +17,9 @@ struct Equation
     long round;
     double time;
     long counter;
+    bool fromContinuedFraction;
 
-    Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time);
+    Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time, bool fromContinuedFraction = false);
 };
 
 /**
@@ -35,7 +36,8 @@ bool operator== (const Equation &left, const Equation &right);
  */
 bool operator< (const Equation &left, const Equation &right);
 
-bool sort_equations(Equation left, Equation right);
+bool sort_equations(const Equation &left, const Equation &right);
+
+bool sort_equations_by_v(const Equation &left, const Equation &right);
 
 #endif	/* EQUATION_H */
-

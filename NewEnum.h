@@ -58,15 +58,28 @@ class StageStorage
 public:
 
     // statistics
-    vector<unsigned long long> maxDelayedStages;
-    unsigned long long totalDelayedStages = 0;
+    /**
+     * Contains the number of stages stored for the level
+     * at the moment this level gets performed.
+     * Organized as [alpha_2_indicator][t_indicator][level-11]
+     */
+    vector<vector<vector<unsigned long long>>> maxDelayedAndPerformedStages;
+    unsigned long long totalDelayedAndPerformedStages = 0;
+    /**
+     * Contains the number of stages stored for the level (performed and deleted)
+     * Organized as [alpha_2_indicator][t_indicator][level-11]
+     */
+    vector<vector<vector<unsigned long long>>> delayedStages;
+
+    vector<vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
 
     StageStorage(unsigned long dim, unsigned long pruningLevel)
-            : dim(dim), pruningLevel(pruningLevel), stageCounterByLevel(vector<unsigned long long>(pruningLevel - this->min_level,0)),
-              storage(vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - this->min_level)))),
-              maxDelayedStages(vector<unsigned long long>(pruningLevel-this->min_level,0))
+            : dim(dim), min_level(10), pruningLevel(pruningLevel),
+              stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level,0))
     {
-        this->maxDelayedStages = vector<unsigned long long>(pruningLevel-this->min_level,0);
+        this->storage = vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - min_level)));
+        this->maxDelayedAndPerformedStages = vector<vector<vector<unsigned long long>>>(3, vector<vector<unsigned long long>>(3, vector<unsigned long long>(pruningLevel - min_level,0)));
+        this->delayedStages = vector<vector<vector<unsigned long long>>>(3, vector<vector<unsigned long long>>(3, vector<unsigned long long>(pruningLevel - min_level,0)));
         // allocate 1000 stages for the beginning
         for(int i = 0; i < 1000; ++i)
             this->pool.push_back(new NewEnumStage);
@@ -83,9 +96,14 @@ public:
     void resetStorage(const RR &A)
     {
         // reset counters/statistics
-        this->totalDelayedStages = 0;
-        for(int i = 0; i < this->pruningLevel - this->min_level; i++)
-            this->maxDelayedStages[i] = 0;
+        this->totalDelayedAndPerformedStages = 0;
+        for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
+            for(long t_indicator = 0; t_indicator < 3; t_indicator++)
+                for(int level = 0; level < this->pruningLevel - this->min_level; level++)
+                {
+                    this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
+                    this->delayedStages[alpha_2_indicator][t_indicator][level] = 0;
+                }
 
         this->maxDistance = A;
         this->currentLevel = this->min_level;
@@ -102,11 +120,11 @@ public:
 private:
     const unsigned long dim;
 
-    const double alpha_1_threshold = 0.99;     /**< A_new/A_old = alpha_1 < alpha_1_threshold.
-                                                    Used to prevent to much useless level recalculations. */
+    const double alpha_1_threshold = 0.99;      /**< A_new/A_old = alpha_1 < alpha_1_threshold.
+                                                     Used to prevent to much useless level recalculations. */
 
     const long pruningLevel;
-    const long min_level = 10;      /**< minimum level */
+    const long min_level = 10;                  /**< minimum level */
 
     unsigned long long stageCounterTotal = 0;
     vector<unsigned long long> stageCounterByLevel;
@@ -114,8 +132,6 @@ private:
     unsigned int currentLevel = 10;
 
     RR maxDistance;
-
-    vector<vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
 
     list<NewEnumStage*> pool;
     vector<vector<vector<list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t

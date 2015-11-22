@@ -48,6 +48,13 @@ private:
 
     string statsName;
 
+    const string alpha_2_indicator_text[3] = {"$\\alpha_{2} \\leq 0.4$",
+                                              "$0.4 < \\alpha_{2} \\leq 0.65$",
+                                              "$\\alpha_{2} > 0.65$"};
+    const string t_indicator[3] = {"$t < 20$",
+                                   "$20 \\leq t < 50$",
+                                   "$t \\geq 50$"};
+
     void writeEqnFormatted(const Equation& eqn, const Vec<long>& primes);
 
     void writeEqnStatistics(const Equation& eqn, const Vec<long>& primes);
@@ -74,7 +81,10 @@ public:
 
     void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
-    void statisticsDelayedStagesOnLevel(const vector<unsigned long long> &delayedStagesPerLevel, unsigned long long totalDelayedStages);
+    void statisticsDelayedStagesOnLevel(unsigned long long max_level, const vector<vector<double>> &alpha_2_min,
+                                        const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
+                                        const vector<vector<vector<unsigned long long>>> &delayedStages,
+                                        unsigned long long totalDelayedAndPerformedStages);
 
     void statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes);
 
@@ -90,7 +100,7 @@ public:
 
     void closeStatisticsFile();
 
-    void writeSummary(const Statistics& stats, double time);
+    void writeSummary(const Statistics& stats, double time, long n, std::set<Equation> &uniqueEquations);
 
     void texToPdf();
 

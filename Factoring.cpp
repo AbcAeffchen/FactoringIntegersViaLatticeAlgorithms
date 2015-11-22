@@ -188,8 +188,9 @@ void Factoring::search()
         this->timer.startTimer();
 
         newEnum.run(round, this->B_scaled_transposed, this->U_scaled, this->target_scaled_coordinates);
-
         newEquations = newEnum.getEquations();
+        newDuplicates = this->addEquations(newEquations);
+
         newEnumTime = this->timer.stopTimer();
 
         // statistics
@@ -198,7 +199,6 @@ void Factoring::search()
         this->stats.newSlightBkzTime(slightBkzTime);
         this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
 
-        newDuplicates = this->addEquations(newEquations);
         // display round results
         cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns << ")" << endl;
         cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
@@ -208,7 +208,7 @@ void Factoring::search()
 
     this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
 
-    this->file.writeSummary(this->stats, this->timer.getTotalTime());
+    this->file.writeSummary(this->stats, this->timer.getTotalTime(), this->settings.n, this->uniqueEquations);
     this->file.closeEquationFile();
     this->file.closeStatisticsFile();
 
