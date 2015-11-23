@@ -2,6 +2,8 @@
 #ifndef FACTORINGINTEGERS_H
 #define	FACTORINGINTEGERS_H
 
+#define __NUM_THREADS__ 2
+
 #include "NewEnum.h"
 #include "Equation.h"
 #include "Timer.h"
@@ -12,6 +14,7 @@
 #include <NTL/LLL.h>
 
 #include <random>
+#include <omp.h>
 
 using namespace std;
 using namespace NTL;
@@ -42,7 +45,7 @@ protected:
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
 
     // Output
-    Timer timer;
+    Timer timer = Timer(__NUM_THREADS__);
     FileOutput file;
     std::set<Equation> uniqueEquations;         /**< contains the equations that will be found */
 
@@ -63,7 +66,7 @@ protected:
      * scales the lattice basis, BKZ-reduces it slightly, and also converting the
      * target coordinates
      */
-    void setScaledAndReducedBasis();
+    void setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates);
 
     /**
      * Generates the prime lattice basis and make a strong BKZ reduction with

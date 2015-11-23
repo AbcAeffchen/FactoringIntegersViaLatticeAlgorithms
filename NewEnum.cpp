@@ -173,7 +173,6 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
 {
     this->prepare(round, newBasis_transposed, new_U_scaled, new_target_coordinates);
 
-    cout << "Performing: ";
     // Reset list of delayed stages
     this->current_level = this->min_level;
 
@@ -197,11 +196,7 @@ void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const
             this->perform(stage);
             this->L.returnStage(stage);
         }
-
-        cout << ".";
     }
-
-    cout << endl;
 }
 
 void NewEnum::perform(NewEnumStage* current_stage)

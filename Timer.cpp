@@ -1,24 +1,24 @@
 
 #include "Timer.h"
 
-Timer::Timer() {}
+Timer::Timer(unsigned int threads) : startTime(std::vector<double>(threads)) {}
 
-void Timer::startTimer()
+void Timer::startTimer(int thread)
 {
-    this->startTime = clock();
+    this->startTime[thread] = clock();
     return;
 }
 
-double Timer::stopTimer()
+double Timer::stopTimer(int thread)
 {
-    double time = (clock() - this->startTime)/CLOCKS_PER_SEC;
+    double time = (clock() - this->startTime[thread])/CLOCKS_PER_SEC;
     this->totalTime += time;
     return time;
 }
 
-double Timer::step()
+double Timer::step(int thread)
 {
-    return ((clock() - this->startTime)/CLOCKS_PER_SEC);
+    return ((clock() - this->startTime[thread])/CLOCKS_PER_SEC);
 }
 
 double Timer::getTotalTime()

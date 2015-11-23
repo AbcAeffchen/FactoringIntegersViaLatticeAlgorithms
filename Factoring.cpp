@@ -57,30 +57,31 @@ void Factoring::randomScale2(Mat<ZZ> &basis)
     }
 }
 
-void Factoring::setScaledAndReducedBasis()
+void Factoring::setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates)
 {
     // scale
-    this->B_scaled_transposed = this->B;    // not yet transposed
+    Mat<ZZ> U_scaled_inv;
+    B_scaled_transposed = this->B;    // not yet transposed
 
     switch(this->settings.scalingType)
     {
         case 2:
-            this->randomScale2(this->B_scaled_transposed);
+            this->randomScale2(B_scaled_transposed);
             break;
         default:
-            this->randomScale1(this->B_scaled_transposed);
+            this->randomScale1(B_scaled_transposed);
             break;
     }
 
     // reduce
-    transpose(this->B_scaled_transposed, this->B_scaled_transposed);    // now it is transposed
-    BKZ_FP(this->B_scaled_transposed, this->U_scaled, 0.99, this->settings.slight_bkz);
+    transpose(B_scaled_transposed, B_scaled_transposed);    // now it is transposed
+    BKZ_FP(B_scaled_transposed, U_scaled, 0.99, this->settings.slight_bkz);
 
-    transpose(this->U_scaled,this->U_scaled);
-    inv(this->U_scaled_inv, this->U_scaled);
+    transpose(U_scaled,U_scaled);
+    inv(U_scaled_inv, U_scaled);
 
     // apply the reduction to the coordinate vector
-    mul(this->target_scaled_coordinates, conv<Mat<RR>>(this->U_scaled_inv), this->target_coordinates);
+    mul(target_scaled_coordinates, conv<Mat<RR>>(U_scaled_inv), this->target_coordinates);
 
     return;
 }
@@ -166,56 +167,86 @@ void Factoring::reduceBasis(long strong_bkz)
 
 void Factoring::search()
 {
-    list<Equation> newEquations;
-    double newEnumTime;
-    double slightBkzTime;
-    long newDuplicates;
-    unsigned long round = 0;
+    vector<unsigned long> round(__NUM_THREADS__, 0);
 
-    NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats,
-                              this->primes, this->U, this->shift);
+    vector<NewEnum*> newEnum(__NUM_THREADS__);
+    for(long i = 0; i < __NUM_THREADS__; i++)
+        newEnum[i] = new NewEnum(this->settings, this->timer, this->file, this->stats,
+                                 this->primes, this->U, this->shift);
 
-    RR theoretical, heuristic, reduced;
-
+#pragma omp parallel shared(round,newEnum) num_threads( __NUM_THREADS__ )
     while(this->uniqueEquations.size() < this->settings.min_eqns)
     {
-        round++;
-        cout << "Round " << round << endl;
-        this->file.statisticNewRound(round);
+        list<Equation> newEquations;
+        double newEnumTime;
+        double slightBkzTime;
+        long newDuplicates;
+        RR theoretical, heuristic, reduced;
+        Mat<ZZ> B_scaled_transposed, U_scaled;
+        Vec<RR> target_scaled_coordinates;
 
-        this->timer.startTimer();
-        this->setScaledAndReducedBasis();    // scale and slight bkz
-        slightBkzTime = this->timer.stopTimer();
+        round[omp_get_thread_num()]++;
 
-        this->timer.startTimer();
+        this->timer.startTimer(omp_get_thread_num());
+        this->setScaledAndReducedBasis(B_scaled_transposed, U_scaled, target_scaled_coordinates);    // scale and slight bkz
+        slightBkzTime = this->timer.stopTimer(omp_get_thread_num());
 
-        newEnum.run(round, this->B_scaled_transposed, this->U_scaled, this->target_scaled_coordinates);
-        newEquations = newEnum.getEquations();
-        newDuplicates = this->addEquations(newEquations);
+        this->timer.startTimer(omp_get_thread_num());
 
-        newEnumTime = this->timer.stopTimer();
+        newEnum[omp_get_thread_num()]->run(round[omp_get_thread_num()], B_scaled_transposed, U_scaled, target_scaled_coordinates);
+        newEquations = newEnum[omp_get_thread_num()]->getEquations();
+#pragma omp critical(storeEquations)
+        {
+            newDuplicates = this->addEquations(newEquations);
+        }
+#pragma omp critical(stopTimer)
+        {
+            newEnumTime = timer.stopTimer(omp_get_thread_num());
+        }
 
-        newEnum.getDistances(theoretical,heuristic,reduced);
+        newEnum[omp_get_thread_num()]->getDistances(theoretical,heuristic,reduced);
 
         // statistics
-        this->stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, newEquations.size() > 0);
-        this->stats.updateDistanceStats(theoretical,heuristic,reduced);
-        this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,newEnum.L.alpha_2_min,
-                                                  newEnum.L.maxDelayedAndPerformedStages,
-                                                  newEnum.L.delayedStages,
-                                                  newEnum.L.totalDelayedAndPerformedStages);
-        this->file.statisticsDistances(theoretical,heuristic,reduced);
-        this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
-        this->file.statisticsNewEquations(newEquations,this->primes);
-        this->stats.newSlightBkzTime(slightBkzTime);
-        this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
+
+#pragma omp critical(statistics)
+        {
+            this->stats.updateRoundStats(newEnum[omp_get_thread_num()]->L.totalDelayedAndPerformedStages > 0,
+                                         newEquations.size() > 0);
+            this->stats.updateDistanceStats(theoretical, heuristic, reduced);
+            this->stats.newSlightBkzTime(slightBkzTime);
+            this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
+        }
+
+#pragma omp critical(file_output)
+        {
+            this->file.statisticNewRound(round[omp_get_thread_num()]);
+            this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,
+                                                      newEnum[omp_get_thread_num()]->L.alpha_2_min,
+                                                      newEnum[omp_get_thread_num()]->L.maxDelayedAndPerformedStages,
+                                                      newEnum[omp_get_thread_num()]->L.delayedStages,
+                                                      newEnum[omp_get_thread_num()]->L.totalDelayedAndPerformedStages);
+            this->file.statisticsDistances(theoretical, heuristic, reduced);
+            this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
+            this->file.statisticsNewEquations(newEquations, this->primes);
+        }
 
         // display round results
-        cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns << ")" << endl;
-        cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
+#pragma omp critical(screen_output)
+        {
+            cout << "Round " <<omp_get_thread_num() << "." << round[omp_get_thread_num()] << endl;
+            cout << " -> total equations (new | total):       " << newEquations.size() <<
+            "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns <<
+            ")" << endl;
+            cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " <<
+            this->eqnDuplicates << endl;
+        }
     }
 
-    this->stats.closeStatistics(round,this->uniqueEquations.size(),this->eqnDuplicates);
+    unsigned long roundsTotal = 0;
+    for(long i = 0; i < __NUM_THREADS__; i++)
+        roundsTotal += round[i];
+
+    this->stats.closeStatistics(roundsTotal,this->uniqueEquations.size(),this->eqnDuplicates);
 
     this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
 
