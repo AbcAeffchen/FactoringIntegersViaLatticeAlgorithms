@@ -9,6 +9,7 @@
 #include <NTL/RR.h>
 #include <NTL/matrix.h>
 #include <NTL/version.h>
+#include <gmp.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -76,7 +77,7 @@ public:
 
     FileOutput();
 
-    void statisticNewRound(long round);
+    void statisticNewRound(long threadId, long round);
 
     void statisticSlightBKZ(double slightBkz, double newEnum);
 

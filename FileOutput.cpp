@@ -6,7 +6,7 @@ using namespace std;
 
 void FileOutput::writeEqnFormatted(const Equation& eqn, const Vec<long>& primes)
 {
-    this->equations << eqn.round << " & ";
+    this->equations << eqn.threadId << "." << eqn.round << " & ";
     this->equations << eqn.counter << " & ";
 
     if(eqn.fromContinuedFraction)
@@ -216,9 +216,9 @@ FileOutput::FileOutput()
                      << "\\onehalfspacing" << endl << endl;
 }
 
-void FileOutput::statisticNewRound(long round)
+void FileOutput::statisticNewRound(long threadId, long round)
 {
-    this->statistics << "\\section*{Round " << round << "}" << endl
+    this->statistics << "\\section*{Round " << threadId+1 << "." << round << "}" << endl
                      << "\\begin{longtable}{p{13cm}p{4cm}}" << endl;
 }
 
@@ -388,10 +388,13 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
 {
     this->equations << "\\section*{Settings}" << endl
                     << "\\begin{tabular}{ll}" << endl
-                    << "NTL Version: & " << NTL_VERSION << "\\\\"
+                    << "Number of Threads: &" << __NUM_THREADS__ << "\\\\" << endl
+                    << "NTL Version: & " << NTL_VERSION << " (with GMP and thread safe)\\\\" << endl
+                    << "GMP Version: & " << __GNU_MP_VERSION << "." << __GNU_MP_VERSION_MINOR << "." << __GNU_MP_VERSION_PATCHLEVEL << "\\\\" << endl
                 #ifdef __GNUC__
                     << "GCC: &" << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << "\\\\" << endl
                 #endif
+                    << "\\\\" << endl
                     << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
                     << "$c$ & $" << settings.c << "$\\\\" << endl
                     << "$n$ & $ " << settings.n << "$\\\\" << endl
@@ -417,10 +420,13 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
 
     this->statistics << "\\section*{Settings}" << endl
                      << "\\begin{tabular}{ll}" << endl
-                     << "NTL Version: & " << NTL_VERSION << "\\\\"
+                     << "Number of Threads: &" << __NUM_THREADS__ << "\\\\" << endl
+                     << "NTL Version: & " << NTL_VERSION << " (with GMP and thread safe)\\\\" << endl
+                     << "GMP Version: & " << __GNU_MP_VERSION << "." << __GNU_MP_VERSION_MINOR << "." << __GNU_MP_VERSION_PATCHLEVEL << "\\\\" << endl
                 #ifdef __GNUC__
                      << "GCC: &" << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << "\\\\" << endl
                 #endif
+                     << "\\\\" << endl
                      << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
                      << "$c$ & $" << settings.c << "$\\\\" << endl
                      << "$n$ & $ " << settings.n << "$\\\\" << endl

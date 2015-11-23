@@ -4,6 +4,8 @@ project(FactoringIntegersViaLatticeAlgorithms C CXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -lpthread -m64 -fopenmp -lgmp")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lpthread -m64 -fopenmp -lgmp")
 
+add_definitions(-D__NUM_THREADS__=2)
+
 set(SOURCE_FILES startProgram.cpp
         Equation.h Equation.cpp
         Factoring.h Factoring.cpp

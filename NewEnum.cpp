@@ -168,10 +168,10 @@ void NewEnum::next(RR &out, const RR &u, const RR &y)
         out -= side2;
 }
 
-void NewEnum::run(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &new_U_scaled,
+void NewEnum::run(unsigned long round, long threadId, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &new_U_scaled,
                   const Vec<RR> &new_target_coordinates)
 {
-    this->prepare(round, newBasis_transposed, new_U_scaled, new_target_coordinates);
+    this->prepare(round, threadId, newBasis_transposed, new_U_scaled, new_target_coordinates);
 
     // Reset list of delayed stages
     this->current_level = this->min_level;
@@ -388,7 +388,7 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
         {
             equation_counter++;
             this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
-            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(c_1 / this->theoreticalMaxDistance), this->round, this->timer.step(),cf_equation);
+            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(c_1 / this->theoreticalMaxDistance), this->round, this->threadId, this->timer.step(),cf_equation);
         }
 
         cf_equation = true;
@@ -464,10 +464,11 @@ bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_si
     return !(right_side_abs > 1 || left_side == 1);     // if not smooth or the equation is 1 = 1
 }
 
-void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &newU_scaled,
+void NewEnum::prepare(unsigned long round, long threadId, const Mat<ZZ> &newBasis_transposed, const Mat<ZZ> &newU_scaled,
                       const Vec<RR> &new_target_coordinates)
 {
     this->round = round;
+    this->threadId = threadId+1;
     conv(this->U_scaled_RR,newU_scaled);
     this->tau = new_target_coordinates;
 

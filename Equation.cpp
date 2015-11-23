@@ -4,8 +4,8 @@
 /**
  * Class Equation Data structure to save the equation data
  */
-Equation::Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time, bool fromContinuedFraction) :
-    e(e), v(v), level(level), reduced(reduced), round(round), time(time),  counter(1), fromContinuedFraction(fromContinuedFraction)
+Equation::Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, long threadId, double time, bool fromContinuedFraction) :
+    e(e), v(v), level(level), reduced(reduced), round(round), threadId(threadId), time(time),  counter(1), fromContinuedFraction(fromContinuedFraction)
 {}
 
 /**
@@ -54,6 +54,11 @@ bool operator< (const Equation &left, const Equation &right)
  */
 bool sort_equations(const Equation &left, const Equation &right)
 {
+    if(left.threadId < right.threadId)
+        return true;
+    else if(left.threadId > right.threadId)
+        return false;
+
     if(left.round < right.round)
         return true;
     else if(left.round > right.round)

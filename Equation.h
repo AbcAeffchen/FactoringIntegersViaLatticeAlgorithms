@@ -15,11 +15,12 @@ struct Equation
     long level;
     double reduced;
     long round;
+    long threadId;
     double time;
     long counter;
     bool fromContinuedFraction;
 
-    Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time, bool fromContinuedFraction = false);
+    Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, long threadId, double time, bool fromContinuedFraction = false);
 };
 
 /**

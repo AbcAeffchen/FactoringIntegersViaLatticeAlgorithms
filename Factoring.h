@@ -2,8 +2,6 @@
 #ifndef FACTORINGINTEGERS_H
 #define	FACTORINGINTEGERS_H
 
-#define __NUM_THREADS__ 2
-
 #include "NewEnum.h"
 #include "Equation.h"
 #include "Timer.h"

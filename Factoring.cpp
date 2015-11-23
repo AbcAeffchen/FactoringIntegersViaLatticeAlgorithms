@@ -198,7 +198,7 @@ void Factoring::search()
 
         timer[thread_id].startTimer();
 
-        newEnum[thread_id]->run(round[thread_id], B_scaled_transposed, U_scaled, target_scaled_coordinates);
+        newEnum[thread_id]->run(round[thread_id], thread_id, B_scaled_transposed, U_scaled, target_scaled_coordinates);
         newEquations = newEnum[thread_id]->getEquations();
 #pragma omp critical(storeEquations)
         {
@@ -222,7 +222,7 @@ void Factoring::search()
 
 #pragma omp critical(file_output)
         {
-            this->file.statisticNewRound(round[thread_id]);
+            this->file.statisticNewRound(thread_id,round[thread_id]);
             this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,
                                                       newEnum[thread_id]->L.alpha_2_min,
                                                       newEnum[thread_id]->L.maxDelayedAndPerformedStages,
@@ -236,7 +236,7 @@ void Factoring::search()
         // display round results
 #pragma omp critical(screen_output)
         {
-            cout << "Round " <<thread_id << "." << round[thread_id] << endl;
+            cout << "Round " << thread_id << "." << round[thread_id] << endl;
             cout << " -> total equations (new | total):       " << newEquations.size() <<
             "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns <<
             ")" << endl;
