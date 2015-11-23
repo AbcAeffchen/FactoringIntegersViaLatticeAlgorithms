@@ -10,23 +10,23 @@ class Timer
 private:
 
     double totalTime = 0;
-    std::vector<double> startTime;
+    double startTime;
 
 public:
-    Timer(unsigned int threads = 1);
+    Timer();
     /**
      * starts a timer. Notice: If you start the timer again without stopping
      * it first, the first timer gets overwritten and is lost.
      */
-    void startTimer(int thread = 0);
+    void startTimer();
     /**
      * stops the timer, computes the time difference in sec and adds the time to
      * an overall timer.
      * @return the time in sec
      */
-    double stopTimer(int thread = 0);
+    double stopTimer();
 
-    double step(int thread = 0);
+    double step();
 
     /**
      * @return the overall time in sec

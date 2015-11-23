@@ -38,14 +38,8 @@ protected:
     Vec<RR> target_coordinates,         /**< The coordinates of th target vector (reduced and shifted) */
             shift;                      /**< The shift */
 
-    // Buffer
-    Mat<ZZ> B_scaled_transposed,                   /**< The scaled BKZ-basis */
-            U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
-            U_scaled_inv;               /**< The inverse of U_scale */
-    Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
-
     // Output
-    Timer timer = Timer(__NUM_THREADS__);
+    Timer timer;
     FileOutput file;
     std::set<Equation> uniqueEquations;         /**< contains the equations that will be found */
 

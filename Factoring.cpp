@@ -170,10 +170,12 @@ void Factoring::search()
     vector<unsigned long> round(__NUM_THREADS__, 0);
 
     vector<NewEnum*> newEnum(__NUM_THREADS__);
+    vector<Timer> timer(__NUM_THREADS__);
     for(long i = 0; i < __NUM_THREADS__; i++)
-        newEnum[i] = new NewEnum(this->settings, this->timer, this->file, this->stats,
+    {
+        newEnum[i] = new NewEnum(this->settings, timer[i], this->file, this->stats,
                                  this->primes, this->U, this->shift);
-
+    }
 #pragma omp parallel shared(round,newEnum) num_threads( __NUM_THREADS__ )
     while(this->uniqueEquations.size() < this->settings.min_eqns)
     {
@@ -184,33 +186,34 @@ void Factoring::search()
         RR theoretical, heuristic, reduced;
         Mat<ZZ> B_scaled_transposed, U_scaled;
         Vec<RR> target_scaled_coordinates;
+        long thread_id;
 
-        round[omp_get_thread_num()]++;
+        thread_id = omp_get_thread_num();
 
-        this->timer.startTimer(omp_get_thread_num());
+        round[thread_id]++;
+
+        timer[thread_id].startTimer();
         this->setScaledAndReducedBasis(B_scaled_transposed, U_scaled, target_scaled_coordinates);    // scale and slight bkz
-        slightBkzTime = this->timer.stopTimer(omp_get_thread_num());
+        slightBkzTime = timer[thread_id].stopTimer();
 
-        this->timer.startTimer(omp_get_thread_num());
+        timer[thread_id].startTimer();
 
-        newEnum[omp_get_thread_num()]->run(round[omp_get_thread_num()], B_scaled_transposed, U_scaled, target_scaled_coordinates);
-        newEquations = newEnum[omp_get_thread_num()]->getEquations();
+        newEnum[thread_id]->run(round[thread_id], B_scaled_transposed, U_scaled, target_scaled_coordinates);
+        newEquations = newEnum[thread_id]->getEquations();
 #pragma omp critical(storeEquations)
         {
             newDuplicates = this->addEquations(newEquations);
         }
-#pragma omp critical(stopTimer)
-        {
-            newEnumTime = timer.stopTimer(omp_get_thread_num());
-        }
 
-        newEnum[omp_get_thread_num()]->getDistances(theoretical,heuristic,reduced);
+        newEnumTime = timer[thread_id].stopTimer();
+
+        newEnum[thread_id]->getDistances(theoretical,heuristic,reduced);
 
         // statistics
 
 #pragma omp critical(statistics)
         {
-            this->stats.updateRoundStats(newEnum[omp_get_thread_num()]->L.totalDelayedAndPerformedStages > 0,
+            this->stats.updateRoundStats(newEnum[thread_id]->L.totalDelayedAndPerformedStages > 0,
                                          newEquations.size() > 0);
             this->stats.updateDistanceStats(theoretical, heuristic, reduced);
             this->stats.newSlightBkzTime(slightBkzTime);
@@ -219,12 +222,12 @@ void Factoring::search()
 
 #pragma omp critical(file_output)
         {
-            this->file.statisticNewRound(round[omp_get_thread_num()]);
+            this->file.statisticNewRound(round[thread_id]);
             this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,
-                                                      newEnum[omp_get_thread_num()]->L.alpha_2_min,
-                                                      newEnum[omp_get_thread_num()]->L.maxDelayedAndPerformedStages,
-                                                      newEnum[omp_get_thread_num()]->L.delayedStages,
-                                                      newEnum[omp_get_thread_num()]->L.totalDelayedAndPerformedStages);
+                                                      newEnum[thread_id]->L.alpha_2_min,
+                                                      newEnum[thread_id]->L.maxDelayedAndPerformedStages,
+                                                      newEnum[thread_id]->L.delayedStages,
+                                                      newEnum[thread_id]->L.totalDelayedAndPerformedStages);
             this->file.statisticsDistances(theoretical, heuristic, reduced);
             this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
             this->file.statisticsNewEquations(newEquations, this->primes);
@@ -233,7 +236,7 @@ void Factoring::search()
         // display round results
 #pragma omp critical(screen_output)
         {
-            cout << "Round " <<omp_get_thread_num() << "." << round[omp_get_thread_num()] << endl;
+            cout << "Round " <<thread_id << "." << round[thread_id] << endl;
             cout << " -> total equations (new | total):       " << newEquations.size() <<
             "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns <<
             ")" << endl;
@@ -246,11 +249,16 @@ void Factoring::search()
     for(long i = 0; i < __NUM_THREADS__; i++)
         roundsTotal += round[i];
 
+    double maxTime = 0;
+    for(long i = 0; i < __NUM_THREADS__; i++)
+        if(timer[i].getTotalTime() > maxTime)
+        maxTime = timer[i].getTotalTime();
+
     this->stats.closeStatistics(roundsTotal,this->uniqueEquations.size(),this->eqnDuplicates);
 
     this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
 
-    this->file.writeSummary(this->stats, this->timer.getTotalTime(), this->settings.n, this->uniqueEquations);
+    this->file.writeSummary(this->stats, maxTime + this->timer.getTotalTime(), this->settings.n, this->uniqueEquations);
     this->file.closeEquationFile();
     this->file.closeStatisticsFile();
 
