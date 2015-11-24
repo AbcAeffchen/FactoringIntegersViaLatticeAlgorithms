@@ -173,8 +173,7 @@ void Factoring::search()
     vector<Timer> timer(__NUM_THREADS__);
     for(long i = 0; i < __NUM_THREADS__; i++)
     {
-        newEnum[i] = new NewEnum(this->settings, timer[i], this->file, this->stats,
-                                 this->primes, this->U, this->shift);
+        newEnum[i] = new NewEnum(this->settings, timer[i], this->primes, this->U, this->shift);
     }
 #pragma omp parallel shared(round,newEnum) num_threads( __NUM_THREADS__ )
     while(this->uniqueEquations.size() < this->settings.min_eqns)
