@@ -63,23 +63,23 @@ public:
      * at the moment this level gets performed.
      * Organized as [alpha_2_indicator][t_indicator][level-11]
      */
-    vector<vector<vector<unsigned long long>>> maxDelayedAndPerformedStages;
+    std::vector<std::vector<std::vector<unsigned long long>>> maxDelayedAndPerformedStages;
     unsigned long long totalDelayedAndPerformedStages = 0;
     /**
      * Contains the number of stages stored for the level (performed and deleted)
      * Organized as [alpha_2_indicator][t_indicator][level-11]
      */
-    vector<vector<vector<unsigned long long>>> delayedStages;
+    std::vector<std::vector<std::vector<unsigned long long>>> delayedStages;
 
-    vector<vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
+    std::vector<std::vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
 
     StageStorage(unsigned long dim, unsigned long pruningLevel)
             : dim(dim), min_level(10), pruningLevel(pruningLevel),
               stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level,0))
     {
-        this->storage = vector<vector<vector<list<NewEnumStage*>>>>(3,vector<vector<list<NewEnumStage*>>>(3, vector<list<NewEnumStage*>>(pruningLevel - min_level)));
-        this->maxDelayedAndPerformedStages = vector<vector<vector<unsigned long long>>>(3, vector<vector<unsigned long long>>(3, vector<unsigned long long>(pruningLevel - min_level,0)));
-        this->delayedStages = vector<vector<vector<unsigned long long>>>(3, vector<vector<unsigned long long>>(3, vector<unsigned long long>(pruningLevel - min_level,0)));
+        this->storage = std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>>(3,std::vector<std::vector<std::list<NewEnumStage*>>>(3, std::vector<std::list<NewEnumStage*>>(pruningLevel - min_level)));
+        this->maxDelayedAndPerformedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
+        this->delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
         // allocate 1000 stages for the beginning
         for(int i = 0; i < 1000; ++i)
             this->pool.push_back(new NewEnumStage);
@@ -134,8 +134,8 @@ private:
     RR maxDistance;
 
     list<NewEnumStage*> pool;
-    vector<vector<vector<list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
-                                                                      organized as storage[t_indicator][alpha_2_indicator][s-11]. */
+    std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
+                                                                                         organized as storage[t_indicator][alpha_2_indicator][s-11]. */
 
     inline long alpha_2_indicator(const double &alpha_2)
     {
