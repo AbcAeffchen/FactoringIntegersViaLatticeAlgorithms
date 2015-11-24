@@ -177,8 +177,6 @@ private:
 
     // Output
     Timer& timer;
-    FileOutput& file;
-    Statistics& stats;
     long round;
 
     // Lattice Data
@@ -306,9 +304,6 @@ public:
     StageStorage L;
     /**
      * Starts the NewEnum Algorithm to find close vectors and extract equations
-     * @param settings      Contains the settings for the whole program.
-     * @param file          Reference to the file object, that handles th
-     *                      data output.
      * @param primes        The vector of prime numbers used in the lattice
      * @param basis         The strong reduced, random scaled and slight
      *                      reduced lattice basis. Required for the Gram-Schmidt
@@ -316,15 +311,11 @@ public:
      * @param U             The transition matrix, that does the strong
      *                      BKZ reduction. Required to get the coordinates
      *                      of the close vector respecting  the prime number lattice.
-     * @param U_scaled      The transition matrix, that does the slight
-     *                      BKZ reduction. Also required to get the
-     *                      coordinates of the close vector.
-     * @param target        The coordinates of the (shifted) target vector
      * @param target_shift  The shift that was done. required to shift
      *                      the close vector back where it should be.
      */
-    NewEnum(const FactoringSettings &settings, Timer &timer, FileOutput &file,
-            Statistics &stats, const Vec<long> &primes, const Mat<ZZ> &U, const Vec<RR> &target_shift);
+    NewEnum(const FactoringSettings &settings, Timer &timer, const Vec<long> &primes,
+            const Mat<ZZ> &U, const Vec<RR> &target_shift);
 
     /**
      * Returns a list of equations that were found in this round.

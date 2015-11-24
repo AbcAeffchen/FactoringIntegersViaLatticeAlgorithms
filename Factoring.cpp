@@ -172,8 +172,7 @@ void Factoring::search()
     long newDuplicates;
     unsigned long round = 0;
 
-    NewEnum newEnum = NewEnum(this->settings, this->timer, this->file, this->stats,
-                              this->primes, this->U, this->shift);
+    NewEnum newEnum = NewEnum(this->settings, this->timer, this->primes, this->U, this->shift);
 
     RR theoretical, heuristic, reduced;
 
@@ -200,6 +199,8 @@ void Factoring::search()
         // statistics
         this->stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, newEquations.size() > 0);
         this->stats.updateDistanceStats(theoretical,heuristic,reduced);
+        this->stats.newSlightBkzTime(slightBkzTime);
+        this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
         this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,newEnum.L.alpha_2_min,
                                                   newEnum.L.maxDelayedAndPerformedStages,
                                                   newEnum.L.delayedStages,
@@ -207,8 +208,6 @@ void Factoring::search()
         this->file.statisticsDistances(theoretical,heuristic,reduced);
         this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
         this->file.statisticsNewEquations(newEquations,this->primes);
-        this->stats.newSlightBkzTime(slightBkzTime);
-        this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
 
         // display round results
         cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns << ")" << endl;
