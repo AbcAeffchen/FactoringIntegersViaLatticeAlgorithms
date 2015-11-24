@@ -266,16 +266,16 @@ Factoring::Factoring(const FactoringSettings &settings)
     this->setPrimes(settings.n);
 
     // setup random number generator
-    long long int seed;
+    unsigned int seed;
     if(settings.seed_type <= -2)
-        seed = time(NULL);
+        seed = (unsigned int) time(NULL);
     else if(settings.seed_type == -1)
     {
         random_device rd;
         seed = rd();
     }
     else
-        seed = settings.seed_type;
+        seed = (unsigned int) settings.seed_type;
 
     this->rgen = mt19937(seed);
 

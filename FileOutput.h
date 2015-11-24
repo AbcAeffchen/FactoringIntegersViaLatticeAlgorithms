@@ -82,7 +82,7 @@ public:
 
     void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
-    void statisticsDelayedStagesOnLevel(unsigned long long max_level, const vector<vector<double>> &alpha_2_min,
+    void statisticsDelayedStagesOnLevel(int max_level, const vector<vector<double>> &alpha_2_min,
                                         const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
                                         const vector<vector<vector<unsigned long long>>> &delayedStages,
                                         unsigned long long totalDelayedAndPerformedStages);

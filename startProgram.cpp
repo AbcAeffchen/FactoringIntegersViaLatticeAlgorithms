@@ -10,7 +10,7 @@ void manual_settings_input()
     cout << endl << "N ~ 10^";
     cin >> N_size;
 
-    long n;
+    unsigned long n;
     cout << endl << "n is the dimension of the lattice (default is n = 90)" << endl << endl;
     cout << "n = ";
     cin >> n;
@@ -43,7 +43,7 @@ void manual_settings_input()
     cout << "A_factor = ";
     cin >> A_factor;
 
-    long min_eqns;
+    unsigned long min_eqns;
     cout << endl << "How many equations should be found before stopping the programm and calculating statistics" << endl << endl;
     cout << "Min. equations = ";
     cin >> min_eqns;

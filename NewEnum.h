@@ -29,15 +29,15 @@ struct NewEnumStage
     RR y_t;                     // equals y(t)
     RR c_tp1;                   // equals c(t+1)
     Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not important if they are stored in RR or double
-    unsigned long t;            // current coordinate
+    long t;                     // current coordinate
 
     NewEnumStage() {}
 
-    NewEnumStage(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
+    NewEnumStage(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, long t)
             : y_t(y_t), c_tp1(c_tp1), u(conv<Vec<double>>(u)), t(t)
     {}
 
-    void set(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t)
+    void set(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, long t)
     {
         this->y_t = y_t;
         this->c_tp1 = c_tp1;
@@ -89,7 +89,7 @@ public:
 
     void incrementCurrentLevel();
 
-    void storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, unsigned long level);
+    void storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level);
 
     void updateMaxDistance(const RR &distance);
 
