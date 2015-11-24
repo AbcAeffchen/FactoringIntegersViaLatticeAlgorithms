@@ -6,7 +6,7 @@ void NewEnumStage::get_u(Vec<RR> &u) const
     conv(u,this->u);
 }
 
-void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, unsigned long t, unsigned long level)
+void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level)
 {
     NewEnumStage* stage = this->getStage();
     stage->set(y_t,c_tp1,u,t);
@@ -130,7 +130,7 @@ unsigned long StageStorage::levelChange(const double &alpha_1, const double &alp
     return t_indicator == 0
            ? 0
            : (alpha_1 <= alpha_2
-              ? this->pruningLevel - this->min_level - 1
+              ? (unsigned long) this->pruningLevel - this->min_level - 1
               : (unsigned long) floor((t_indicator == 2 ? 50.0 : 20.0) / log((1.0-alpha_2) / (alpha_1 - alpha_2))));
 }
 
@@ -410,7 +410,7 @@ NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, const Vec<long
         : settings(settings), timer(timer), N(settings.N), U_RR(conv<Mat<RR>>(U)),
           primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
           max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3)),
-          log_V(NewEnum::precomputeVolumes(n)), L(StageStorage(n,settings.max_level))
+          log_V(NewEnum::precomputeVolumes(n)), L(StageStorage((unsigned long) n, (unsigned long) settings.max_level))
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1

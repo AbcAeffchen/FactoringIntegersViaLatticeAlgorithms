@@ -240,7 +240,7 @@ void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
                      << "$A'/A$:&" << conv<double>(reduced/theoretical) << endl;
 }
 
-void FileOutput::statisticsDelayedStagesOnLevel(unsigned long long max_level, const vector<vector<double>> &alpha_2_min,
+void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vector<double>> &alpha_2_min,
                                                 const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
                                                 const vector<vector<vector<unsigned long long>>> &delayedStages,
                                                 unsigned long long totalDelayedAndPerformedStages)
