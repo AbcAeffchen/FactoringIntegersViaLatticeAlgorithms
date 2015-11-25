@@ -195,6 +195,7 @@ private:
 
     // Factoring extension
     const ZZ N;
+    const RR N_RR;
     const Vec<long>& primes;
     list<Equation> equations;
 
@@ -229,7 +230,6 @@ private:
      * @param x real number which to round
      * @return closest integer
      */
-    inline RR closest_RR (const RR &x);
     inline void closest_RR (RR &out, const RR &x);
 
     /**

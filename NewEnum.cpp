@@ -144,26 +144,23 @@ Vec<double> NewEnum::precomputeLogT(long n)
     return log_t;
 }
 
-RR NewEnum::closest_RR(const RR &x)
-{
-    return ceil(x-0.5);
-}
-
 void NewEnum::closest_RR(RR &out, const RR &x)
 {
-    // todo optimize
-    ceil(out, x-0.5);
+    sub(out,x,0.5);
+    ceil(out, out);
 }
 
 void NewEnum::next(RR &out, const RR &u, const RR &y)
 {
-    RR closest_y;
+    RR closest_y,temp;
     this->closest_RR(closest_y,y);
 
     int side1 = closest_y >= y ? 1 : -1;
     int side2 = u >= y ? 1 : -1;
-// todo optimize
-    out = 2 * closest_y - u;
+
+    // out = 2 * closest_y - u;
+    mul(temp,closest_y,2);
+    sub(out,temp,u);
 
     if(side1 == side2 || closest_y == u)
         out -= side2;
@@ -224,11 +221,17 @@ void NewEnum::perform(NewEnumStage* current_stage)
 
     bool success;
 
+    RR temp;
+
     // perform stages with s = current_level
     while(t <= max_t)
     {
-        // todo optimize
-        c(t) = c(t+1) + power(abs(u(t) - y(t)), 2) * this->R_ii_squared(t);
+        // c(t) = c(t+1) + power(abs(u(t) - y(t)), 2) * this->R_ii_squared(t);
+        sub(c(t),u(t),y(t));
+        abs(c(t),c(t));
+        power(c(t),c(t),2);
+        c(t) *= this->R_ii_squared(t);
+        c(t) += c(t+1);
 
         if(c(t) >= this->A_curr)
         {
@@ -261,9 +264,13 @@ void NewEnum::perform(NewEnumStage* current_stage)
             t--;
 
             clear(y(t));        // y(t) = 0
-            // todo optimize
             for(long i = t + 1; i <= this->n; i++)    // 1/r_tt * sum_{i=t+1}^n (\tau_i - u_i) r_ti
-                y(t) += (this->tau(i) - u(i)) * this->mu(i,t);
+            {
+                // y(t) += (this->tau(i) - u(i)) * this->mu(i, t);
+                sub(temp,this->tau(i),u(i));
+                mul(temp,temp,this->mu(i, t));
+                y(t) += temp;
+            }
             y(t) += this->tau(t);
 
             this->closest_RR(u(t),y(t));
@@ -348,7 +355,7 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
 
     NTL::set(this->u);       // u = 1
 
-    ZZ temp_ZZ;
+    ZZ temp_ZZ,temp_ZZ_2;
     RR temp_RR;
 
     for(long i = 1; i <= this->n; i++)
@@ -369,8 +376,8 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
     this->v /= temp_RR;
 
     this->closest_RR(temp_RR,this->v);
-    // todo optimize
-    this->d = this->v - temp_RR;
+
+    sub(this->d,this->v,temp_RR);
 
     NTL::abs(this->alpha_nm1,this->d);
 
@@ -391,16 +398,26 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
         this->nextContinuedFraction(this->h_n, this->k_n, this->h_nm1, this->k_nm1, this->h_nm2, this->k_nm2, this->a_nm1, this->alpha_nm1);
 
         this->equation = this->raw_equation;
-        // todo optimize
-        this->left_side = this->u * this->k_n;
-        // todo optimize
-        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
+//        this->left_side = this->u * this->k_n;
+        mul(this->left_side,this->u,this->k_n);
+//        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
+        mul(temp_ZZ,this->vN,this->k_n);
+        sub(temp_ZZ,this->left_side,temp_ZZ);
+        mul(temp_ZZ_2,sign,this->h_n);
+        mul(temp_ZZ_2,temp_ZZ_2,this->N);
+        sub(this->right_side,temp_ZZ,temp_ZZ_2);
+        abs(this->right_side,this->right_side);
 
         if(this->isSmooth(this->equation, this->k_n, this->left_side, this->right_side))
         {
+            // this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / this->N_RR));
             equation_counter++;
-            this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / conv<RR>(this->N)));
-            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(c_1 / this->theoreticalMaxDistance), this->round, this->timer.step(),cf_equation);
+            conv(temp_RR,left_side);
+            div(temp_RR,temp_RR,this->N_RR);
+            this->closest_RR(temp_RR,temp_RR);
+            conv(this->ride_side_factor,temp_RR);
+            div(temp_RR,c_1,this->theoreticalMaxDistance);
+            this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(temp_RR), this->round, this->timer.step(),cf_equation);
         }
 
         cf_equation = true;
@@ -412,7 +429,7 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
 
 NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, const Vec<long> &primes,
                  const Mat<ZZ> &U, const Vec<RR> &target_shift)
-        : settings(settings), timer(timer), N(settings.N), U_RR(conv<Mat<RR>>(U)),
+        : settings(settings), timer(timer), N(settings.N), N_RR(conv<RR>(settings.N)), U_RR(conv<Mat<RR>>(U)),
           primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
           max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3)),
           log_V(NewEnum::precomputeVolumes(n)), L(StageStorage((unsigned long) n, (unsigned long) settings.max_level))
@@ -429,14 +446,26 @@ list<Equation> NewEnum::getEquations()
 
 void NewEnum::nextContinuedFraction(ZZ &h_n, ZZ &k_n, ZZ &h_nm1, ZZ &k_nm1, ZZ &h_nm2, ZZ &k_nm2, ZZ &a_nm1, RR &alpha_nm1)
 {
-    // todo optimize
-    h_n = a_nm1 * h_nm1 + h_nm2;
-    k_n = a_nm1 * k_nm1 + k_nm2;
-    h_nm2 = h_nm1;
+//    h_n = a_nm1 * h_nm1 + h_nm2;
+    mul(h_n,a_nm1,h_nm1);
+    add(h_n,h_n,h_nm2);
+
+//    k_n = a_nm1 * k_nm1 + k_nm2;
+    mul(k_n,a_nm1,k_nm1);
+    add(k_n,k_n,k_nm2);
+
+    swap(h_nm2,h_nm1);
+    // todo why is swap here not working???
     h_nm1 = h_n;
-    k_nm2 = k_nm1;
+//    swap(h_nm1,h_n);
+
+    swap(k_nm2,k_nm1);
+    // todo why is swap here not working???
     k_nm1 = k_n;
-    inv(alpha_nm1,alpha_nm1 - floor(alpha_nm1));        // this is actually alpha_n
+//    swap(k_n,k_nm1);
+
+    sub(alpha_nm1,alpha_nm1,floor(alpha_nm1));
+    inv(alpha_nm1,alpha_nm1);                           // this is actually alpha_n
     FloorToZZ(a_nm1,alpha_nm1);                         // this is actually a_n
 }
 
@@ -458,7 +487,7 @@ bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_si
     if(right_side < 0)
         equation(this->n + 1) = 1;
     else
-        equation(n + 1) = 0;
+        equation(this->n + 1) = 0;
 
     ZZ right_side_abs = abs(right_side);
 
