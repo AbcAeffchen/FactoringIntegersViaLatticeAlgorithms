@@ -27,7 +27,7 @@ protected:
 
     Vec<long> primes;                   /**< the primes used for factoring */
 
-    mt19937 rgen;
+    vector<mt19937> rgen = vector<mt19937>(__NUM_THREADS__);
 
     // Data often used
     Mat<ZZ> B,                          /**< The used strong reduced prim lattice basis */
@@ -48,17 +48,17 @@ protected:
     /**
      * Scales every row with probability 1/2
      */
-    void randomScale1(Mat<ZZ> &basis);
+    void randomScale1(Mat<ZZ> &basis, long threadId);
     /**
      * Scales every row with probability 1/4
      */
-    void randomScale2(Mat<ZZ> &basis);
+    void randomScale2(Mat<ZZ> &basis, long threadId);
 
     /**
      * scales the lattice basis, BKZ-reduces it slightly, and also converting the
      * target coordinates
      */
-    void setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates);
+    void setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates, long threadId);
 
     /**
      * Generates the prime lattice basis and make a strong BKZ reduction with

@@ -31,33 +31,33 @@ const vector<long> _primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43
                               1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
                               1933, 1949, 1951, 1973, 1979, 1987};
 
-void Factoring::randomScale1(Mat<ZZ> &basis)
+void Factoring::randomScale1(Mat<ZZ> &basis, long threadId)
 {
     uniform_int_distribution<int> dist(0,1);   // [0,1] random numbers uniform distribution
 
     for(long i = 1; i <= basis.NumCols(); i++)
     {
-        if(dist(this->rgen) == 1)       // P(scale row) = 1/2
+        if(dist(this->rgen[threadId]) == 1)       // P(scale row) = 1/2
         {
             basis(i) *= 2;     // multiply the whole row by 2
         }
     }
 }
 
-void Factoring::randomScale2(Mat<ZZ> &basis)
+void Factoring::randomScale2(Mat<ZZ> &basis, long threadId)
 {
     uniform_int_distribution<int> dist(0,3);   // [0,3] random numbers uniform distribution
 
     for(long i = 1; i <= basis.NumCols(); i++)
     {
-        if(dist(this->rgen) == 1)       // P(scale row) = 1/4
+        if(dist(this->rgen[threadId]) == 1)       // P(scale row) = 1/4
         {
             basis(i) *= 2;     // multiply the whole row by 2
         }
     }
 }
 
-void Factoring::setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates)
+void Factoring::setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U_scaled,Vec<RR> &target_scaled_coordinates,long threadId)
 {
     // scale
     Mat<ZZ> U_scaled_inv;
@@ -66,10 +66,10 @@ void Factoring::setScaledAndReducedBasis(Mat<ZZ> &B_scaled_transposed,Mat<ZZ> &U
     switch(this->settings.scalingType)
     {
         case 2:
-            this->randomScale2(B_scaled_transposed);
+            this->randomScale2(B_scaled_transposed,threadId);
             break;
         default:
-            this->randomScale1(B_scaled_transposed);
+            this->randomScale1(B_scaled_transposed,threadId);
             break;
     }
 
@@ -192,7 +192,7 @@ void Factoring::search()
         round[thread_id]++;
 
         timer[thread_id].startTimer();
-        this->setScaledAndReducedBasis(B_scaled_transposed, U_scaled, target_scaled_coordinates);    // scale and slight bkz
+        this->setScaledAndReducedBasis(B_scaled_transposed, U_scaled, target_scaled_coordinates,thread_id);    // scale and slight bkz
         slightBkzTime = timer[thread_id].stopTimer();
 
         timer[thread_id].startTimer();
@@ -316,7 +316,8 @@ Factoring::Factoring(const FactoringSettings &settings)
     else
         seed = (unsigned int) settings.seed_type;
 
-    this->rgen = mt19937(seed);
+    for(int i = 0; i < __NUM_THREADS__; i++)
+        this->rgen[i] = mt19937(seed + i * 100000);
 
     // write the current settings
     this->file.writeSettings(this->settings, this->primes(settings.n), seed);
