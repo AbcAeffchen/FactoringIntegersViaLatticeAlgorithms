@@ -152,17 +152,18 @@ void NewEnum::closest_RR(RR &out, const RR &x)
 
 void NewEnum::next(RR &out, const RR &u, const RR &y)
 {
-    RR closest_y,temp;
-    this->closest_RR(closest_y,y);
+    RR temp;
+    this->closest_RR(temp, y);
 
-    int side1 = closest_y >= y ? 1 : -1;
-    int side2 = u >= y ? 1 : -1;
+    float side1 = temp >= y ? 1.0f : -1.0f;
+    float side2 = u >= y ? 1.0f : -1.0f;
+    bool plusOneSwitch = (side1 == side2 || temp == u);
 
     // out = 2 * closest_y - u;
-    mul(temp,closest_y,2);
-    sub(out,temp,u);
+    mul(temp, temp, 2.0);
+    sub(out, temp, u);
 
-    if(side1 == side2 || closest_y == u)
+    if(plusOneSwitch)
         out -= side2;
 }
 
@@ -455,14 +456,10 @@ void NewEnum::nextContinuedFraction(ZZ &h_n, ZZ &k_n, ZZ &h_nm1, ZZ &k_nm1, ZZ &
     add(k_n,k_n,k_nm2);
 
     swap(h_nm2,h_nm1);
-    // todo why is swap here not working???
     h_nm1 = h_n;
-//    swap(h_nm1,h_n);
 
     swap(k_nm2,k_nm1);
-    // todo why is swap here not working???
     k_nm1 = k_n;
-//    swap(k_n,k_nm1);
 
     sub(alpha_nm1,alpha_nm1,floor(alpha_nm1));
     inv(alpha_nm1,alpha_nm1);                           // this is actually alpha_n
