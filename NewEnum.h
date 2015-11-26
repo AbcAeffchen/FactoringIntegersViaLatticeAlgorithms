@@ -71,7 +71,7 @@ public:
      */
     std::vector<std::vector<std::vector<unsigned long long>>> delayedStages;
 
-    std::vector<std::vector<double>> alpha_2_min = {{1,1,1},{1,1,1},{1,1,1}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
+    std::vector<std::vector<double>> alpha_2_min = {{2.0,2.0,2.0},{2.0,2.0,2.0},{2.0,2.0,2.0}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
 
     StageStorage(unsigned long dim, unsigned long pruningLevel)
             : dim(dim), min_level(10), pruningLevel(pruningLevel),
@@ -105,6 +105,7 @@ public:
                     this->delayedStages[alpha_2_indicator][t_indicator][level] = 0;
                 }
 
+        this->alpha_2_min = {{2.0,2.0,2.0},{2.0,2.0,2.0},{2.0,2.0,2.0}};
         this->maxDistance = A;
         this->currentLevel = this->min_level;
     }
