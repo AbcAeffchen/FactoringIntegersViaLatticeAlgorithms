@@ -358,7 +358,7 @@ void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<lo
         return;
     }
 
-    this->statistics << "\\subsection*{Equations}" << endl;
+    this->statistics << "\\subsection*{" << eqns.size() << " new equations}" << endl;
     this->statistics << "\\begin{longtable}{p{1.5cm}lp{5.0cm}R{3.5cm}p{3.0cm}rc}" << endl
                      << "\\toprule" << endl
                      << "dist& level & $u$ & $v$ & $|u-vN|$ & time until & CF\\\\\\midrule" << endl
@@ -407,6 +407,19 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
     switch(settings.scalingType)
     {
         case 2: this->equations << "Scale every row with propability 1/4\\\\";
+            break;
+        case 3: this->equations << "Scale every row with propability 3/4\\\\";
+            break;
+        case 4: this->equations << "Scale the first n/2 rows with propability 1/4,\\\\& the n/2 last rows with prpability 1/2\\\\";
+            break;
+        case 5: this->equations << "Scale the first n/2 rows with propability 1/2,\\\\& the n/2 last rows with prpability 1/4\\\\";
+            break;
+        case 0: this->equations << "Use various scaleing types:\\\\"
+            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
+            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
+            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
+            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
+            << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
         default: this->equations << "Scale every row with propability 1/2\\\\";
     }
@@ -608,4 +621,17 @@ void FileOutput::texToPdf()
     trash = this->statsName + ".aux";
     remove(trash.c_str());
     chdir("..");
+}
+
+void FileOutput::statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes,
+                                             const Vec<long> &primes)
+{
+    this->statistics << "\\paragraph*{Scaled prime numbers:}";
+    long n = primes.length();
+    for(long i = 0; i < n; i++)
+    {
+        if(scaledPrimes[i])
+            this->statistics << primes[i] << " ";
+    }
+
 }

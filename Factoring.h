@@ -36,10 +36,11 @@ protected:
             shift;                      /**< The shift */
 
     // Buffer
-    Mat<ZZ> B_scaled_transposed,                   /**< The scaled BKZ-basis */
+    Mat<ZZ> B_scaled_transposed,        /**< The scaled BKZ-basis */
             U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
             U_scaled_inv;               /**< The inverse of U_scale */
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
+    vector<bool> scaled_primes;
 
     // Output
     Timer timer;
@@ -49,15 +50,6 @@ protected:
 
     Statistics stats;                           /**< all the statistics */
     long eqnDuplicates = 0;
-
-    /**
-     * Scales every row with probability 1/2
-     */
-    void randomScale1(Mat<ZZ> &basis);
-    /**
-     * Scales every row with probability 1/4
-     */
-    void randomScale2(Mat<ZZ> &basis);
 
     /**
      * scales the lattice basis, BKZ-reduces it slightly, and also converting the

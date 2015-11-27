@@ -89,6 +89,8 @@ public:
 
     void statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes);
 
+    void statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes, const Vec<long> &primes);
+
     void writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes);
 
     void writeSettings(const FactoringSettings &settings, long max_prime, long long int seed);

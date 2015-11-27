@@ -31,45 +31,83 @@ const vector<long> _primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43
                               1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
                               1933, 1949, 1951, 1973, 1979, 1987};
 
-void Factoring::randomScale1(Mat<ZZ> &basis)
-{
-    uniform_int_distribution<int> dist(0,1);   // [0,1] random numbers uniform distribution
-
-    for(long i = 1; i <= basis.NumCols(); i++)
-    {
-        if(dist(this->rgen) == 1)       // P(scale row) = 1/2
-        {
-            basis(i) *= 2;     // multiply the whole row by 2
-        }
-    }
-}
-
-void Factoring::randomScale2(Mat<ZZ> &basis)
-{
-    uniform_int_distribution<int> dist(0,3);   // [0,3] random numbers uniform distribution
-
-    for(long i = 1; i <= basis.NumCols(); i++)
-    {
-        if(dist(this->rgen) == 1)       // P(scale row) = 1/4
-        {
-            basis(i) *= 2;     // multiply the whole row by 2
-        }
-    }
-}
-
 void Factoring::setScaledAndReducedBasis()
 {
     // scale
     this->B_scaled_transposed = this->B;    // not yet transposed
 
-    switch(this->settings.scalingType)
+    long threshold1,threshold2;
+    int scalingType;
+    if(this->settings.scalingType == 0)
+    {
+        uniform_int_distribution<int> scalingType_dist(0,49);
+        int choice = scalingType_dist(this->rgen);
+        if(choice <= 1)         // 4%
+            scalingType = 2;
+        else if(choice <= 3)    // 4%
+            scalingType = 3;
+        else if(choice <= 7)    // 8%
+            scalingType = 4;
+        else if(choice <= 11)   // 8%
+            scalingType = 5;
+        else                    // 76%
+            scalingType = 1;
+    }
+    else
+    {
+        scalingType = this->settings.scalingType;
+    }
+
+    switch(scalingType)
     {
         case 2:
-            this->randomScale2(this->B_scaled_transposed);
+            threshold1 = 0;
+            threshold2 = 0;
+            break;
+        case 3:
+            threshold1 = 2;
+            threshold2 = 2;
+            break;
+        case 4:
+            threshold1 = 0;
+            threshold2 = 1;
+            break;
+        case 5:
+            threshold1 = 1;
+            threshold2 = 0;
             break;
         default:
-            this->randomScale1(this->B_scaled_transposed);
+            threshold1 = 1;
+            threshold2 = 1;
             break;
+    }
+
+    uniform_int_distribution<int> dist(0,3);   // [0,3] random numbers uniform distribution
+
+    for(long i = 1; i <= this->settings.n/2; i++)
+    {
+        if(dist(this->rgen) <= threshold1)       // P(scale row) = 1/2
+        {
+            this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
+            this->scaled_primes[i-1] = true;
+        }
+        else
+        {
+            this->scaled_primes[i-1] = false;
+        }
+    }
+
+    for(long i = this->settings.n/2+1; i <= this->settings.n; i++)
+    {
+        if(dist(this->rgen) <= threshold2)       // P(scale row) = 1/4
+        {
+            this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
+            this->scaled_primes[i-1] = true;
+        }
+        else
+        {
+            this->scaled_primes[i-1] = false;
+        }
     }
 
     // reduce
@@ -207,6 +245,7 @@ void Factoring::search()
                                                   newEnum.L.totalDelayedAndPerformedStages);
         this->file.statisticsDistances(theoretical,heuristic,reduced);
         this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
+        this->file.statisticsWriteScaledPrimes(this->scaled_primes,this->primes);
         this->file.statisticsNewEquations(newEquations,this->primes);
 
         // display round results
@@ -259,7 +298,7 @@ void Factoring::setPrimes(long n)
 }
 
 Factoring::Factoring(const FactoringSettings &settings)
-        : settings(settings), N(settings.N), c(settings.c)
+        : settings(settings), N(settings.N), c(settings.c), scaled_primes(vector<bool>(settings.n,false))
 {
     this->timer = Timer();
 
