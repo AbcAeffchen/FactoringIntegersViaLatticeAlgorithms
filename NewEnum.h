@@ -145,7 +145,7 @@ private:
 
     inline long t_indicator(const long &t)
     {
-        return (t >= 50) ? 2 : (t >= 20 ? 1 : 0);
+        return (t >= 40) ? 2 : (t >= 18 ? 1 : 0);
     }
 
     NewEnumStage* getStage()

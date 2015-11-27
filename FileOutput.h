@@ -52,9 +52,9 @@ private:
     const string alpha_2_indicator_text[3] = {"$\\alpha_{2} \\leq 0.4$",
                                               "$0.4 < \\alpha_{2} \\leq 0.65$",
                                               "$\\alpha_{2} > 0.65$"};
-    const string t_indicator[3] = {"$t < 20$",
-                                   "$20 \\leq t < 50$",
-                                   "$t \\geq 50$"};
+    const string t_indicator[3] = {"$t < 18$",
+                                   "$18 \\leq t < 40$",
+                                   "$t \\geq 40$"};
 
     void writeEqnFormatted(const Equation& eqn, const Vec<long>& primes);
 
