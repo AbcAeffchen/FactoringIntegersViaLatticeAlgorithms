@@ -8,7 +8,7 @@ class Timer
 {
 private:
 
-    double totalTime;
+    double totalTime = 0;
     double startTime;
 
 public:
