@@ -53,6 +53,9 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
 {
     Mat<ZZ> B,U;
 
+    if(dim < 50)
+        dim = 50;
+
     B.SetDims(dim, dim + 1);    // transposed
     // Setting the basis
     for(long i = 1; i <= dim; i++)
@@ -94,7 +97,22 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
               << "\\tiny" << endl
               << "\\[ \\begin{bmatrix}" << endl;
 
-    for(long i = 1; i <= dim; i++)
+    for(long i = 1; i <= 50; i++)
+    {
+        if(U(i,1) != 0)
+            basisTest << U(i,1);
+        for(long j = 2; j < dim; j++)
+        {
+            basisTest << " & ";
+            if(U(i,j) != 0)
+                basisTest << U(i,j);
+        }
+        basisTest << " \\\\" << endl;
+    }
+
+    basisTest << "\\end{bmatrix} \\]" << endl << "\\[ \\begin{bmatrix}" << endl;
+
+    for(long i = 51; i <= dim; i++)
     {
         if(U(i,1) != 0)
             basisTest << U(i,1);
