@@ -113,7 +113,7 @@ void speedTestSmall()
 
 void speedTestBig()
 {
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,1411729533));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
 }
 
 void fast_test()
@@ -192,11 +192,11 @@ void menu()
         RR c;
         cout << "N ~ 10^";
         cin >> e;
-        cout << endl << "Dim (<=300): ";
+        cout << "Dim (<= 300): ";
         cin >> dim;
-        cout << endl << "c = ";
+        cout << "c = ";
         cin >> c;
-        cout << endl << "Block size: ";
+        cout << "Block size: ";
         cin >> blockSize;
         BasisTests(getN(e), c, dim, blockSize);
         break;
@@ -206,7 +206,6 @@ void menu()
     default:
         menu();
     }
-
 }
 
 int main()

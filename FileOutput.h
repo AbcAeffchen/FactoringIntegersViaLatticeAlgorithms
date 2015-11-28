@@ -64,15 +64,7 @@ private:
 
     string getFilePrefix();
 
-    void debugSeparator(string separatorText);
-
 public:
-
-    /**
-     * @var debug A file with direct access to print debug data directly to a file.
-     * equations.
-     */
-    fstream debug;
 
     FileOutput();
 

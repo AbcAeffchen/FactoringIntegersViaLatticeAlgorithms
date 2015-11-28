@@ -147,15 +147,6 @@ string FileOutput::getFilePrefix()
     return buf;
 }
 
-void FileOutput::debugSeparator(string separatorText)
-{
-    this->debug << endl << endl
-                << "+---------------------------------------------------------------------------------------+" << endl
-                << "|                                 " << separatorText << "                                   |" << endl
-                << "+---------------------------------------------------------------------------------------+" << endl
-                << endl << endl;
-}
-
 FileOutput::FileOutput()
 {
     this->createDirectory();
@@ -167,9 +158,6 @@ FileOutput::FileOutput()
     std::stringstream statisticsName;
     statisticsName << "./output/" << filePrefix << "_statistics.tex";
     statsName = filePrefix + "_statistics";
-
-    this->debug.open("./output/debug.txt", ios::out | ios::app);
-    this->debugSeparator(filePrefix);
 
     this->equations.open(formattedName.str().c_str(), ios::out);
     this->statistics.open(statisticsName.str().c_str(), ios::out);
