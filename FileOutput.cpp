@@ -593,18 +593,18 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
                     << "Max. stages checked for equ. (rounds w. Equ.): & " << stats.maxStagesCheckedForEquationsWithEquations << "& Max. stages checked for equ. (rounds wo. Equ.): & " << stats.maxStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
                     << "Avg. stages checked for equ. (rounds w. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithEquations * 100.0)/100.0 << "& Avg. stages checked for equ. (rounds wo. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithoutEquations * 100.0)/100.0 << "\\\\\\midrule[0.05pt]" << endl
 
-                    << "Min. time slight BKZ: & " << stats.minSlightBkz << "s&" << endl
-                    << "Min. time NewEnum (total): & " << stats.minNewEnum << "s\\\\" << endl
-                    << "Max. time slight BKZ: & " << stats.maxSlightBkz << "s&" << endl
-                    << "Max. time NewEnum: & " << stats.maxNewEnum << "s\\\\" << endl
-                    << "Avg. time slight BKZ: & " << stats.avgSlightBkz << "s&" << endl
-                    << "Avg. time NewEnum: & " << stats.avgNewEnum << "s\\\\\\midrule[0.05pt]" << endl
+                    << "Min. time NewEnum (total): & " << stats.minNewEnum << "s&" << endl
+                    << "Min. time NewEnum (w.eqn.): & " << stats.minNewEnumWE << "s\\\\" << endl
+                    << "Max. time NewEnum: & " << stats.maxNewEnum << "s&" << endl
+                    << "Max. time NewEnum: & " << stats.maxNewEnumWE << "s\\\\" << endl
+                    << "Avg. time NewEnum: & " << stats.avgNewEnum << "s&" << endl
+                    << "Avg. time NewEnum: & " << stats.avgNewEnumWE << "s\\\\\\midrule[0.05pt]" << endl
 
-                    << "Min. time NewEnum (w.eqn.): & " << stats.minNewEnumWE << "s&" << endl
+                    << "Min. time slight BKZ: & " << stats.minSlightBkz << "s&" << endl
                     << "Max. distance reduction: & " << stats.maxDistanceReduction << "\\\\" << endl
-                    << "Max. time NewEnum: & " << stats.maxNewEnumWE << "s&" << endl
+                    << "Max. time slight BKZ: & " << stats.maxSlightBkz << "s&" << endl
                     << "Min. distance reduction: & " << stats.minDistanceReduction << "\\\\" << endl
-                    << "Avg. time NewEnum: & " << stats.avgNewEnumWE << "s&" << endl
+                    << "Avg. time slight BKZ: & " << stats.avgSlightBkz << "s&" << endl
                     << "Avg. distance reduction: & " << stats.avgDistanceReduction << "\\\\\\midrule[0.05pt]" << endl
 
                     << "Equations from NewEnum only: &" << eqnList.size() << " (" << round(eqnList.size() * 1000.0 / stats.eqnUniqueTotal) / 10.0
