@@ -402,11 +402,10 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
     switch(settings.scalingType)
     {
         case 0: this->equations << "Use various scaleing types:\\\\"
-            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
-            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
+            << "& (\\phantom{7}6\\% of rounds): Scale every row with propability 1/4\\\\"
             << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
             << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
-            << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
+            << "& (78\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
         case 2: this->equations << "Scale every row with propability 1/4\\\\";
             break;
@@ -444,11 +443,10 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
     switch(settings.scalingType)
     {
         case 0: this->statistics << "Use various scaleing types:\\\\"
-                << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
-                << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
+                << "& (\\phantom{7}6\\% of rounds): Scale every row with propability 1/4\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
-                << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
+                << "& (78\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
         case 2: this->statistics << "Scale every row with propability 1/4\\\\";
             break;

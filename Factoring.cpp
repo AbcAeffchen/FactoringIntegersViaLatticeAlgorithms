@@ -42,15 +42,13 @@ void Factoring::setScaledAndReducedBasis()
     {
         uniform_int_distribution<int> scalingType_dist(0,49);
         int choice = scalingType_dist(this->rgen);
-        if(choice <= 1)         // 4%
+        if(choice <= 2)         // 6%
             scalingType = 2;
-        else if(choice <= 3)    // 4%
-            scalingType = 3;
-        else if(choice <= 7)    // 8%
+        else if(choice <= 6)    // 8%
             scalingType = 4;
-        else if(choice <= 11)   // 8%
+        else if(choice <= 10)   // 8%
             scalingType = 5;
-        else                    // 76%
+        else                    // 78%
             scalingType = 1;
     }
     else
