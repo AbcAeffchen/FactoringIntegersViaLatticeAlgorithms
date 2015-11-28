@@ -108,7 +108,7 @@ void default_settings()
 
 void speedTestSmall()
 {
-    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1446721645));
+    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1446721645,true,0));
 }
 
 void speedTestBig()
@@ -124,6 +124,19 @@ void fast_test()
 void default_settings_big_N()
 {
     Factoring(FactoringSettings(getN(20), 150, conv<RR>(1.0/2.0), 19, 0.2, 0.75, 10000, 32, 20, 20));
+}
+
+void test_series_1()
+{
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
+
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,4));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,5));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,4));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,5));
+
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,3));
 }
 
 void menu()
@@ -145,6 +158,7 @@ void menu()
          << "(14) Run the speedTest (N~10^14)" << endl << endl
          << "(20) Run the speedTest (N~10^20)" << endl << endl
          << "(100) Prime Lattice Basis tests" << endl << endl
+         << "(200) Test Series 1" << endl << endl
          << "Quit by [Ctrl]+[C]" << endl
          << "Selection: ";
         cin >> choice;
@@ -187,6 +201,8 @@ void menu()
         BasisTests(getN(e), c, dim, blockSize);
         break;
     }
+    case 200:
+        test_series_1();
     default:
         menu();
     }
