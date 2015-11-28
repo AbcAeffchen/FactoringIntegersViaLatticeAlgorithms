@@ -413,6 +413,13 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
                     << "Scaling type: & ";
     switch(settings.scalingType)
     {
+        case 0: this->equations << "Use various scaleing types:\\\\"
+            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
+            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
+            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
+            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
+            << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
+            break;
         case 2: this->equations << "Scale every row with propability 1/4\\\\";
             break;
         case 3: this->equations << "Scale every row with propability 3/4\\\\";
@@ -420,13 +427,6 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
         case 4: this->equations << "Scale the first n/2 rows with propability 1/4,\\\\& the n/2 last rows with prpability 1/2\\\\";
             break;
         case 5: this->equations << "Scale the first n/2 rows with propability 1/2,\\\\& the n/2 last rows with prpability 1/4\\\\";
-            break;
-        case 0: this->equations << "Use various scaleing types:\\\\"
-            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
-            << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
-            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
-            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
-            << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
         default: this->equations << "Scale every row with propability 1/2\\\\";
     }
@@ -455,9 +455,22 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
                      << "Scaling type: & ";
     switch(settings.scalingType)
     {
-        case 2: this->statistics << "Scale every row with propability 1/4\\\\";
+        case 0: this->equations << "Use various scaleing types:\\\\"
+                << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 1/4\\\\"
+                << "& (\\phantom{7}4\\% of rounds): Scale every row with propability 3/4\\\\"
+                << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
+                << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
+                << "& (76\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
-        default: this->statistics << "Scale every row with propability 1/2\\\\";
+        case 2: this->equations << "Scale every row with propability 1/4\\\\";
+            break;
+        case 3: this->equations << "Scale every row with propability 3/4\\\\";
+            break;
+        case 4: this->equations << "Scale the first n/2 rows with propability 1/4,\\\\& the n/2 last rows with prpability 1/2\\\\";
+            break;
+        case 5: this->equations << "Scale the first n/2 rows with propability 1/2,\\\\& the n/2 last rows with prpability 1/4\\\\";
+            break;
+        default: this->equations << "Scale every row with propability 1/2\\\\";
     }
 
     this->statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
