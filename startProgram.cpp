@@ -1,5 +1,6 @@
 
 #include "Factoring.h"
+#include "OtherTests.h"
 #include <NTL/version.h>
 
 using namespace std;
@@ -143,6 +144,7 @@ void menu()
          << "(9) Run with custom settings" << endl << endl
          << "(14) Run the speedTest (N~10^14)" << endl << endl
          << "(20) Run the speedTest (N~10^20)" << endl << endl
+         << "(100) Prime Lattice Basis tests" << endl << endl
          << "Quit by [Ctrl]+[C]" << endl
          << "Selection: ";
         cin >> choice;
@@ -170,6 +172,21 @@ void menu()
     case 20:
         speedTestBig();
         break;
+    case 100:
+    {
+        long e, dim, blockSize;
+        RR c;
+        cout << "N ~ 10^";
+        cin >> e;
+        cout << endl << "Dim (<=300): ";
+        cin >> dim;
+        cout << endl << "c = ";
+        cin >> c;
+        cout << endl << "Block size: ";
+        cin >> blockSize;
+        BasisTests(getN(e), c, dim, blockSize);
+        break;
+    }
     default:
         menu();
     }

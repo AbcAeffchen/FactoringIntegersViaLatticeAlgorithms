@@ -11,7 +11,7 @@ set(SOURCE_FILES startProgram.cpp
         FileOutput.h FileOutput.cpp
         Statistics.h Statistics.cpp
         Timer.h Timer.cpp
-        FactoringSettings.h)
+        FactoringSettings.h OtherTests.h)
 
 add_executable(FactoringIntegersViaLatticeAlgorithms ${SOURCE_FILES})
 
