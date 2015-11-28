@@ -19,7 +19,7 @@ struct FactoringSettings
     const unsigned long min_eqns;
     const long long int seed_type = -2;
     const bool useContinuedFractions = true;
-    const int scalingType = 1;
+    const int scalingType = 0;
 
     FactoringSettings(const ZZ &N, unsigned long n, const RR &c)
             : N(N), n(n), c(c), min_eqns(n+1)
@@ -32,7 +32,7 @@ struct FactoringSettings
     FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int max_level,
                       double A_start_factor, double reduce_ratio, long accuracy_factor,
                       long strong_bkz, long slight_bkz, unsigned long min_eqns,
-                      long long int seed_type = -2, bool useContinuedFractions = true, int scalingType = 1)
+                      long long int seed_type = -2, bool useContinuedFractions = true, int scalingType = 0)
             : N(N), n(n), c(c), max_level(max(10, max_level)), A_start_factor(A_start_factor),
               reduce_ratio(reduce_ratio > 0 ? reduce_ratio : 0), accuracy_factor(accuracy_factor),
               strong_bkz(strong_bkz), slight_bkz(slight_bkz), min_eqns(min_eqns), seed_type(seed_type),
