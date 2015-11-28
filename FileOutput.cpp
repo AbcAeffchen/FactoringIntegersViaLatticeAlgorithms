@@ -224,20 +224,27 @@ void FileOutput::statisticNewRound(long round)
 
 void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
 {
-    this->statistics << "\\\\\\\\ Slight BKZ:&" << slightBkz << "s\\\\" << endl
-                     << "NewEnum:&" << newEnum << "s" << endl
-                     << "\\end{tabular}}\\end{longtable}" << endl;
+    this->statistics << "& \\textbf{Distances:}\\newline" << endl
+                     << "\\resizebox{\\linewidth}{!}{%" << endl
+                     << "\\begin{tabular}[t]{ll}" << endl
+                     << "Slight BKZ:&" << slightBkz << "s\\\\" << endl
+                     << "NewEnum:&" << newEnum << "s\\\\\\\\" << endl;
+
+}
+
+void FileOutput::statisticsWriteStagesChecked(unsigned long long stagesChecked)
+{
+    this->statistics << "Checked Stages: & " << stagesChecked << "\\\\\\\\" << endl;
 }
 
 void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
 {
-    this->statistics << "&\\textbf{Distances:}\\newline" << endl
-                     << "\\resizebox{\\linewidth}{!}{%" << endl
-                     << "\\begin{tabular}[t]{ll}" << endl
+    this->statistics
                      << "$A=\\frac{1}{4}\\sum_{i=1}^n r_{ii}^2$:&" << trunc(theoretical) << "\\\\" << endl
                      << "$\\frac{1}{5}A$:&" << trunc(heuristic) << "\\\\" << endl
                      << "Reduced to $A'$:&" << trunc(reduced) << "\\\\" << endl
-                     << "$A'/A$:&" << conv<double>(reduced/theoretical) << endl;
+                     << "$A'/A$:&" << conv<double>(reduced/theoretical) << endl
+                     << "\\end{tabular}}\\end{longtable}" << endl;
 }
 
 void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vector<double>> &alpha_2_min,
@@ -564,6 +571,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
 
     this->statistics << endl << endl
                     << "\\section*{Summary}" << endl
+                    << "\\resizebox{\\textwidth}{!}{" << endl
                     << "\\begin{tabular}{llll}" << endl
                     << "\\toprule" << endl
 
@@ -578,7 +586,12 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
                     << "Rounds without delayed stages: & " << stats.roundsWithoutDelayedStages << " (" << round(1.0 * stats.roundsWithoutDelayedStages/stats.roundsTotal * 10000) /100.0 << "\\%)&" << endl
                     << "Unique equations per round with 1+ eqn. & $" << stats.avgNumUniqEqnPerRoundWithEqn << "$\\\\" << endl
                     << "Rounds with equations: & " << stats.roundsWithEquations << " (" << round(1.0 * stats.roundsWithEquations/stats.roundsTotal * 10000) /100.0 << "\\%)&" << endl
-                    << "Total equations per round with 1+ eqn.   & $" << stats.avgNumEqnPerRoundWithEqn << "$\\\\\\midrule" << endl
+                    << "Total equations per round with 1+ eqn.   & $" << stats.avgNumEqnPerRoundWithEqn << "$\\\\\\midrule[0.05pt]" << endl
+
+                    << "Total stages checked for equ. (rounds w. Equ.): & " << stats.totalStagesCheckedForEquationsWithEquations << "& Total stages checked for equ. (rounds wo. Equ.): & " << stats.totalStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Min. stages checked for equ. (rounds w. Equ.): & " << stats.minStagesCheckedForEquationsWithEquations << "& Min. stages checked for equ. (rounds wo. Equ.): & " << stats.minStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Max. stages checked for equ. (rounds w. Equ.): & " << stats.maxStagesCheckedForEquationsWithEquations << "& Max. stages checked for equ. (rounds wo. Equ.): & " << stats.maxStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Avg. stages checked for equ. (rounds w. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithEquations * 100.0)/100.0 << "& Avg. stages checked for equ. (rounds wo. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithoutEquations * 100.0)/100.0 << "\\\\\\midrule[0.05pt]" << endl
 
                     << "Min. time slight BKZ: & " << stats.minSlightBkz << "s&" << endl
                     << "Min. time NewEnum (total): & " << stats.minNewEnum << "s\\\\" << endl
@@ -599,9 +612,9 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
                     << "Min. $v$ value (without CF): & " << v_min << " & Min. $v$ value (CF only): & " << v_cf_min << "\\\\" << endl
                     << "Max. $v$ value (without CF): & " << v_max << " & Max. $v$ value (CF only): & " << v_cf_max << "\\\\" << endl
                     << "Avg. $v$ value (without CF): & " << (round(v_avg * 100.0)/100.0) << " & Avg. $v$ value (CF only): & " << (round(v_cf_avg * 100.0)/100.0) << "\\\\" << endl
-                    << "Median $v$ value (without CF): & " << v_median << " & Median $v$ value (CF only): & " << v_cf_median << "\\\\" << endl
+                    << "Median $v$ value (without CF): & " << v_median << " & Median $v$ value (CF only): & " << v_cf_median << "\\\\\\bottomrule" << endl
 
-                    << "\\bottomrule\\end{tabular}" << endl;
+                    <<"\\end{tabular}}" << endl;
 }
 
 void FileOutput::texToPdf()

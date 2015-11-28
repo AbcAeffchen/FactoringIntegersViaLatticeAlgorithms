@@ -49,6 +49,9 @@ void Statistics::closeStatistics(long totalRounds, long uniqueEquations, long du
     this->eqnUniqueTotal = uniqueEquations;
     this->eqnDuplicates = duplicateEquations;
 
+    this->avgStagesCheckedForEquationsWithEquations = 1.0 * this->totalStagesCheckedForEquationsWithEquations / totalRounds;
+    this->avgStagesCheckedForEquationsWithoutEquations = 1.0 * this->totalStagesCheckedForEquationsWithoutEquations / totalRounds;
+
     this->avgSlightBkz = this->sumSlightBkz / this->roundsTotal;
 
     this->avgNewEnum = this->sumNewEnum / this->roundsTotal;
@@ -58,4 +61,24 @@ void Statistics::closeStatistics(long totalRounds, long uniqueEquations, long du
     this->avgNumUniqEqnPerRoundWithEqn =  1.0 * this->eqnUniqueTotal / this->roundsWithEquations;
 
     this->avgDistanceReduction = this->sumDistanceReduction / (this->roundsTotal - this->roundsWithoutReduction);
+}
+
+void Statistics::updateStagesCheckedForEquations(unsigned long long stagesCheckedForEquations, bool equationsFound)
+{
+    if(equationsFound)
+    {
+        this->totalStagesCheckedForEquationsWithEquations += stagesCheckedForEquations;
+        if(this->minStagesCheckedForEquationsWithEquations > stagesCheckedForEquations)
+            this->minStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+        if(this->maxStagesCheckedForEquationsWithEquations < stagesCheckedForEquations)
+            this->maxStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+    }
+    else
+    {
+        this->totalStagesCheckedForEquationsWithoutEquations += stagesCheckedForEquations;
+        if(this->minStagesCheckedForEquationsWithoutEquations > stagesCheckedForEquations)
+            this->minStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+        if(this->maxStagesCheckedForEquationsWithoutEquations < stagesCheckedForEquations)
+            this->maxStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+    }
 }

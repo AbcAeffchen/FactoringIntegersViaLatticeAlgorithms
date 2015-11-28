@@ -63,7 +63,6 @@ void StageStorage::incrementCurrentLevel()
 
 void StageStorage::updateMaxDistance(const RR &distance)
 {
-    // todo do statistics here
     double alpha_1;
     conv(alpha_1, distance/this->maxDistance);
 
@@ -344,7 +343,7 @@ void NewEnum::precomputeLogV()
 
 bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
 {
-    // todo check counter
+    this->stagesCheckedForEquations++;
     mul(this->temp_vec, this->U_scaled_RR, input);
     this->temp_vec += this->shift;
     mul(this->close_vec, this->U_RR, this->temp_vec);
@@ -511,6 +510,7 @@ void NewEnum::prepare(unsigned long round, const Mat<ZZ> &newBasis_transposed, c
     this->tau = new_target_coordinates;
 
     this->current_level = this->min_level;
+    this->stagesCheckedForEquations = 0;
 
     ComputeGS(newBasis_transposed, this->mu, this->R_ii_squared);
 

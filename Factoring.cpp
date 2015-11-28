@@ -237,14 +237,16 @@ void Factoring::search()
         // statistics
         this->stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, newEquations.size() > 0);
         this->stats.updateDistanceStats(theoretical,heuristic,reduced);
+        this->stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations,newEquations.size() > 0);
         this->stats.newSlightBkzTime(slightBkzTime);
         this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
         this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,newEnum.L.alpha_2_min,
                                                   newEnum.L.maxDelayedAndPerformedStages,
                                                   newEnum.L.delayedStages,
                                                   newEnum.L.totalDelayedAndPerformedStages);
-        this->file.statisticsDistances(theoretical,heuristic,reduced);
         this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
+        this->file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);
+        this->file.statisticsDistances(theoretical,heuristic,reduced);
         this->file.statisticsWriteScaledPrimes(this->scaled_primes,this->primes);
         this->file.statisticsNewEquations(newEquations,this->primes);
 

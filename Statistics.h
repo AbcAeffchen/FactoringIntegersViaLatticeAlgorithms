@@ -20,6 +20,15 @@ public:
     long roundsWithoutDelayedStages = 0;
     long roundsWithoutReduction = 0;
 
+    unsigned long long totalStagesCheckedForEquationsWithEquations = 0;
+    unsigned long long minStagesCheckedForEquationsWithEquations = 100000000;   // this will be reduced
+    unsigned long long maxStagesCheckedForEquationsWithEquations = 0;
+    double avgStagesCheckedForEquationsWithEquations = 0;
+    unsigned long long totalStagesCheckedForEquationsWithoutEquations = 0;
+    unsigned long long minStagesCheckedForEquationsWithoutEquations = 100000000;   // this will be reduced
+    unsigned long long maxStagesCheckedForEquationsWithoutEquations = 0;
+    double avgStagesCheckedForEquationsWithoutEquations = 0;
+
     long eqnUniqueTotal = 0;
     long eqnDuplicates = 0;
     double avgNumEqnPerRoundWithEqn = 0;
@@ -50,6 +59,8 @@ public:
     void updateDistanceStats(const RR& theoretical, const RR&heuristic, const RR& reduced);
 
     void updateRoundStats(bool delayed, bool eqn);
+
+    void updateStagesCheckedForEquations(unsigned long long stagesCheckedForEquations, bool equationsFound);
 
     void closeStatistics(long totalRounds, long uniqueEquations, long duplicateEquations);
 };

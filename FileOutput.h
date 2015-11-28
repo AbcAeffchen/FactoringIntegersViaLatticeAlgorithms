@@ -80,6 +80,8 @@ public:
 
     void statisticSlightBKZ(double slightBkz, double newEnum);
 
+    void statisticsWriteStagesChecked(unsigned long long stagesChecked);
+
     void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
     void statisticsDelayedStagesOnLevel(int max_level, const vector<vector<double>> &alpha_2_min,

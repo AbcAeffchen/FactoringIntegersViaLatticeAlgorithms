@@ -303,6 +303,7 @@ public:
      * This is for performance reasons public. Never use this from outside of NewEnum
      */
     StageStorage L;
+    unsigned long long stagesCheckedForEquations = 0;
     /**
      * Starts the NewEnum Algorithm to find close vectors and extract equations
      * @param primes        The vector of prime numbers used in the lattice
