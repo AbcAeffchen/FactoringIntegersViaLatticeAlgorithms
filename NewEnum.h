@@ -203,7 +203,7 @@ private:
 
     // precomputed
     const Vec<double> log_V;                /**< Contains the values \f$V_t\f$ */
-    Vec<double> log_V_minus_log_R_prod;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
+    Vec<double> log_V_minus_log_R_prod_minus_log_t;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
     const Vec<double> log_t;                /**< contains the values log(t) for t = 1...n */
 
     const int min_level = 10;               /**< minimum level */
@@ -295,7 +295,7 @@ private:
 
     inline long calculateLevel(long t, const RR &c_t)
     {
-        return conv<long>(ceil(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V_minus_log_R_prod(t - 1) - this->log_t(t)) / log(2)));
+        return conv<long>(floor(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V_minus_log_R_prod_minus_log_t(t - 1)) / 0.693147180559945));    // log(2) = 0.69314...
     }
 
 public:

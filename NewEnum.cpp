@@ -136,8 +136,8 @@ unsigned long StageStorage::levelChange(const double &alpha_1, const double &alp
 Vec<double> NewEnum::precomputeLogT(long n)
 {
     Vec<double> log_t;
-    log_t.SetLength(n);
-    for(long t = 1; t <= n; t++)
+    log_t.SetLength(n+1);
+    for(long t = 1; t <= n+1; t++)
         log_t(t) = log(t);
 
     return log_t;
@@ -333,11 +333,12 @@ void NewEnum::precomputeLogV()
         log_R_diag_prod(i) += log_R_diag_prod(i - 1);
     }
 
-    this->log_V_minus_log_R_prod = this->log_V;
+    this->log_V_minus_log_R_prod_minus_log_t = this->log_V;
 
     for(long i = 1; i <= this->n; i++)
     {
-        this->log_V_minus_log_R_prod(i) -= log_R_diag_prod(i);
+        this->log_V_minus_log_R_prod_minus_log_t(i) -= log_R_diag_prod(i);
+        this->log_V_minus_log_R_prod_minus_log_t(i) -= this->log_t(i + 1);
     }
 }
 
