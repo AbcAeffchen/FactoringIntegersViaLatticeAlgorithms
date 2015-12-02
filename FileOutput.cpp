@@ -4,19 +4,19 @@
 using namespace NTL;
 using namespace std;
 
-void FileOutput::writeEqnFormatted(const Equation& eqn, const Vec<long>& primes)
+void FileOutput::writeEqnFormatted(fstream &file, const Equation& eqn, const Vec<long>& primes)
 {
-    this->equations << eqn.round << " & ";
-    this->equations << eqn.counter << " & ";
+    file << eqn.round << " & ";
+    file << eqn.counter << " & ";
 
     if(eqn.fromContinuedFraction)
-        this->equations << "\\checkmark";
+        file << "\\checkmark";
     else
-        this->equations << "\\cross";
+        file << "\\cross";
 
     bool nEmp = false;
 
-    this->equations << "& $";
+    file << "& $";
 
     for(long i = 1; i <= primes.length(); i++)
     {
@@ -24,21 +24,21 @@ void FileOutput::writeEqnFormatted(const Equation& eqn, const Vec<long>& primes)
         {
             if(nEmp)
             {
-                this->equations << " \\cdot ";
+                file << " \\cdot ";
             }
-            this->equations << primes(i);
+            file << primes(i);
             if(eqn.e(i) > 1)
             {
-                this->equations << "^{" << eqn.e(i) << "}";
+                file << "^{" << eqn.e(i) << "}";
             }
             nEmp = true;
         }
     }
     if(!nEmp)
     {
-        this->equations << "1";
+        file << "1";
     }
-    this->equations << "$ & $"<< eqn.v << "$ & $";
+    file << "$ & $" << eqn.v << "$ & $";
     nEmp = false;
 
     for(long i = 1; i <= primes.length(); i++)
@@ -47,26 +47,26 @@ void FileOutput::writeEqnFormatted(const Equation& eqn, const Vec<long>& primes)
         {
             if(nEmp)
             {
-                this->equations << " \\cdot ";
+                file << " \\cdot ";
             }
-            this->equations << primes(i);
+            file << primes(i);
             if(eqn.e(i) < -1)
             {
-                this->equations << "^{" << -eqn.e(i) << "}";
+                file << "^{" << -eqn.e(i) << "}";
             }
             nEmp = true;
         }
     }
     if(!nEmp)
     {
-        this->equations << "1";
+        file << "1";
     }
-    this->equations << "$ & $";
+    file << "$ & $";
     if(eqn.e(primes.length()+1) == 1)
-        this->equations << "-1";
+        file << "-1";
     else
-        this->equations << "1";
-    this->equations << "$\\\\" << endl;
+        file << "1";
+    file << "$\\\\" << endl;
 }
 
 void FileOutput::writeEqnStatistics(const Equation& eqn, const Vec<long>& primes)
@@ -153,22 +153,23 @@ FileOutput::FileOutput()
 
     string filePrefix = this->getFilePrefix();
     std::stringstream formattedName;
-    formattedName << "./output/" << filePrefix << "_equations.tex";
-    eqnName = filePrefix + "_equations";
+    formattedName << "./output/" << filePrefix << "_summary.tex";
+    this->summaryName = filePrefix + "_summary";
     std::stringstream statisticsName;
     statisticsName << "./output/" << filePrefix << "_statistics.tex";
-    statsName = filePrefix + "_statistics";
+    this->statsName = filePrefix + "_statistics";
 
-    this->equations.open(formattedName.str().c_str(), ios::out);
+    this->summary.open(formattedName.str().c_str(), ios::out);
     this->statistics.open(statisticsName.str().c_str(), ios::out);
 
     // Init formatted file
-    this->equations  << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
+    this->summary << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
                      << "\\usepackage[a4paper, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
                      << "\\usepackage{fancyhdr}" << endl
                      << "\\usepackage{amsmath}" << endl
                      << "\\usepackage{longtable}" << endl
                      << "\\usepackage{setspace}" << endl
+                     << "\\usepackage{graphicx}" << endl
                      << "\\usepackage{booktabs}" << endl
                      << "\\usepackage{amssymb}" << endl
                      << "\\usepackage{pifont}" << endl
@@ -373,54 +374,84 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
     list<Equation> eqnList(eqns.begin(),eqns.end());
 
     eqnList.sort(sort_equations);
+
+    this->summary << "\\newpage" << endl
+    << "\\section*{Equations}" << endl
+    << "%\\begin{landscape}" << endl
+    << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
+    << "\\toprule" << endl
+    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+    << "\\endfirsthead" << endl
+    << "\\toprule" << endl
+    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+    << "\\endhead" << endl;
+
+    this->statistics << "\\newpage" << endl
+     << "\\section*{Equations}" << endl
+     << "%\\begin{landscape}" << endl
+    << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
+    << "\\toprule" << endl
+    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+    << "\\endfirsthead" << endl
+    << "\\toprule" << endl
+    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
+    << "\\endhead" << endl;
+
     for(std::list<Equation>::iterator it = eqnList.begin(); it != eqnList.end(); ++it)
     {
-        this->writeEqnFormatted(*it, primes);
+        this->writeEqnFormatted(this->summary,*it, primes);
+        this->writeEqnFormatted(this->statistics,*it, primes);
     }
+
+    this->summary << "\\end{longtable}" << endl
+    << "%\\end{landscape}" << endl;
+
+    this->statistics << "\\end{longtable}" << endl
+    << "%\\end{landscape}" << endl;
 }
 
 void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime, long long int seed)
 {
-    this->equations << "\\section*{Settings}" << endl
-                    << "\\begin{tabular}{ll}" << endl
-                    << "NTL Version: & " << NTL_VERSION << "\\\\"
-                #ifdef __GNUC__
-                    << "GCC: &" << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << "\\\\" << endl
-                #endif
-                    << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
-                    << "$c$ & $" << settings.c << "$\\\\" << endl
+    this->summary << "\\section*{Settings}" << endl
+    << "\\begin{tabular}{ll}" << endl
+    << "NTL Version: & " << NTL_VERSION << "\\\\"
+    #ifdef __GNUC__
+    << "GCC: &" << __GNUC__ << "." << __GNUC_MINOR__ << "." << __GNUC_PATCHLEVEL__ << "\\\\" << endl
+    #endif
+    << "$N$ & $" << settings.N << "\\approx 10^{" << round(log(settings.N)/log(10)) << "}$ (ca. " << round(log(settings.N)/log(2)) << " Bits)\\\\"
+    << "$c$ & $" << settings.c << "$\\\\" << endl
                     << "$n$ & $ " << settings.n << "$\\\\" << endl
                     << "$p_n$ & $ " << max_prime << "$\\\\" << endl
                     << "Pruning Level: & $" << settings.max_level << "$\\\\" << endl
                     << "Basis accuracy factor: & $" << settings.accuracy_factor << "$\\\\" << endl
                     << "Reduce ratio: & $" << settings.reduce_ratio << "$\\\\" << endl
-                    << "Start reduction factor: & $" << settings.A_start_factor << "$\\\\" << endl
-                    << "Strong BKZ block size: & $" << settings.strong_bkz << "$\\\\" << endl
-                    << "Slight BKZ block size: & $" << settings.slight_bkz << "$\\\\" << endl
-                    << "Seed for random number generator: & $" << seed << "$\\\\" << endl
-                    << "Scaling type: & ";
+    << "Start reduction factor: & $" << settings.A_start_factor << "$\\\\" << endl
+    << "Strong BKZ block size: & $" << settings.strong_bkz << "$\\\\" << endl
+    << "Slight BKZ block size: & $" << settings.slight_bkz << "$\\\\" << endl
+    << "Seed for random number generator: & $" << seed << "$\\\\" << endl
+    << "Scaling type: & ";
     switch(settings.scalingType)
     {
-        case 0: this->equations << "Use various scaleing types:\\\\"
-            << "& (\\phantom{7}6\\% of rounds): Scale every row with propability 1/4\\\\"
-            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
-            << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
-            << "& (78\\% of rounds): Scale every row with propability 1/2\\\\";
+        case 0: this->summary << "Use various scaleing types:\\\\"
+                << "& (\\phantom{7}6\\% of rounds): Scale every row with propability 1/4\\\\"
+                << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/2\\\\"
+                << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with propability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with prpability 1/4\\\\"
+                << "& (78\\% of rounds): Scale every row with propability 1/2\\\\";
             break;
-        case 2: this->equations << "Scale every row with propability 1/4\\\\";
+        case 2: this->summary << "Scale every row with propability 1/4\\\\";
             break;
-        case 3: this->equations << "Scale every row with propability 3/4\\\\";
+        case 3: this->summary << "Scale every row with propability 3/4\\\\";
             break;
-        case 4: this->equations << "Scale the first n/2 rows with propability 1/4,\\\\& the n/2 last rows with prpability 1/2\\\\";
+        case 4: this->summary << "Scale the first n/2 rows with propability 1/4,\\\\& the n/2 last rows with prpability 1/2\\\\";
             break;
-        case 5: this->equations << "Scale the first n/2 rows with propability 1/2,\\\\& the n/2 last rows with prpability 1/4\\\\";
+        case 5: this->summary << "Scale the first n/2 rows with propability 1/2,\\\\& the n/2 last rows with prpability 1/4\\\\";
             break;
-        default: this->equations << "Scale every row with propability 1/2\\\\";
+        default: this->summary << "Scale every row with propability 1/2\\\\";
     }
 
-    this->equations << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
+    this->summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
 
-    this->equations << "\\end{tabular}\\\\" << endl;
+    this->summary << "\\end{tabular}\\\\" << endl;
 
     this->statistics << "\\section*{Settings}" << endl
                      << "\\begin{tabular}{ll}" << endl
@@ -471,25 +502,10 @@ void FileOutput::statisticsStrongBkzTime(double time)
     this->statistics << "\\paragraph{Strong BKZ:}" << time << "s" << endl;
 }
 
-void FileOutput::prepareEquationTable()
-{
-    // start equation table
-    this->equations << "%\\begin{landscape}" << endl
-                    << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
-                    << "\\toprule" << endl
-                    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
-                    << "\\endfirsthead" << endl
-                    << "\\toprule" << endl
-                    << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
-                    << "\\endhead" << endl;
-}
-
 void FileOutput::closeEquationFile()
 {
-    this->equations << "\\end{longtable}" << endl
-                    << "%\\end{landscape}" << endl
-                    << "\\end{document}" << endl;
-    this->equations.close();
+    this->summary << "\\end{document}" << endl;
+    this->summary.close();
 }
 
 void FileOutput::closeStatisticsFile()
@@ -568,7 +584,54 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
         }
     }
 
-    this->statistics << endl << endl
+    this->statistics << endl << endl << "\\newpage" << endl
+                    << "\\section*{Summary}" << endl
+                    << "\\resizebox{\\textwidth}{!}{" << endl
+                    << "\\begin{tabular}{llll}" << endl
+                    << "\\toprule" << endl
+
+                    << "Runtime (total): & \\textbf{" << time << "s}\\\\" << endl
+                    << "Runtime (per unique equation): & \\textbf{" << time/stats.eqnUniqueTotal << "s}\\\\" << endl
+                    << "Time to factor $N$: & \\textbf{" << (time/stats.eqnUniqueTotal * (n+1)) << "s}\\\\\\midrule[0.05pt]" << endl
+
+                    << "Rounds (total): & $" << stats.roundsTotal << "$&" << endl
+                    << "Unique Equations found (duplicates) & $" << stats.eqnUniqueTotal << "$ ($" << stats.eqnDuplicates  << "$)\\\\" << endl
+                    << "Rounds without distance reduction: & " << stats.roundsWithoutReduction << " (" << round(1.0 * stats.roundsWithoutReduction/stats.roundsTotal * 10000) /100.0 << "\\%)&" << endl
+                    << "Unique equations per round & $" << 1.0 * stats.eqnUniqueTotal/stats.roundsTotal << "$\\\\" << endl
+                    << "Rounds without delayed stages: & " << stats.roundsWithoutDelayedStages << " (" << round(1.0 * stats.roundsWithoutDelayedStages/stats.roundsTotal * 10000) /100.0 << "\\%)&" << endl
+                    << "Unique equations per round with 1+ eqn. & $" << stats.avgNumUniqEqnPerRoundWithEqn << "$\\\\" << endl
+                    << "Rounds with equations: & " << stats.roundsWithEquations << " (" << round(1.0 * stats.roundsWithEquations/stats.roundsTotal * 10000) /100.0 << "\\%)&" << endl
+                    << "Total equations per round with 1+ eqn.   & $" << stats.avgNumEqnPerRoundWithEqn << "$\\\\\\midrule[0.05pt]" << endl
+
+                    << "Total stages checked for equ. (rounds w. Equ.): & " << stats.totalStagesCheckedForEquationsWithEquations << "& Total stages checked for equ. (rounds wo. Equ.): & " << stats.totalStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Min. stages checked for equ. (rounds w. Equ.): & " << stats.minStagesCheckedForEquationsWithEquations << "& Min. stages checked for equ. (rounds wo. Equ.): & " << stats.minStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Max. stages checked for equ. (rounds w. Equ.): & " << stats.maxStagesCheckedForEquationsWithEquations << "& Max. stages checked for equ. (rounds wo. Equ.): & " << stats.maxStagesCheckedForEquationsWithoutEquations << "\\\\" << endl
+                    << "Avg. stages checked for equ. (rounds w. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithEquations * 100.0)/100.0 << "& Avg. stages checked for equ. (rounds wo. Equ.): & " << round(stats.avgStagesCheckedForEquationsWithoutEquations * 100.0)/100.0 << "\\\\\\midrule[0.05pt]" << endl
+
+                    << "Min. time NewEnum (total): & " << stats.minNewEnum << "s&" << endl
+                    << "Min. time NewEnum (w.eqn.): & " << stats.minNewEnumWE << "s\\\\" << endl
+                    << "Max. time NewEnum: & " << stats.maxNewEnum << "s&" << endl
+                    << "Max. time NewEnum: & " << stats.maxNewEnumWE << "s\\\\" << endl
+                    << "Avg. time NewEnum: & " << stats.avgNewEnum << "s&" << endl
+                    << "Avg. time NewEnum: & " << stats.avgNewEnumWE << "s\\\\\\midrule[0.05pt]" << endl
+
+                    << "Min. time slight BKZ: & " << stats.minSlightBkz << "s&" << endl
+                    << "Max. distance reduction: & " << stats.maxDistanceReduction << "\\\\" << endl
+                    << "Max. time slight BKZ: & " << stats.maxSlightBkz << "s&" << endl
+                    << "Min. distance reduction: & " << stats.minDistanceReduction << "\\\\" << endl
+                    << "Avg. time slight BKZ: & " << stats.avgSlightBkz << "s&" << endl
+                    << "Avg. distance reduction: & " << stats.avgDistanceReduction << "\\\\\\midrule[0.05pt]" << endl
+
+                    << "Equations from NewEnum only: &" << eqnList.size() << " (" << round(eqnList.size() * 1000.0 / stats.eqnUniqueTotal) / 10.0
+                    << "\\%) & Equations from CF: & " << eqnList_cf.size() << " (" << round(eqnList_cf.size() * 1000.0 / stats.eqnUniqueTotal)/10.0 << "\\%)\\\\" << endl
+                    << "Min. $v$ value (without CF): & " << v_min << " & Min. $v$ value (CF only): & " << v_cf_min << "\\\\" << endl
+                    << "Max. $v$ value (without CF): & " << v_max << " & Max. $v$ value (CF only): & " << v_cf_max << "\\\\" << endl
+                    << "Avg. $v$ value (without CF): & " << (round(v_avg * 100.0)/100.0) << " & Avg. $v$ value (CF only): & " << (round(v_cf_avg * 100.0)/100.0) << "\\\\" << endl
+                    << "Median $v$ value (without CF): & " << v_median << " & Median $v$ value (CF only): & " << v_cf_median << "\\\\\\bottomrule" << endl
+
+                    <<"\\end{tabular}}" << endl;
+
+    this->summary << endl << endl << "\\newpage" << endl
                     << "\\section*{Summary}" << endl
                     << "\\resizebox{\\textwidth}{!}{" << endl
                     << "\\begin{tabular}{llll}" << endl
@@ -620,13 +683,13 @@ void FileOutput::texToPdf()
 {
     string pdftex;
     chdir("output");
-    pdftex = "pdflatex " + this->eqnName + ".tex && pdflatex " + this->statsName + ".tex";
+    pdftex = "pdflatex " + this->summaryName + ".tex && pdflatex " + this->statsName + ".tex";
     system(pdftex.c_str());
     system(pdftex.c_str());
     string trash;
-    trash = this->eqnName + ".log";
+    trash = this->summaryName + ".log";
     remove(trash.c_str());
-    trash = this->eqnName + ".aux";
+    trash = this->summaryName + ".aux";
     remove(trash.c_str());
     trash = this->statsName + ".log";
     remove(trash.c_str());

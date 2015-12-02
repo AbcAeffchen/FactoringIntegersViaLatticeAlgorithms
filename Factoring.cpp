@@ -256,7 +256,6 @@ void Factoring::search()
     this->stats.closeStatistics(round,this->uniqueEquations.size(),this->eqnDuplicates);
 
     this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
-
     this->file.writeSummary(this->stats, this->timer.getTotalTime(), this->settings.n, this->uniqueEquations);
     this->file.closeEquationFile();
     this->file.closeStatisticsFile();
@@ -321,7 +320,6 @@ Factoring::Factoring(const FactoringSettings &settings)
     // write the current settings
     this->file.writeSettings(this->settings, this->primes(settings.n), seed);
 
-    this->file.prepareEquationTable();
     this->setBasis(settings.accuracy_factor);
     this->reduceBasis(settings.strong_bkz);
     this->setTargetCoordinates();

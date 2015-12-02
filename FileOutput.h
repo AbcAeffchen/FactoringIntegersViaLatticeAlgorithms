@@ -36,16 +36,16 @@ class FileOutput
 
 private:
     /**
-     * @var formatted A LaTeX file, that will contain the settings and the found
-     * equations.
+     * @var summary A LaTeX file, that will contain the settings, the found equations and
+     * the statistics summary.
      */
-    fstream equations;
+    fstream summary;
     /**
      * @var statistics A LaTeX file, that will contain statistics to the rounds
      */
     fstream statistics;
 
-    string eqnName;
+    string summaryName;
 
     string statsName;
 
@@ -56,7 +56,7 @@ private:
                                    "$18 \\leq t < 40$",
                                    "$t \\geq 40$"};
 
-    void writeEqnFormatted(const Equation& eqn, const Vec<long>& primes);
+    void writeEqnFormatted(fstream &file, const Equation& eqn, const Vec<long>& primes);
 
     void writeEqnStatistics(const Equation& eqn, const Vec<long>& primes);
 
@@ -90,8 +90,6 @@ public:
     void writeSettings(const FactoringSettings &settings, long max_prime, long long int seed);
 
     void statisticsStrongBkzTime(double time);
-
-    void prepareEquationTable();
 
     void closeEquationFile();
 
