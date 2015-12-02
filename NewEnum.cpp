@@ -129,8 +129,8 @@ unsigned long StageStorage::levelChange(const double &alpha_1, const double &alp
     return t_indicator == 0
            ? 0
            : (alpha_1 <= alpha_2
-              ? (unsigned long) this->pruningLevel - this->min_level - 1
-              : (unsigned long) floor((t_indicator == 2 ? 40.0 : 18.0) / log((1.0-alpha_2) / (alpha_1 - alpha_2))));
+              ? (unsigned long) this->pruningLevel - this->min_level - 1        // 2*log(2)= 1.386294361119890..., 39=40-1
+              : (unsigned long) ceil((t_indicator == 2 ? 39.0 : 17.0)  * 1.38629436111989 / log((1.0-alpha_2) / (alpha_1 - alpha_2))) - 1);
 }
 
 Vec<double> NewEnum::precomputeLogT(long n)
