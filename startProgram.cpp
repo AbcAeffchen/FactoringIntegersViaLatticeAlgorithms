@@ -51,141 +51,144 @@ void manual_settings_input()
 
     long long int seed_type;
     cout << endl << "Choose a seed for the random number generator:" << endl
-         << "-2 = timestamp" << endl
+         << "-2 = timestamp (default)" << endl
          << "-1 = random device (sometimes buggy)" << endl
          << "any non negativ number: this number is used as seed" << endl << endl
          << "Seed type: ";
     cin >> seed_type;
 
+    char cf;
+    cout << endl << "Use continued fractions (y/n) (defaults to yes): ";
+    cin >> cf;
+
+    bool scalingType;
+    cout << endl << "Choose the scaling type:" << endl
+         << "0 = mixed (default)" << endl
+         << "1 = every row with propability 1/2" << endl
+         << "2 = every row with propability 1/4" << endl
+         << "3 = every row with propability 3/4" << endl
+         << "4 = first n/2 rows with prop. 1/4, other with prop. 1/2" << endl
+         << "5 = first n/2 rows with prop. 1/2, other with prop. 1/4" << endl
+         << "Scaling type: ";
+    cin >> scalingType;
+
     cout << endl << endl;
 
-    Factoring(FactoringSettings(getN(N_size), n, c, s, A_factor, reduce_ratio, 10000, bkz_strong, bkz_slight, min_eqns, seed_type));
+    Factoring(FactoringSettings(getN(N_size), n, c, s, A_factor, reduce_ratio, 10000, bkz_strong, bkz_slight, min_eqns, seed_type,cf =='y',scalingType));
 }
 
 void test_series_n()
 {
     Factoring(FactoringSettings(getN(20), 120, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 130, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 150, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
+    Factoring(FactoringSettings(getN(20), 160, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 120, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 130, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
     Factoring(FactoringSettings(getN(20), 160, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
 void test_series_c()
 {
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.4), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.5), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.7), 17, 0.2, 0.82, 10000, 32, 20, 25));
-
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.8), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.4), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.5), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.7), 17, 0.2, 0.82, 10000, 32, 20, 25));
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.8), 17, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
 void test_series_prune()
 {
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 15, 0.2, 0.82, 10000, 32, 20, 25));
-
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 16, 0.2, 0.82, 10000, 32, 20, 25));
-
-    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2,0.82, 10000, 32, 20, 25));
-
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 18, 0.2, 0.82, 10000, 32, 20, 25));
-
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 19, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 15, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 16, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+    Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 18, 0.2, 0.82, 10000, 32, 20, 25));
     Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 19, 0.2, 0.82, 10000, 32, 20, 25));
 }
 
-void default_settings()
+void test_series_scaling()
 {
-    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,0));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,0));
+
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,4));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,5));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,4));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,5));
+
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 5,-2,true,3));
 }
 
 void speedTestSmall()
 {
-    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1446721645,true,0));
+    Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,1448726806,true,0));
+    cout << "test 9";
 }
 
 void speedTestBig()
 {
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
-}
-
-void fast_test()
-{
-    Factoring(FactoringSettings(getN(14), 90, conv<RR>(0.5), 14, 0.2, 0.8, 10000, 32, 20, 40,34992116121LL));
-}
-
-void default_settings_big_N()
-{
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1.0/2.0), 19, 0.2, 0.75, 10000, 32, 20, 20));
-}
-
-void test_series_1()
-{
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,0));
-
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,4));
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,5));
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,4));
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,5));
-
-    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,-2,true,3));
+    Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 50,1448682782,true,0));
 }
 
 void menu()
 {
     short choice;
     cout << "Choose what to do:" << endl
-         << "(1) Run with default settings " << endl
-         << "    -> N = 10^14, n = 90, c = 5/7, prune = 14, min. equations = 91" << endl
-         << "(2) Run n test series" << endl
+         << "(  0) Run with custom settings" << endl
+         << "(  1) Run the speedTest (N~10^14)" << endl
+         << "(  2) Run the speedTest (N~10^20)" << endl << endl
+         << "Test series" << endl
+         << "( 10) n test series" << endl
          << "    -> N = 10^20, n = 120 to 170 by steps of 10," << endl
          << "       c = 0.6, prune = 17, min. equations = 50" << endl
-         << "(3) Run c test series" << endl
+         << "( 11) c test series" << endl
          << "    -> N = 10^20, n = 140, c = 0.4 to 0.8 by steps of 0.1," << endl
          << "       prune = 17, min. equations = 50" << endl
-         << "(4) Run prune test series" << endl
+         << "( 12) Prune test series" << endl
          << "    -> N = 10^20, n = 140, c = 0.6, prune = 15 to 19 by steps of 1," << endl
-         << "       min. equations = 50" << endl << endl
-         << "(9) Run with custom settings" << endl << endl
-         << "(14) Run the speedTest (N~10^14)" << endl << endl
-         << "(20) Run the speedTest (N~10^20)" << endl << endl
+         << "       min. equations = 50" << endl
+         << "( 13) Scaling test series" << endl << endl
          << "(100) Prime Lattice Basis tests" << endl << endl
-         << "(200) Test Series 1" << endl << endl
          << "Quit by [Ctrl]+[C]" << endl
          << "Selection: ";
         cin >> choice;
 
     switch(choice)
     {
-    case 1:
-        default_settings();
-        break;
-    case 2:
-        test_series_n();
-        break;
-    case 3:
-        test_series_c();
-        break;
-    case 4:
-        test_series_prune();
-        break;
-    case 9:
+    case 0:
         manual_settings_input();
         break;
-    case 14:
+    case 1:
         speedTestSmall();
+        cout << "drausen";
         break;
-    case 20:
+    case 2:
         speedTestBig();
         break;
+    case 10:
+        test_series_n();
+        break;
+    case 11:
+        test_series_c();
+        break;
+    case 12:
+        test_series_prune();
+        break;
+    case 13:
+        test_series_scaling();
     case 100:
     {
         long e, dim, blockSize;
@@ -201,8 +204,15 @@ void menu()
         BasisTests(getN(e), c, dim, blockSize);
         break;
     }
-    case 200:
-        test_series_1();
+    case 1000:
+    {
+        speedTestBig();
+        Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.5), 17, 0.2, 0.82, 10000, 32, 20, 25));
+        Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.6), 17, 0.2, 0.82, 10000, 32, 20, 25));
+        Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.7), 17, 0.2, 0.82, 10000, 32, 20, 25));
+        Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.8), 17, 0.2, 0.82, 10000, 32, 20, 25));
+
+    }
     default:
         menu();
     }

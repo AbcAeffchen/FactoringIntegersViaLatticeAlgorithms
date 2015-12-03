@@ -71,18 +71,48 @@ public:
      */
     std::vector<std::vector<std::vector<unsigned long long>>> delayedStages;
 
-    std::vector<std::vector<double>> alpha_2_min = {{2.0,2.0,2.0},{2.0,2.0,2.0},{2.0,2.0,2.0}};     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator] */
+    std::vector<std::vector<std::vector<double>>> alpha_2_min;     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator][level] */
 
-    StageStorage(unsigned long dim, unsigned long pruningLevel)
-            : dim(dim), min_level(10), pruningLevel(pruningLevel),
+    StageStorage(unsigned long pruningLevel)
+            : min_level(10), pruningLevel(pruningLevel),
               stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level,0))
     {
         this->storage = std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>>(3,std::vector<std::vector<std::list<NewEnumStage*>>>(3, std::vector<std::list<NewEnumStage*>>(pruningLevel - min_level)));
         this->maxDelayedAndPerformedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
         this->delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
+        this->alpha_2_min = std::vector<std::vector<std::vector<double>>>(3,std::vector<std::vector<double>>(3, std::vector<double>(pruningLevel-min_level,2.0)));
         // allocate 1000 stages for the beginning
         for(int i = 0; i < 1000; ++i)
             this->pool.push_back(new NewEnumStage);
+    }
+
+    ~StageStorage()
+    {
+        cout << "del test1";
+        NewEnumStage* temp;
+        for(long alpha_2_ind = 0; alpha_2_ind < 3; alpha_2_ind++)
+        {
+            for (long t_ind = 0; t_ind < 3; t_ind++)
+            {
+                for (long level = 0; level < this->pruningLevel - this->min_level; level++)
+                {
+                    while(!this->storage[alpha_2_ind][t_ind][level].empty())
+                    {
+                        temp = this->storage[alpha_2_ind][t_ind][level].front();
+                        this->storage[alpha_2_ind][t_ind][level].pop_front();
+                        delete temp;
+                    }
+                }
+            }
+        }
+
+        while(!this->pool.empty())
+        {
+            temp = this->pool.front();
+            this->pool.pop_front();
+            delete temp;
+        }
+        cout << "del test2";
     }
 
     bool getNext(NewEnumStage* &stage);
@@ -103,9 +133,9 @@ public:
                 {
                     this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
                     this->delayedStages[alpha_2_indicator][t_indicator][level] = 0;
+                    this->alpha_2_min[alpha_2_indicator][t_indicator][level] = 2.0;
                 }
 
-        this->alpha_2_min = {{2.0,2.0,2.0},{2.0,2.0,2.0},{2.0,2.0,2.0}};
         this->maxDistance = A;
         this->currentLevel = this->min_level;
     }
@@ -119,8 +149,6 @@ public:
     }
 
 private:
-    const unsigned long dim;
-
     const double alpha_1_threshold = 0.99;      /**< A_new/A_old = alpha_1 < alpha_1_threshold.
                                                      Used to prevent to much useless level recalculations. */
 

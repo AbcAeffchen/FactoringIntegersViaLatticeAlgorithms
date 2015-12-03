@@ -200,6 +200,8 @@ FileOutput::FileOutput()
                      << "\\newcolumntype{R}[1]{>{\\raggedleft\\let\\newline\\\\\\arraybackslash\\hspace{0pt}}m{#1}}" << endl
                      << "\\renewcommand{\\checkmark}{\\text{\\ding{51}}}" << endl
                      << "\\newcommand{\\cross}{\\text{\\ding{55}}}" << endl
+                     << "\\newcommand{\\green}[1]{\\textcolor[HTML]{2B9D0E}{#1}}" << endl
+                     << "\\newcommand{\\red}[1]{\\textcolor[HTML]{A80000}{#1}}" << endl
                      << "\\newcommand{\\grey}[1]{\\textcolor{black!40}{#1}}" << endl
                      << "\\begin{document}" << endl
                      << "\\onehalfspacing" << endl << endl;
@@ -218,7 +220,6 @@ void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
                      << "\\begin{tabular}[t]{ll}" << endl
                      << "Slight BKZ:&" << slightBkz << "s\\\\" << endl
                      << "NewEnum:&" << newEnum << "s\\\\\\\\" << endl;
-
 }
 
 void FileOutput::statisticsWriteStagesChecked(unsigned long long stagesChecked)
@@ -236,7 +237,7 @@ void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
                      << "\\end{tabular}}\\end{longtable}" << endl;
 }
 
-void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vector<double>> &alpha_2_min,
+void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vector<vector<double>>> &alpha_2_min,
                                                 const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
                                                 const vector<vector<vector<unsigned long long>>> &delayedStages,
                                                 unsigned long long totalDelayedAndPerformedStages)
@@ -271,44 +272,59 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vect
 
     this->statistics << "\\textbf{Delayed Stages}\\newline\\resizebox{\\linewidth}{!}{%" << endl
                      << "\\begin{tabular}[t]{c|C{4cm}C{4cm}C{4cm}|C{4cm}}" << endl
-                     << "\\textbf{" << totalDelayedAndPerformedStages << "}, \\textbf{\\grey{" << totalDelayedStages <<"}}& " << this->t_indicator[0] << "&" << this->t_indicator[1] << "&"  << this->t_indicator[2] << "&\\\\\\midrule" << endl;
+                     << "\\textbf{\\green{" << totalDelayedAndPerformedStages << "}}, \\textbf{\\red{" << totalDelayedStages <<"}}& " << this->t_indicator[0] << "&" << this->t_indicator[1] << "&"  << this->t_indicator[2] << "&\\\\\\midrule" << endl;
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
     {
         this->statistics << this->alpha_2_indicator_text[alpha_2_indicator];
         for(long t_indicator = 0; t_indicator < 3; t_indicator++)
         {
-            this->statistics << "&";
+            // delayed and performed (green)
+            this->statistics << "& \\green{";
             this->statistics << delayedAndPerformedStages[alpha_2_indicator][t_indicator][0];
-            for(long level = 1; level < max_level- 10; level++)
+            for (long level = 1; level < max_level - 10; level++)
             {
-                this->statistics << "," << delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
+                this->statistics << "," <<
+                delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
             }
 
-            if(alpha_2_min[alpha_2_indicator][t_indicator] > 1)
-                this->statistics << " (-)";
-            else
-                this->statistics << " (" << alpha_2_min[alpha_2_indicator][t_indicator] << ")";
-
-            this->statistics << "\\newline\\grey{";
-
+            this->statistics << "} \\newline" << endl << "\\red{";
+            // delayed stages (red)
             this->statistics << delayedStages[alpha_2_indicator][t_indicator][0];
-            for(long level = 1; level < max_level- 10; level++)
+            for (long level = 1; level < max_level - 10; level++)
             {
-                this->statistics << "," << delayedStages[alpha_2_indicator][t_indicator][level];
+                this->statistics << "," <<
+                delayedStages[alpha_2_indicator][t_indicator][level];
             }
-            this->statistics << "}";
+
+            this->statistics << "} \\newline" << endl << "\\grey{(";
+            // alpha_2 min values (grey)
+            if (alpha_2_min[alpha_2_indicator][t_indicator][0] > 1)
+                this->statistics << "-";
+            else
+                this->statistics << round(alpha_2_min[alpha_2_indicator][t_indicator][0] * 100) / 100.0;
+
+            for (long level = 1; level < max_level - 10; level++)
+            {
+                if (alpha_2_min[alpha_2_indicator][t_indicator][level] > 1)
+                    this->statistics << ", -";
+                else
+                    this->statistics << ", " << round(alpha_2_min[alpha_2_indicator][t_indicator][level] * 100) / 100.0;
+            }
+            this->statistics << ")}";
         }
 
-        this->statistics << "&";
+        this->statistics << "& \\green{";
         this->statistics << sumDelayedAndPerformedStagesOverT[alpha_2_indicator][0];
-        for(long level = 1; level < max_level- 10; level++)
+        for (long level = 1; level < max_level - 10; level++)
         {
-            this->statistics << "," << sumDelayedAndPerformedStagesOverT[alpha_2_indicator][level];
+            this->statistics << "," <<
+            sumDelayedAndPerformedStagesOverT[alpha_2_indicator][level];
         }
 
-        this->statistics << "\\newline\\grey{" << sumDelayedStagesOverT[alpha_2_indicator][0];
-        for(long level = 1; level < max_level- 10; level++)
+        this->statistics << "} \\newline" << endl << "\\red{" <<
+        sumDelayedStagesOverT[alpha_2_indicator][0];
+        for (long level = 1; level < max_level - 10; level++)
         {
             this->statistics << "," << sumDelayedStagesOverT[alpha_2_indicator][level];
         }
@@ -319,12 +335,12 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vect
 
     for(long t_indicator = 0; t_indicator < 3; t_indicator++)
     {
-        this->statistics << "&" << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][0];
+        this->statistics << "& \\green{" << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][0];
         for(long level = 1; level < max_level- 10;level++)
         {
             this->statistics << "," << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][level];
         }
-        this->statistics << "\\newline\\grey{" << sumDelayedStagesOverAlpha2[t_indicator][0];
+        this->statistics << "} \\newline\\red{" << sumDelayedStagesOverAlpha2[t_indicator][0];
         for(long level = 1; level < max_level- 10;level++)
         {
             this->statistics << "," << sumDelayedStagesOverAlpha2[t_indicator][level];
@@ -683,19 +699,27 @@ void FileOutput::texToPdf()
 {
     string pdftex;
     chdir("output");
+    cout << "test 1" << endl;
     pdftex = "pdflatex " + this->summaryName + ".tex && pdflatex " + this->statsName + ".tex";
     system(pdftex.c_str());
+    cout << "test 2" << endl;
     system(pdftex.c_str());
+    cout << "test 3" << endl;
     string trash;
     trash = this->summaryName + ".log";
     remove(trash.c_str());
+    cout << "test 4" << endl;
     trash = this->summaryName + ".aux";
     remove(trash.c_str());
+    cout << "test 5" << endl;
     trash = this->statsName + ".log";
     remove(trash.c_str());
+    cout << "test 6" << endl;
     trash = this->statsName + ".aux";
     remove(trash.c_str());
+    cout << "test 7" << endl;
     chdir("..");
+    cout << "test 8" << endl;
 }
 
 void FileOutput::statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes,

@@ -261,6 +261,7 @@ void Factoring::search()
     this->file.closeStatisticsFile();
 
     this->file.texToPdf();
+    cout << "exiting";
 }
 
 long Factoring::addEquations(list<Equation>& newEquations)
@@ -324,6 +325,7 @@ Factoring::Factoring(const FactoringSettings &settings)
     this->reduceBasis(settings.strong_bkz);
     this->setTargetCoordinates();
     this->search();
+    cout << "test 10";
 }
 
 ZZ getN(long e)

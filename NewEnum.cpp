@@ -16,8 +16,8 @@ void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, con
     long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
     long t_indicator = this->t_indicator(stage->t);
     this->storage[t_indicator][alpha_2_indicator][level - this->min_level - 1].push_back(stage);
-    if(this->alpha_2_min[alpha_2_indicator][t_indicator] > alpha_2)
-        this->alpha_2_min[alpha_2_indicator][t_indicator] = alpha_2;
+    if(this->alpha_2_min[alpha_2_indicator][t_indicator][level - this->min_level - 1] > alpha_2)
+        this->alpha_2_min[alpha_2_indicator][t_indicator][level - this->min_level - 1] = alpha_2;
     this->stageCounterTotal++;
     this->stageCounterByLevel[level - this->min_level - 1]++;
 
@@ -71,7 +71,8 @@ void StageStorage::updateMaxDistance(const RR &distance)
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
         for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-            this->alpha_2_min[alpha_2_indicator][t_indicator] /= alpha_1;
+            for(long s = this->currentLevel-this->min_level-1; s < this->pruningLevel-10;s++)
+                this->alpha_2_min[alpha_2_indicator][t_indicator][s] /= alpha_1;
 
     this->maxDistance = distance;
 }
@@ -82,6 +83,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
     long new_alpha_2_indicator;
     long level_change;
     long s_max = this->pruningLevel - this->min_level - 1;
+    long s_min = this->currentLevel-this->min_level - 1;
 
     /**
      * skip t_indicator = 0, since the stages here have t between 4 and 20.
@@ -91,34 +93,38 @@ void StageStorage::recalculateLevels(const double &alpha_1)
     {
         for(int alpha_2_indicator = 2; alpha_2_indicator >= 0; alpha_2_indicator--)
         {
-            new_alpha_2 = this->alpha_2_min[alpha_2_indicator][t_indicator] / alpha_1;
-            new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
-            level_change = this->levelChange(alpha_1,this->alpha_2_min[alpha_2_indicator][t_indicator],t_indicator);
-            if(level_change <= 0)
-                continue;
-
-            // return stages
-            for(long s = s_max; s > std::max(this->currentLevel-11,s_max - level_change); s--)
+            for(long s = s_max; s > s_min; s--)
             {
-                if(this->storage[t_indicator][alpha_2_indicator][s].empty())
+                if (this->storage[t_indicator][alpha_2_indicator][s].empty())
                     continue;
 
-                this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                this->stageCounterTotal -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                this->returnStages(this->storage[t_indicator][alpha_2_indicator][s]);
-            }
-
-            // move stages
-            for(long s = s_max-level_change; s > this->currentLevel-11; s--)
-            {
-                if(this->storage[t_indicator][alpha_2_indicator][s].empty())
+                level_change = this->levelChange(alpha_1,
+                                                 this->alpha_2_min[alpha_2_indicator][t_indicator][s],
+                                                 t_indicator);
+                if (level_change <= 0)
                     continue;
 
-                this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                this->stageCounterByLevel[s+level_change] += this->storage[t_indicator][alpha_2_indicator][s].size();
-                this->storage[t_indicator][new_alpha_2_indicator][s+level_change].splice(
-                        this->storage[t_indicator][new_alpha_2_indicator][s+level_change].end(),
-                        this->storage[t_indicator][alpha_2_indicator][s]);
+                new_alpha_2 = this->alpha_2_min[alpha_2_indicator][t_indicator][s] / alpha_1;
+                new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
+
+                if(s+level_change > this->pruningLevel-11)
+                {   // return stages
+                    this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
+                    this->stageCounterTotal -= this->storage[t_indicator][alpha_2_indicator][s].size();
+                    this->returnStages(this->storage[t_indicator][alpha_2_indicator][s]);
+                    this->alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
+                }
+                else
+                {   // move stages
+                    this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
+                    this->stageCounterByLevel[s + level_change] += this->storage[t_indicator][alpha_2_indicator][s].size();
+                    this->storage[t_indicator][new_alpha_2_indicator][s + level_change].splice(
+                            this->storage[t_indicator][new_alpha_2_indicator][s + level_change].end(),
+                            this->storage[t_indicator][alpha_2_indicator][s]);
+                    this->alpha_2_min[t_indicator][alpha_2_indicator][s + level_change] = std::min(this->alpha_2_min[t_indicator][alpha_2_indicator][s + level_change],
+                                                                                                   this->alpha_2_min[t_indicator][alpha_2_indicator][s]);
+                    this->alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
+                }
             }
         }
     }
@@ -433,7 +439,7 @@ NewEnum::NewEnum(const FactoringSettings &settings, Timer &timer, const Vec<long
         : settings(settings), timer(timer), N(settings.N), N_RR(conv<RR>(settings.N)), U_RR(conv<Mat<RR>>(U)),
           primes(primes), shift(target_shift), n(primes.length()), min_reduce_ratio(settings.reduce_ratio),
           max_level(settings.max_level), log_t(NewEnum::precomputeLogT(n)), threshold(power_ZZ(primes(n),3)),
-          log_V(NewEnum::precomputeVolumes(n)), L(StageStorage((unsigned long) n, (unsigned long) settings.max_level))
+          log_V(NewEnum::precomputeVolumes(n)), L(StageStorage((unsigned long) settings.max_level))
 {
     // setting up the checkForEquation workspace
     this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1

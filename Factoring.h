@@ -119,7 +119,10 @@ public:
      * @param slight_bkz Block size for the slight BKZ reduction
      */
     Factoring(const FactoringSettings &settings);
-
+    ~Factoring()
+    {
+        cout << "kill factoring";
+    }
 };
 
 /**
