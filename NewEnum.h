@@ -31,7 +31,7 @@ struct NewEnumStage
     Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not important if they are stored in RR or double
     long t;                     // current coordinate
 
-    NewEnumStage() {}
+    NewEnumStage() : y_t(conv<RR>(0)), c_tp1(conv<RR>(0)), t(0) {}
 
     NewEnumStage(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, long t)
             : y_t(y_t), c_tp1(c_tp1), u(conv<Vec<double>>(u)), t(t)
@@ -71,8 +71,6 @@ public:
      */
     std::vector<std::vector<std::vector<unsigned long long>>> delayedStages;
 
-    std::vector<std::vector<std::vector<double>>> alpha_2_min;     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator][level] */
-
     StageStorage(unsigned long pruningLevel)
             : min_level(10), pruningLevel(pruningLevel),
               stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level,0))
@@ -82,7 +80,7 @@ public:
         this->delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
         this->alpha_2_min = std::vector<std::vector<std::vector<double>>>(3,std::vector<std::vector<double>>(3, std::vector<double>(pruningLevel-min_level,2.0)));
         // allocate 1000 stages for the beginning
-        for(int i = 0; i < 1000; ++i)
+        for(int i = 0; i < 200000; ++i)
             this->pool.push_back(new NewEnumStage);
     }
 
@@ -90,7 +88,7 @@ public:
 
     void incrementCurrentLevel();
 
-    void storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level);
+    bool storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level);
 
     void updateMaxDistance(const RR &distance);
 
@@ -98,6 +96,10 @@ public:
     {
         // reset counters/statistics
         this->totalDelayedAndPerformedStages = 0;
+        this->stageCounterTotal = 0;
+        for(int level = 0; level < this->pruningLevel - this->min_level; level++)
+            this->stageCounterByLevel[level] = 0;
+
         for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
             for(long t_indicator = 0; t_indicator < 3; t_indicator++)
                 for(int level = 0; level < this->pruningLevel - this->min_level; level++)
@@ -105,6 +107,7 @@ public:
                     this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
                     this->delayedStages[alpha_2_indicator][t_indicator][level] = 0;
                     this->alpha_2_min[alpha_2_indicator][t_indicator][level] = 2.0;
+                    this->returnStages(this->storage[t_indicator][alpha_2_indicator][level]);
                 }
 
         this->maxDistance = A;
@@ -119,10 +122,15 @@ public:
         this->pool.push_back(stage);
     }
 
+    unsigned long long getTotalDelayedStages()
+    {
+        return this->stageCounterTotal;
+    }
+
 private:
     const double alpha_1_threshold = 0.99;      /**< A_new/A_old = alpha_1 < alpha_1_threshold.
                                                      Used to prevent to much useless level recalculations. */
-
+    const unsigned long long stageCounterThreshold = 2500000;   // About 6 GB of RAM depending on the dimension
     const long pruningLevel;
     const long min_level = 10;                  /**< minimum level */
 
@@ -132,6 +140,8 @@ private:
     long currentLevel = 10;
 
     RR maxDistance;
+
+    std::vector<std::vector<std::vector<double>>> alpha_2_min;     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator][level] */
 
     list<NewEnumStage*> pool;
     std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
@@ -151,7 +161,8 @@ private:
     {
         if(this->pool.empty())
         {
-            return new NewEnumStage;
+            for(long i = 0; i < 10000; i++)
+                this->pool.push_back(new NewEnumStage);
         }
 
         NewEnumStage* stage = this->pool.front();

@@ -237,7 +237,7 @@ void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
                      << "\\end{tabular}}\\end{longtable}" << endl;
 }
 
-void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vector<vector<double>>> &alpha_2_min,
+void FileOutput::statisticsDelayedStagesOnLevel(int max_level,
                                                 const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
                                                 const vector<vector<vector<unsigned long long>>> &delayedStages,
                                                 unsigned long long totalDelayedAndPerformedStages)
@@ -297,21 +297,7 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vect
                 delayedStages[alpha_2_indicator][t_indicator][level];
             }
 
-            this->statistics << "} \\newline" << endl << "\\grey{(";
-            // alpha_2 min values (grey)
-            if (alpha_2_min[alpha_2_indicator][t_indicator][0] > 1)
-                this->statistics << "-";
-            else
-                this->statistics << round(alpha_2_min[alpha_2_indicator][t_indicator][0] * 100) / 100.0;
-
-            for (long level = 1; level < max_level - 10; level++)
-            {
-                if (alpha_2_min[alpha_2_indicator][t_indicator][level] > 1)
-                    this->statistics << ", -";
-                else
-                    this->statistics << ", " << round(alpha_2_min[alpha_2_indicator][t_indicator][level] * 100) / 100.0;
-            }
-            this->statistics << ")}";
+            this->statistics << "}";
         }
 
         this->statistics << "& \\green{";
@@ -348,12 +334,12 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level, const vector<vect
         this->statistics << "}";
     }
 
-    this->statistics << "&" << totalSumDelayedAndPerformedStages[0];
+    this->statistics << "& \\green{" << totalSumDelayedAndPerformedStages[0];
     for(long level = 1; level < max_level- 10; level++)
     {
         this->statistics << "," << totalSumDelayedAndPerformedStages[level];
     }
-    this->statistics << "\\newline\\grey{" << totalSumDelayedStages[0];
+    this->statistics << "} \\newline\\red{" << totalSumDelayedStages[0];
     for(long level = 1; level < max_level- 10; level++)
     {
         this->statistics << "," << totalSumDelayedStages[level];

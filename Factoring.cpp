@@ -238,7 +238,7 @@ void Factoring::search()
         this->stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations,newEquations.size() > 0);
         this->stats.newSlightBkzTime(slightBkzTime);
         this->stats.newNewEnumTime(newEnumTime, newEquations.size() > 0);
-        this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,newEnum.L.alpha_2_min,
+        this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,
                                                   newEnum.L.maxDelayedAndPerformedStages,
                                                   newEnum.L.delayedStages,
                                                   newEnum.L.totalDelayedAndPerformedStages);

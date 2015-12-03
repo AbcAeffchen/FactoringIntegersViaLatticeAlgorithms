@@ -6,7 +6,7 @@ void NewEnumStage::get_u(Vec<RR> &u) const
     conv(u,this->u);
 }
 
-void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level)
+bool StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level)
 {
     NewEnumStage* stage = this->getStage();
     stage->set(y_t,c_tp1,u,t);
@@ -23,11 +23,13 @@ void StageStorage::storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, con
 
     // statistics
     this->delayedStages[alpha_2_indicator][t_indicator][level - this->min_level - 1]++;
+
+    return this->stageCounterTotal >= this->stageCounterThreshold;      // about 6 GB of RAM depending on the dimension
 }
 
 bool StageStorage::getNext(NewEnumStage* &stage)
 {
-    if(this->stageCounterByLevel[this->currentLevel - this->min_level-1] <= 0)
+    if(this->stageCounterByLevel[this->currentLevel - this->min_level - 1] <= 0 || this->stageCounterTotal >= this->stageCounterThreshold)
         return false;
 
     for(unsigned long t_indicator = 0; t_indicator < 3; ++t_indicator)
@@ -66,7 +68,7 @@ void StageStorage::updateMaxDistance(const RR &distance)
     double alpha_1;
     conv(alpha_1, distance/this->maxDistance);
 
-    if(alpha_1 < this->alpha_1_threshold && this->stageCounterTotal > 250)
+    if(alpha_1 < this->alpha_1_threshold && this->stageCounterTotal > 100)
         this->recalculateLevels(alpha_1);
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
@@ -95,7 +97,7 @@ void StageStorage::recalculateLevels(const double &alpha_1)
         {
             for(long s = s_max; s > s_min; s--)
             {
-                if (this->storage[t_indicator][alpha_2_indicator][s].empty())
+                if (this->storage[t_indicator][alpha_2_indicator][s].size() < 10)
                     continue;
 
                 level_change = this->levelChange(alpha_1,
@@ -286,7 +288,8 @@ void NewEnum::perform(NewEnumStage* current_stage)
         // the program comes only this far, if level > current_s holds
         if(level <= this->max_level)
         {
-            this->L.storeStage(y(t),c(t),c(t+1),u,t,level);      // store the stage for later
+            if(this->L.storeStage(y(t),c(t),c(t+1),u,t,level))      // store the stage for later
+                return;
         }
 
         // 2.1
