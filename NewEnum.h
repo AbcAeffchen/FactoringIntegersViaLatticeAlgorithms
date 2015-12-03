@@ -86,35 +86,6 @@ public:
             this->pool.push_back(new NewEnumStage);
     }
 
-    ~StageStorage()
-    {
-        cout << "del test1";
-        NewEnumStage* temp;
-        for(long alpha_2_ind = 0; alpha_2_ind < 3; alpha_2_ind++)
-        {
-            for (long t_ind = 0; t_ind < 3; t_ind++)
-            {
-                for (long level = 0; level < this->pruningLevel - this->min_level; level++)
-                {
-                    while(!this->storage[alpha_2_ind][t_ind][level].empty())
-                    {
-                        temp = this->storage[alpha_2_ind][t_ind][level].front();
-                        this->storage[alpha_2_ind][t_ind][level].pop_front();
-                        delete temp;
-                    }
-                }
-            }
-        }
-
-        while(!this->pool.empty())
-        {
-            temp = this->pool.front();
-            this->pool.pop_front();
-            delete temp;
-        }
-        cout << "del test2";
-    }
-
     bool getNext(NewEnumStage* &stage);
 
     void incrementCurrentLevel();

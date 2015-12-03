@@ -71,7 +71,7 @@ void StageStorage::updateMaxDistance(const RR &distance)
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
         for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-            for(long s = this->currentLevel-this->min_level-1; s < this->pruningLevel-10;s++)
+            for(long s = std::max(0L,this->currentLevel-this->min_level-1); s < this->pruningLevel-this->min_level;s++)
                 this->alpha_2_min[alpha_2_indicator][t_indicator][s] /= alpha_1;
 
     this->maxDistance = distance;

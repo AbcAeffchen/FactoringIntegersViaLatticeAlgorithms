@@ -699,27 +699,19 @@ void FileOutput::texToPdf()
 {
     string pdftex;
     chdir("output");
-    cout << "test 1" << endl;
     pdftex = "pdflatex " + this->summaryName + ".tex && pdflatex " + this->statsName + ".tex";
     system(pdftex.c_str());
-    cout << "test 2" << endl;
     system(pdftex.c_str());
-    cout << "test 3" << endl;
     string trash;
     trash = this->summaryName + ".log";
     remove(trash.c_str());
-    cout << "test 4" << endl;
     trash = this->summaryName + ".aux";
     remove(trash.c_str());
-    cout << "test 5" << endl;
     trash = this->statsName + ".log";
     remove(trash.c_str());
-    cout << "test 6" << endl;
     trash = this->statsName + ".aux";
     remove(trash.c_str());
-    cout << "test 7" << endl;
     chdir("..");
-    cout << "test 8" << endl;
 }
 
 void FileOutput::statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes,
