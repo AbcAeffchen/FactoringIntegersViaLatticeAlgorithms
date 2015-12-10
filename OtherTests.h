@@ -16,7 +16,6 @@
 #include <vector>
 #include <time.h>
 #include <cstdlib>
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <cstdio>
@@ -49,9 +48,85 @@ const vector<long> primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                              1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
                              1933, 1949, 1951, 1973, 1979, 1987};
 
+void createImage(vector<vector<int>> val, int dim, int bkz)
+{
+    FILE *f;
+    int x,y;
+    unsigned char color;
+    unsigned char *img = NULL;
+    int filesize = 54 + 3*dim*dim;  //w is your image width, h is image height, both int
+    if( img )
+        free( img );
+    img = (unsigned char *)malloc(3*dim*dim);
+    memset(img,0,sizeof(img));
+
+    for(int i=0; i<dim; i++)
+    {
+        for(int j=0; j<dim; j++)
+        {
+            x=i; y=(dim-1)-j;
+
+            if(val[i][j] == 0)
+                color = 255;
+            else
+                color = 0;
+
+            if(j == dim-50)
+            {
+                img[(x + y * dim) * 3 + 2] = 200;       // red
+                img[(x + y * dim) * 3 + 1] = 0;         // green
+                img[(x + y * dim) * 3 + 0] = 0;         // blue
+            }
+            else
+            {
+                img[(x + y * dim) * 3 + 2] = color;     // red
+                img[(x + y * dim) * 3 + 1] = color;     // green
+                img[(x + y * dim) * 3 + 0] = color;     // blue
+            }
+        }
+    }
+
+    unsigned char bmpfileheader[14] = {'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0};
+    unsigned char bmpinfoheader[40] = {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0};
+    unsigned char bmppad[3] = {0,0,0};
+
+    bmpfileheader[ 2] = (unsigned char)(filesize    );
+    bmpfileheader[ 3] = (unsigned char)(filesize>> 8);
+    bmpfileheader[ 4] = (unsigned char)(filesize>>16);
+    bmpfileheader[ 5] = (unsigned char)(filesize>>24);
+
+    bmpinfoheader[ 4] = (unsigned char)(       dim    );
+    bmpinfoheader[ 5] = (unsigned char)(       dim>> 8);
+    bmpinfoheader[ 6] = (unsigned char)(       dim>>16);
+    bmpinfoheader[ 7] = (unsigned char)(       dim>>24);
+    bmpinfoheader[ 8] = (unsigned char)(       dim    );
+    bmpinfoheader[ 9] = (unsigned char)(       dim>> 8);
+    bmpinfoheader[10] = (unsigned char)(       dim>>16);
+    bmpinfoheader[11] = (unsigned char)(       dim>>24);
+
+    char str[80];
+
+    strcpy (str,std::to_string(dim).c_str());
+    strcat (str,"_");
+    strcat (str,std::to_string(bkz).c_str());
+    strcat (str,".bmp");
+
+    f = fopen(str,"wb");
+    fwrite(bmpfileheader,1,14,f);
+    fwrite(bmpinfoheader,1,40,f);
+    for(int i=0; i<dim; i++)
+    {
+        fwrite(img+(dim*(dim-i-1)*3),3,dim,f);
+        fwrite(bmppad,1,(4-(dim*3)%4)%4,f);
+    }
+    fclose(f);
+}
+
 void BasisTests(ZZ N, RR c, long dim, long blockSize)
 {
     Mat<ZZ> B,U;
+
+    vector<vector<int>> val = vector<vector<int>>(dim,vector<int>(dim));
 
     if(dim < 50)
         dim = 50;
@@ -78,10 +153,12 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
     time_t now = time(0);
     struct tm  tstruct;
     tstruct = *localtime(&now);
-    char buf[80];
-    strftime(buf, sizeof(buf), "./output/%Y-%m-%d_%H-%M-%S_BasisTests.tex", &tstruct);
+    char buf1[80];
+    char buf2[80];
+    strftime(buf1, sizeof(buf1), "./output/%Y-%m-%d_%H-%M-%S_BasisTests.tex", &tstruct);
+    strftime(buf2, sizeof(buf2), "./output/%Y-%m-%d_%H-%M-%S_BasisTests.data", &tstruct);
     fstream basisTest;
-    basisTest.open(buf,ios::out);
+    basisTest.open(buf1,ios::out);
 
     basisTest << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
               << "\\usepackage[paperheight=" << 30.0/90.0 * dim + 2 << "cm,paperwidth=" << 62.0/90.0 * dim << "cm, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
@@ -95,37 +172,21 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
     // print transformation
     basisTest << "\\subsection*{Transformation Matrix}" << endl
               << "\\tiny" << endl
-              << "\\[ \\begin{bmatrix}" << endl;
+              << "\\[ \\begin{tabular}{*{" << dim << "}{R}}" << endl;
 
-    for(long i = 1; i <= 50; i++)
+    for(long i = 1; i <= dim; i++)
     {
-        if(U(i,1) != 0)
-            basisTest << U(i,1);
-        for(long j = 2; j < dim; j++)
+        basisTest << U(i, 1);
+        val[0][dim-i] = conv<int>(U(i,1));
+        for(long j = 2; j <= dim; j++)
         {
-            basisTest << " & ";
-            if(U(i,j) != 0)
-                basisTest << U(i,j);
+            basisTest << " & " << U(i, j);
+            val[j-1][dim-i] = conv<int>(U(i,j));
         }
         basisTest << " \\\\" << endl;
     }
 
-    basisTest << "\\end{bmatrix} \\]" << endl << "\\[ \\begin{bmatrix}" << endl;
-
-    for(long i = 51; i <= dim; i++)
-    {
-        if(U(i,1) != 0)
-            basisTest << U(i,1);
-        for(long j = 2; j < dim; j++)
-        {
-            basisTest << " & ";
-            if(U(i,j) != 0)
-                basisTest << U(i,j);
-        }
-        basisTest << " \\\\" << endl;
-    }
-
-    basisTest << "\\end{bmatrix} \\]" << endl;
+    basisTest << "\\end{tabular} \\]" << endl;
 
     Mat<RR> mu;
     Vec<RR> r_ii_square;
@@ -154,6 +215,8 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
     basisTest << "\\end{document}" << endl;
 
     basisTest.close();
+
+    createImage(val,dim,blockSize);
 }
 
 #endif //FACTORINGINTEGERSVIALATTICEALGORITHMS_OTHERTESTS_H
