@@ -126,15 +126,16 @@ void Factoring::setBasis(long accuracy_factor)
     cout << "Setting Prime Lattice Basis: ";
     long n = this->primes.length();
 
+    RR NpC;
+    conv(NpC,this->N);
+    pow(NpC,NpC,this->c);
+
     this->B.SetDims(n, n + 1);    // transposed
     // Setting the basis
     for(long i = 1; i <= n; i++)
     {
-        this->B(i,i) = conv<ZZ>(accuracy_factor * SqrRoot(log(conv<RR>(this->primes(i)))));
-        if(this->c < 1)
-            this->B(i, n + 1) = conv<ZZ>(pow(conv<RR>(this->N),this->c) * accuracy_factor * log(conv<RR>(this->primes(i))));        // todo N^c can be precomputed
-        else
-            this->B(i, n + 1) = conv<ZZ>(conv<RR>(this->N * accuracy_factor) * log(conv<RR>(this->primes(i))));
+         conv(this->B(i,i), accuracy_factor * sqrt(log(this->primes(i))));
+         conv(this->B(i, n + 1), NpC * accuracy_factor * log(this->primes(i)));
     }
 
     cout << "finished" << endl;
