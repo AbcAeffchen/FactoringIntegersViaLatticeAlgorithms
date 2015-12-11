@@ -5,6 +5,13 @@
 #include <NTL/ZZ.h>
 #include <NTL/RR.h>
 
+#define FS_SCALING_ONE_HALF 1
+#define FS_SCALING_ONE_FOURTH 2
+#define FS_SCALING_THREE_FORTH 3
+#define FS_SCALING_ONE_FOURTH_ONE_HALF 4
+#define FS_SCALING_ONE_HALF_ONE_FOURTH 5
+#define FS_SCALING_MIXED 0
+
 struct FactoringSettings
 {
     const ZZ N;
