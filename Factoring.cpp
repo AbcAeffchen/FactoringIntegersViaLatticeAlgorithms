@@ -129,13 +129,12 @@ void Factoring::setBasis(long accuracy_factor)
     RR NpC;
     conv(NpC,this->N);
     pow(NpC,NpC,this->c);
-
     this->B.SetDims(n, n + 1);    // transposed
     // Setting the basis
     for(long i = 1; i <= n; i++)
     {
-         conv(this->B(i,i), accuracy_factor * sqrt(log(this->primes(i))));
-         conv(this->B(i, n + 1), NpC * accuracy_factor * log(this->primes(i)));
+        conv(this->B(i,i), accuracy_factor * sqrt(log(this->primes(i))));
+        conv(this->B(i, n + 1), NpC * accuracy_factor * log(this->primes(i)));
     }
 
     cout << "finished" << endl;
@@ -294,7 +293,7 @@ void Factoring::setPrimes(long n)
         this->primes[i] = _primes[i];
 
     for(long i = 301; i <= n; i++)
-        NextPrime(this->primes(i),this->primes(i-1)+2);
+        this->primes(i) = NextPrime(this->primes(i-1)+2);
 }
 
 Factoring::Factoring(const FactoringSettings &settings)
