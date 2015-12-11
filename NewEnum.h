@@ -84,6 +84,19 @@ public:
             this->pool.push_back(new NewEnumStage);
     }
 
+    ~StageStorage()
+    {
+        this->resetStorage();   // return all stages to the pool
+        NewEnumStage* temp;
+        // delete all stages
+        while(!this->pool.empty())
+        {
+            temp = this->pool.front();
+            this->pool.pop_front();
+            delete temp;
+        }
+    }
+
     bool getNext(NewEnumStage* &stage);
 
     void incrementCurrentLevel();
@@ -92,7 +105,7 @@ public:
 
     void updateMaxDistance(const RR &distance);
 
-    void resetStorage(const RR &A)
+    void resetStorage(const RR &A = conv<RR>(0))
     {
         // reset counters/statistics
         this->totalDelayedAndPerformedStages = 0;
