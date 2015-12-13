@@ -594,7 +594,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
 
                     << "Runtime (total): & \\textbf{" << time << "s}\\\\" << endl
                     << "Runtime (per unique equation): & \\textbf{" << time/stats.eqnUniqueTotal << "s}\\\\" << endl
-                    << "Time to factor $N$: & \\textbf{" << (time/stats.eqnUniqueTotal * (n+1)) << "s}\\\\\\midrule[0.05pt]" << endl
+                    << "Time to factor $N$: & \\textbf{" << (time/stats.eqnUniqueTotal * (n+2)) << "s}\\\\\\midrule[0.05pt]" << endl
 
                     << "Rounds (total): & $" << stats.roundsTotal << "$&" << endl
                     << "Unique Equations found (duplicates) & $" << stats.eqnUniqueTotal << "$ ($" << stats.eqnDuplicates  << "$)\\\\" << endl
@@ -641,7 +641,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
 
                     << "Runtime (total): & \\textbf{" << time << "s}\\\\" << endl
                     << "Runtime (per unique equation): & \\textbf{" << time/stats.eqnUniqueTotal << "s}\\\\" << endl
-                    << "Time to factor $N$: & \\textbf{" << (time/stats.eqnUniqueTotal * (n+1)) << "s}\\\\\\midrule[0.05pt]" << endl
+                    << "Time to factor $N$: & \\textbf{" << (time/stats.eqnUniqueTotal * (n+2)) << "s}\\\\\\midrule[0.05pt]" << endl
 
                     << "Rounds (total): & $" << stats.roundsTotal << "$&" << endl
                     << "Unique Equations found (duplicates) & $" << stats.eqnUniqueTotal << "$ ($" << stats.eqnDuplicates  << "$)\\\\" << endl
