@@ -538,7 +538,8 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
         }
     }
 
-    v_avg /= eqnList.size();
+    if(!eqnList.empty())
+        v_avg /= eqnList.size();
     if(!eqnList_cf.empty())
         v_cf_avg /= eqnList_cf.size();
 
@@ -553,19 +554,22 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
         v_cf_max = eqnList_cf.back().v;
     }
 
-    if(eqnList.size() % 2 == 1)
+    if(!eqnList.empty())
     {
-        std::list<Equation>::iterator it = eqnList.begin();
-        std::advance(it,(eqnList.size()-1)/2);
-        v_median = it->v;
-    }
-    else
-    {
-        std::list<Equation>::iterator it = eqnList.begin();
-        std::advance(it,eqnList.size()/2);
-        v_median = it->v;
-        v_median += (--it)->v;
-        v_median /= 2;
+        if (eqnList.size() % 2 == 1)
+        {
+            std::list<Equation>::iterator it = eqnList.begin();
+            std::advance(it, (eqnList.size() - 1) / 2);
+            v_median = it->v;
+        }
+        else
+        {
+            std::list<Equation>::iterator it = eqnList.begin();
+            std::advance(it, eqnList.size() / 2);
+            v_median = it->v;
+            v_median += (--it)->v;
+            v_median /= 2;
+        }
     }
 
     if(!eqnList_cf.empty())
