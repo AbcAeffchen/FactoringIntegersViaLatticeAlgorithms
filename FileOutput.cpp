@@ -450,9 +450,11 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
             break;
         default: this->summary << "Scale every row with propability 1/2\\\\";
     }
-
+#ifndef FS_CCF
     this->summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
-
+#else
+    this->summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
+#endif
     this->summary << "\\end{tabular}\\\\" << endl;
 
     this->statistics << "\\section*{Settings}" << endl
@@ -492,7 +494,11 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
         default: this->statistics << "Scale every row with propability 1/2\\\\";
     }
 
+#ifndef FS_CCF
     this->statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
+#else
+    this->statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
+#endif
 
     this->statistics << "\\end{tabular}\\\\" << endl;
 

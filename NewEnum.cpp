@@ -397,7 +397,16 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
 
     NTL::clear(this->h_n); NTL::set(this->h_nm1); NTL::clear(this->h_nm2);
     NTL::set(this->k_n); NTL::clear(this->k_nm1); NTL::set(this->k_nm2);
+#ifndef FS_CCF
     NTL::clear(this->a_nm1);
+#else
+    if(this->alpha_nm1 >= 0.5)
+        NTL::set(this->a_nm1);
+    else
+        NTL::clear(this->a_nm1);
+
+    ZZ h_n_abs, k_n_abs;
+#endif
 
     long sign = NTL::sign(this->d),
          equation_counter = 0;
@@ -408,6 +417,8 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
         this->nextContinuedFraction(this->h_n, this->k_n, this->h_nm1, this->k_nm1, this->h_nm2, this->k_nm2, this->a_nm1, this->alpha_nm1);
 
         this->equation = this->raw_equation;
+
+#ifndef FS_CCF
 //        this->left_side = this->u * this->k_n;
         mul(this->left_side,this->u,this->k_n);
 //        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
@@ -417,8 +428,25 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
         mul(temp_ZZ_2,temp_ZZ_2,this->N);
         sub(this->right_side,temp_ZZ,temp_ZZ_2);
         abs(this->right_side,this->right_side);
+#else
+//        this->left_side = this->u * this->k_n;
+        abs(k_n_abs,this->k_n);
+        abs(h_n_abs,this->h_n);
+        mul(this->left_side,this->u,k_n_abs);
+//        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
+        mul(temp_ZZ,this->vN,k_n_abs);
+        sub(temp_ZZ,this->left_side,temp_ZZ);
+        mul(temp_ZZ_2,sign,h_n_abs);
+        mul(temp_ZZ_2,temp_ZZ_2,this->N);
+        sub(this->right_side,temp_ZZ,temp_ZZ_2);
+        abs(this->right_side,this->right_side);
+#endif
 
+#ifndef FS_CCF
         if(this->isSmooth(this->equation, this->k_n, this->left_side, this->right_side))
+#else
+        if(this->isSmooth(this->equation, k_n_abs, this->left_side, this->right_side))
+#endif
         {
             // this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / this->N_RR));
             equation_counter++;
@@ -426,13 +454,18 @@ bool NewEnum::checkForEquation(const Vec<RR> &input, const RR &c_1)
             div(temp_RR,temp_RR,this->N_RR);
             this->closest_RR(temp_RR,temp_RR);
             conv(this->ride_side_factor,temp_RR);
+            // temp_RR = c_1 / A_max
             div(temp_RR,c_1,this->theoreticalMaxDistance);
             this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(temp_RR), this->round, this->timer.step(),cf_equation);
         }
 
         cf_equation = true;
     }
+#ifndef FS_CCF
     while(this->k_n < this->threshold && this->settings.useContinuedFractions);
+#else
+    while(k_n_abs < this->threshold && this->settings.useContinuedFractions);
+#endif
 
     return equation_counter > 0;
 }
@@ -470,9 +503,17 @@ void NewEnum::nextContinuedFraction(ZZ &h_n, ZZ &k_n, ZZ &h_nm1, ZZ &k_nm1, ZZ &
     swap(k_nm2,k_nm1);
     k_nm1 = k_n;
 
+#ifndef FS_CCF
     sub(alpha_nm1,alpha_nm1,floor(alpha_nm1));
+#else
+    sub(alpha_nm1,alpha_nm1,NTL::round(alpha_nm1));
+#endif
     inv(alpha_nm1,alpha_nm1);                           // this is actually alpha_n
+#ifndef FS_CCF
     FloorToZZ(a_nm1,alpha_nm1);                         // this is actually a_n
+#else
+    RoundToZZ(a_nm1,alpha_nm1);                         // this is actually a_n
+#endif
 }
 
 bool NewEnum::isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_side)

@@ -15,6 +15,9 @@ set(SOURCE_FILES startProgram.cpp
 
 add_executable(FactoringIntegersViaLatticeAlgorithms ${SOURCE_FILES})
 
+#use centered continued fractions
+add_definitions(-DFS_CCF)
+
 # Link NTL
 set(NTL_LIB "C:/msys64/mingw64/lib/libntl.a")
 target_link_libraries(FactoringIntegersViaLatticeAlgorithms ${NTL_LIB})
