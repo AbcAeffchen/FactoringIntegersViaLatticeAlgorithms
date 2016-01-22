@@ -164,13 +164,12 @@ void NewEnum::next(RR &out, const RR &u, const RR &y)
 
     float side1 = temp >= y ? 1.0f : -1.0f;
     float side2 = u >= y ? 1.0f : -1.0f;
-    bool plusOneSwitch = (side1 == side2 || temp == u);
 
     // out = 2 * closest_y - u;
     mul(temp, temp, 2.0);
     sub(out, temp, u);
 
-    if(plusOneSwitch)
+    if(side1 == side2)
         out -= side2;
 }
 
