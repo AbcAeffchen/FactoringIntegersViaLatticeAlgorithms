@@ -189,6 +189,7 @@ void Factoring::reduceBasis(long strong_bkz)
 
     cout << "Strong BKZ reduction: ";
     BKZ_FP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
+//    BKZ_QP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
 
     transpose(this->B,this->B);
     transpose(this->U,this->U);

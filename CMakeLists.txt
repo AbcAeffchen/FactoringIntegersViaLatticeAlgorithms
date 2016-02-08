@@ -4,19 +4,20 @@ project(FactoringIntegersViaLatticeAlgorithms C CXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -lpthread -m64")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lpthread -m64")
 
-set(SOURCE_FILES startProgram.cpp
-        Equation.h Equation.cpp
-        Factoring.h Factoring.cpp
-        NewEnum.h NewEnum.cpp
-        FileOutput.h FileOutput.cpp
-        Statistics.h Statistics.cpp
-        Timer.h Timer.cpp
-        FactoringSettings.h OtherTests.h)
+set(SOURCE_PATH src)
+set(SOURCE_FILES ${SOURCE_PATH}/startProgram.cpp
+        ${SOURCE_PATH}/Equation.h ${SOURCE_PATH}/Equation.cpp
+        ${SOURCE_PATH}/Factoring.h ${SOURCE_PATH}/Factoring.cpp
+        ${SOURCE_PATH}/NewEnum.h ${SOURCE_PATH}/NewEnum.cpp
+        ${SOURCE_PATH}/FileOutput.h ${SOURCE_PATH}/FileOutput.cpp
+        ${SOURCE_PATH}/Statistics.h ${SOURCE_PATH}/Statistics.cpp
+        ${SOURCE_PATH}/Timer.h ${SOURCE_PATH}/Timer.cpp
+        ${SOURCE_PATH}/FactoringSettings.h ${SOURCE_PATH}/OtherTests.h)
 
 add_executable(FactoringIntegersViaLatticeAlgorithms ${SOURCE_FILES})
 
 #use centered continued fractions
-add_definitions(-DFS_CCF)
+#add_definitions(-DFS_CCF)
 
 # Link NTL
 set(NTL_LIB "C:/msys64/mingw64/lib/libntl.a")
