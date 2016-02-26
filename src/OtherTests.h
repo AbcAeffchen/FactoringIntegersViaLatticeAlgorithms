@@ -73,9 +73,18 @@ void createImage(vector<vector<int>> val, int dim, int bkz)
 
             if(j == dim-50)
             {
-                img[(x + y * dim) * 3 + 2] = 200;       // red
-                img[(x + y * dim) * 3 + 1] = 0;         // green
-                img[(x + y * dim) * 3 + 0] = 0;         // blue
+                if(val[i][j] == 0)
+                {
+                    img[(x + y * dim) * 3 + 2] = 200;       // red
+                    img[(x + y * dim) * 3 + 1] = 0;         // green
+                    img[(x + y * dim) * 3 + 0] = 0;         // blue
+                }
+                else
+                {
+                    img[(x + y * dim) * 3 + 2] = color;     // red
+                    img[(x + y * dim) * 3 + 1] = color;     // green
+                    img[(x + y * dim) * 3 + 0] = color;     // blue
+                }
             }
             else
             {
@@ -171,6 +180,7 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
 
     // print transformation
     basisTest << "\\subsection*{Transformation Matrix}" << endl
+              << "$n = " << dim << "$, \\texttt{blocksize}$=" << blockSize << "$" << endl
               << "\\tiny" << endl
               << "\\[ \\begin{tabular}{*{" << dim << "}{R}}" << endl;
 

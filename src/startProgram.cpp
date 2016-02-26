@@ -145,7 +145,8 @@ void menu()
          << "( 13) Scaling test series" << endl
          << "( 14) Start Factor test series" << endl
          << endl
-         << "(100) Prime Lattice Basis tests" << endl << endl
+         << "(100) Custom Prime Lattice Basis Test" << endl
+         << "(101) Prime Lattice Basis Testseries" << endl << endl
          << "Quit by [Ctrl]+[C]" << endl
          << "Selection: ";
         cin >> choice;
@@ -188,6 +189,20 @@ void menu()
         cin >> c;
         cout << "Block size: ";
         cin >> blockSize;
+        BasisTests(getN(e),c,dim,blockSize);
+        break;
+    }
+    case 101:
+    {
+        BasisTests(getN(14),conv<RR>(5.0/7.0),100,20);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),200,20);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),300,20);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),100,32);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),200,32);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),300,32);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),100,50);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),200,50);
+        BasisTests(getN(14),conv<RR>(5.0/7.0),300,50);
         break;
     }
     case 1000:
