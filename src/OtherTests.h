@@ -131,6 +131,50 @@ void createImage(vector<vector<int>> val, int dim, int bkz)
     fclose(f);
 }
 
+void createGraphDataFile(long dim, long bkz, Vec<RR> r_ii_squared)
+{
+    char fileName[80];
+
+    strcpy (fileName, "./output/");
+    strcat (fileName, std::to_string(dim).c_str());
+    strcat (fileName, "_");
+    strcat (fileName, std::to_string(bkz).c_str());
+    strcat (fileName, ".dat");
+
+    fstream graphFile;
+    graphFile.open(fileName, ios::out);
+
+    RR quot_min = r_ii_squared[1]/r_ii_squared[0];
+    RR quot_max = r_ii_squared[1]/r_ii_squared[0];
+    RR quot_avg = r_ii_squared[1]/r_ii_squared[0];
+
+    for(long i = 2; i < dim; i++)
+    {
+    }
+    quot_avg /= (dim-1);
+
+    graphFile << "\\def\\quotientsData{";
+    for (int i = 1; i < dim; ++i)
+    {
+        if(r_ii_squared[i]/r_ii_squared[i-1] < quot_min)
+            quot_min = r_ii_squared[i]/r_ii_squared[i-1];
+        if(r_ii_squared[i]/r_ii_squared[i-1] > quot_max)
+            quot_max = r_ii_squared[i]/r_ii_squared[i-1];
+        quot_avg += r_ii_squared[i]/r_ii_squared[i-1];
+
+        graphFile << "(" << i << "," << (r_ii_squared[i]/r_ii_squared[i-1]) << ")";
+    }
+    graphFile << "}" << endl;
+
+    quot_avg /= (dim-1);
+
+    graphFile << "\\def\\quotientMin{" << quot_min << "}" << endl;
+    graphFile << "\\def\\quotientMax{" << quot_max << "}" << endl;
+    graphFile << "\\def\\quotientAVG{" << quot_avg << "}" << endl;
+
+    graphFile.close();
+}
+
 void BasisTests(ZZ N, RR c, long dim, long blockSize)
 {
     Mat<ZZ> B,U;
@@ -227,6 +271,7 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
     basisTest.close();
 
     createImage(val,dim,blockSize);
+    createGraphDataFile(dim,blockSize,r_ii_square);
 }
 
 #endif //FACTORINGINTEGERSVIALATTICEALGORITHMS_OTHERTESTS_H
