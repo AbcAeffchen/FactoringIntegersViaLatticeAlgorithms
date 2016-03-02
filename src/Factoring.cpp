@@ -38,18 +38,18 @@ void Factoring::setScaledAndReducedBasis()
 
     long threshold1,threshold2;
     int scalingType;
-    if(this->settings.scalingType == 0)
+    if(this->settings.scalingType == FS_SCALING_MIXED)
     {
         uniform_int_distribution<int> scalingType_dist(0,49);
         int choice = scalingType_dist(this->rgen);
         if(choice <= 2)         // 6%
-            scalingType = 2;
+            scalingType = FS_SCALING_ONE_FOURTH;
         else if(choice <= 6)    // 8%
-            scalingType = 4;
+            scalingType = FS_SCALING_ONE_FOURTH_ONE_HALF;
         else if(choice <= 10)   // 8%
-            scalingType = 5;
+            scalingType = FS_SCALING_ONE_HALF_ONE_FOURTH;
         else                    // 78%
-            scalingType = 1;
+            scalingType = FS_SCALING_ONE_HALF;
     }
     else
     {
@@ -58,23 +58,23 @@ void Factoring::setScaledAndReducedBasis()
 
     switch(scalingType)
     {
-        case 2:
+        case FS_SCALING_ONE_FOURTH:
             threshold1 = 0;
             threshold2 = 0;
             break;
-        case 3:
+        case FS_SCALING_THREE_FORTH:
             threshold1 = 2;
             threshold2 = 2;
             break;
-        case 4:
+        case FS_SCALING_ONE_FOURTH_ONE_HALF:
             threshold1 = 0;
             threshold2 = 1;
             break;
-        case 5:
+        case FS_SCALING_ONE_HALF_ONE_FOURTH:
             threshold1 = 1;
             threshold2 = 0;
             break;
-        default:
+        default:    // FS_SCALING_ONE_HALF
             threshold1 = 1;
             threshold2 = 1;
             break;
