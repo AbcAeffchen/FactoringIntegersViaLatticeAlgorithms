@@ -61,7 +61,7 @@ void manual_settings_input()
     cout << endl << "Use continued fractions (y/n) (defaults to yes): ";
     cin >> cf;
 
-    bool scalingType;
+    int scalingType;
     cout << endl << "Choose the scaling type:" << endl
          << "0 = mixed (default)" << endl
          << "1 = every row with probability 1/2" << endl
