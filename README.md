@@ -20,3 +20,5 @@ and even compressed they need more than 600 MB, so they can not be hosted on Git
 
 ###Licence
 The code is licenced under the GPLv2. See LICENCE.md for more details.
+
+The results in the results directory are licenced under the Creative-Commons Licence CC-BY-NC-SA 4.0. Have a look at http://creativecommons.org/licenses/by-nc-sa/4.0/ for details.
