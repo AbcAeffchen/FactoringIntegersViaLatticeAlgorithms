@@ -80,43 +80,43 @@ public:
             : min_level(10), pruningLevel(pruningLevel),
               stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level,0))
     {
-        this->storage = std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>>(3,std::vector<std::vector<std::list<NewEnumStage*>>>(3, std::vector<std::list<NewEnumStage*>>(pruningLevel - min_level)));
-        this->maxDelayedAndPerformedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
-        this->delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
-        this->alpha_2_min = std::vector<std::vector<std::vector<double>>>(3,std::vector<std::vector<double>>(3, std::vector<double>(pruningLevel-min_level,2.0)));
+        storage = std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>>(3,std::vector<std::vector<std::list<NewEnumStage*>>>(3, std::vector<std::list<NewEnumStage*>>(pruningLevel - min_level)));
+        maxDelayedAndPerformedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
+        delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3, std::vector<std::vector<unsigned long long>>(3, std::vector<unsigned long long>(pruningLevel - min_level,0)));
+        alpha_2_min = std::vector<std::vector<std::vector<double>>>(3,std::vector<std::vector<double>>(3, std::vector<double>(pruningLevel-min_level,2.0)));
         // allocate 1000 stages for the beginning
         for(int i = 0; i < 200000; ++i)
-            this->pool.push_back(new NewEnumStage);
+            pool.push_back(new NewEnumStage);
     }
 
     ~StageStorage()
     {
-        this->resetStorage();   // return all stages to the pool
+        resetStorage();   // return all stages to the pool
         NewEnumStage* temp;
         // delete all stages
-        while(!this->pool.empty())
+        while(!pool.empty())
         {
-            temp = this->pool.front();
-            this->pool.pop_front();
+            temp = pool.front();
+            pool.pop_front();
             delete temp;
         }
     }
 
     bool getNext(NewEnumStage* &stage)
     {
-        if(this->stageCounterByLevel[this->currentLevel - this->min_level - 1] <= 0 || this->stageCounterTotal >= this->stageCounterThreshold)
+        if(stageCounterByLevel[currentLevel - min_level - 1] <= 0 || stageCounterTotal >= stageCounterThreshold)
             return false;
 
         for(unsigned long t_indicator = 0; t_indicator < 3; ++t_indicator)
         {
             for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; ++alpha_2_indicator)
             {
-                if(!this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].empty())
+                if(!storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].empty())
                 {
-                    stage = this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].front();
-                    this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].pop_front();
-                    this->stageCounterByLevel[this->currentLevel - this->min_level-1]--;
-                    this->stageCounterTotal--;
+                    stage = storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].front();
+                    storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].pop_front();
+                    stageCounterByLevel[currentLevel - min_level-1]--;
+                    stageCounterTotal--;
                     return true;
                 }
             }
@@ -128,74 +128,74 @@ public:
 
     void incrementCurrentLevel()
     {
-        this->currentLevel++;
+        currentLevel++;
 
         for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
             for(long t_indicator = 0; t_indicator < 3; t_indicator++)
             {
-                this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][this->currentLevel - this->min_level - 1] = this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].size();
-                this->totalDelayedAndPerformedStages += this->storage[t_indicator][alpha_2_indicator][this->currentLevel - this->min_level - 1].size();
+                maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][currentLevel - min_level - 1] = storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].size();
+                totalDelayedAndPerformedStages += storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].size();
             }
     }
 
 
     bool storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level)
     {
-        NewEnumStage* stage = this->getStage();
+        NewEnumStage* stage = getStage();
         stage->set(y_t, c_tp1, u, t);
 
         double alpha_2;
-        conv(alpha_2, c_t / this->maxDistance);
+        conv(alpha_2, c_t / maxDistance);
         long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
         long t_indicator = this->t_indicator(stage->t);
-        this->storage[t_indicator][alpha_2_indicator][level - this->min_level - 1].push_back(stage);
-        if(this->alpha_2_min[alpha_2_indicator][t_indicator][level - this->min_level - 1] > alpha_2)
-            this->alpha_2_min[alpha_2_indicator][t_indicator][level - this->min_level - 1] = alpha_2;
-        this->stageCounterTotal++;
-        this->stageCounterByLevel[level - this->min_level - 1]++;
+        storage[t_indicator][alpha_2_indicator][level - min_level - 1].push_back(stage);
+        if(alpha_2_min[alpha_2_indicator][t_indicator][level - min_level - 1] > alpha_2)
+            alpha_2_min[alpha_2_indicator][t_indicator][level - min_level - 1] = alpha_2;
+        stageCounterTotal++;
+        stageCounterByLevel[level - min_level - 1]++;
 
         // statistics
-        this->delayedStages[alpha_2_indicator][t_indicator][level - this->min_level - 1]++;
+        delayedStages[alpha_2_indicator][t_indicator][level - min_level - 1]++;
 
-        return this->stageCounterTotal >= this->stageCounterThreshold;      // about 6 GB of RAM depending on the dimension
+        return stageCounterTotal >= stageCounterThreshold;      // about 6 GB of RAM depending on the dimension
     }
 
     void updateMaxDistance(const RR& distance)
     {
         double alpha_1;
-        conv(alpha_1, distance/this->maxDistance);
+        conv(alpha_1, distance/maxDistance);
 
-        if(alpha_1 < this->alpha_1_threshold && this->stageCounterTotal > 100)
-            this->recalculateLevels(alpha_1);
+        if(alpha_1 < alpha_1_threshold && stageCounterTotal > 100)
+            recalculateLevels(alpha_1);
 
         for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
             for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-                for(long s = std::max(0L,this->currentLevel-this->min_level-1); s < this->pruningLevel-this->min_level;s++)
-                    this->alpha_2_min[alpha_2_indicator][t_indicator][s] /= alpha_1;
+                for(long s = std::max(0L,currentLevel-min_level-1); s < pruningLevel-min_level;s++)
+                    alpha_2_min[alpha_2_indicator][t_indicator][s] /= alpha_1;
 
-        this->maxDistance = distance;
+        maxDistance = distance;
     }
 
     void resetStorage(const RR& A = conv<RR>(0))
     {
         // reset counters/statistics
-        this->totalDelayedAndPerformedStages = 0;
-        this->stageCounterTotal = 0;
-        for(int level = 0; level < this->pruningLevel - this->min_level; level++)
-            this->stageCounterByLevel[level] = 0;
+        totalDelayedAndPerformedStages = 0;
+        stageCounterTotal = 0;
+        for(int level = 0; level < pruningLevel - min_level; level++)
+            stageCounterByLevel[level] = 0;
 
         for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
             for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-                for(int level = 0; level < this->pruningLevel - this->min_level; level++)
+                for(int level = 0; level < pruningLevel - min_level; level++)
                 {
-                    this->maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
-                    this->delayedStages[alpha_2_indicator][t_indicator][level] = 0;
-                    this->alpha_2_min[alpha_2_indicator][t_indicator][level] = 2.0;
-                    this->returnStages(this->storage[t_indicator][alpha_2_indicator][level]);
+                    maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
+                    delayedStages[alpha_2_indicator][t_indicator][level] = 0;
+                    alpha_2_min[alpha_2_indicator][t_indicator][level] = 2.0;
+                    returnStages(storage[t_indicator][alpha_2_indicator][level]);
                 }
 
-        this->maxDistance = A;
-        this->currentLevel = this->min_level;
+        maxDistance = A;
+        currentLevel = min_level;
     }
 
     /**
@@ -203,12 +203,12 @@ public:
      */
     void returnStage(NewEnumStage* stage)
     {
-        this->pool.push_back(stage);
+        pool.push_back(stage);
     }
 
     unsigned long long getTotalDelayedStages()
     {
-        return this->stageCounterTotal;
+        return stageCounterTotal;
     }
 
 private:
@@ -231,26 +231,31 @@ private:
     std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
                                                                                          organized as storage[t_indicator][alpha_2_indicator][s-11]. */
 
-    inline long alpha_2_indicator(const double &alpha_2)
+    inline long alpha_2_indicator(const double alpha_2) const
     {
+//        const bool a = alpha_2 > 0.65;
+        // return static_cast<long>(a) * 2 + static_cast<long>(!a) * static_cast<long>(alpha_2 > 0.4);
         return (alpha_2 > 0.65) ? 2 : (alpha_2 > 0.4 ? 1 : 0);
     }
 
-    inline long t_indicator(const long &t)
+    inline long t_indicator(const long t) const
     {
+//        const bool a = t >= 40;
+        // return static_cast<long>(a) * 2 + static_cast<long>(!a) * static_cast<long>(t >= 18);
+
         return (t >= 40) ? 2 : (t >= 18 ? 1 : 0);
     }
 
     NewEnumStage* getStage()
     {
-        if(this->pool.empty())
+        if(pool.empty())
         {
             for(long i = 0; i < 10000; i++)
-                this->pool.push_back(new NewEnumStage);
+                pool.push_back(new NewEnumStage);
         }
 
-        NewEnumStage* stage = this->pool.front();
-        this->pool.pop_front();
+        NewEnumStage* stage = pool.front();
+        pool.pop_front();
         return stage;
     }
 
@@ -259,8 +264,8 @@ private:
         double new_alpha_2;
         long new_alpha_2_indicator;
         long level_change;
-        long s_max = this->pruningLevel - this->min_level - 1;
-        long s_min = this->currentLevel-this->min_level - 1;
+        long s_max = pruningLevel - min_level - 1;
+        long s_min = currentLevel-min_level - 1;
 
         /**
          * skip t_indicator = 0, since the stages here have t between 4 and 20.
@@ -272,35 +277,33 @@ private:
             {
                 for(long s = s_max; s > s_min; s--)
                 {
-                    if (this->storage[t_indicator][alpha_2_indicator][s].size() < 10)
+                    if (storage[t_indicator][alpha_2_indicator][s].size() < 10)
                         continue;
 
-                    level_change = this->levelChange(alpha_1,
-                                                     this->alpha_2_min[alpha_2_indicator][t_indicator][s],
-                                                     t_indicator);
+                    level_change = levelChange(alpha_1, alpha_2_min[alpha_2_indicator][t_indicator][s], t_indicator);
                     if (level_change <= 0)
                         continue;
 
-                    new_alpha_2 = this->alpha_2_min[alpha_2_indicator][t_indicator][s] / alpha_1;
+                    new_alpha_2 = alpha_2_min[alpha_2_indicator][t_indicator][s] / alpha_1;
                     new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
 
-                    if(s+level_change > this->pruningLevel-11)
+                    if(s+level_change > pruningLevel-11)
                     {   // return stages
-                        this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                        this->stageCounterTotal -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                        this->returnStages(this->storage[t_indicator][alpha_2_indicator][s]);
-                        this->alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
+                        stageCounterByLevel[s] -= storage[t_indicator][alpha_2_indicator][s].size();
+                        stageCounterTotal -= storage[t_indicator][alpha_2_indicator][s].size();
+                        returnStages(storage[t_indicator][alpha_2_indicator][s]);
+                        alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
                     }
                     else
                     {   // move stages
-                        this->stageCounterByLevel[s] -= this->storage[t_indicator][alpha_2_indicator][s].size();
-                        this->stageCounterByLevel[s + level_change] += this->storage[t_indicator][alpha_2_indicator][s].size();
-                        this->storage[t_indicator][new_alpha_2_indicator][s + level_change].splice(
-                                this->storage[t_indicator][new_alpha_2_indicator][s + level_change].end(),
-                                this->storage[t_indicator][alpha_2_indicator][s]);
-                        this->alpha_2_min[t_indicator][alpha_2_indicator][s + level_change] = std::min(this->alpha_2_min[t_indicator][alpha_2_indicator][s + level_change],
-                                                                                                       this->alpha_2_min[t_indicator][alpha_2_indicator][s]);
-                        this->alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
+                        stageCounterByLevel[s] -= storage[t_indicator][alpha_2_indicator][s].size();
+                        stageCounterByLevel[s + level_change] += storage[t_indicator][alpha_2_indicator][s].size();
+                        storage[t_indicator][new_alpha_2_indicator][s + level_change].splice(
+                                storage[t_indicator][new_alpha_2_indicator][s + level_change].end(),
+                                storage[t_indicator][alpha_2_indicator][s]);
+                        alpha_2_min[t_indicator][alpha_2_indicator][s + level_change] = std::min(alpha_2_min[t_indicator][alpha_2_indicator][s + level_change],
+                                                                                                       alpha_2_min[t_indicator][alpha_2_indicator][s]);
+                        alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
                     }
                 }
             }
@@ -312,14 +315,14 @@ private:
         return t_indicator == 0
                ? 0
                : (alpha_1 <= alpha_2
-                  ? (unsigned long) this->pruningLevel - this->min_level - 1        // 2*log(2)= 1.386294361119890..., 39=40-1
+                  ? (unsigned long) pruningLevel - min_level - 1        // 2*log(2)= 1.386294361119890..., 39=40-1
                   : (unsigned long) ceil((t_indicator == 2 ? 39.0 : 17.0)  * 1.38629436111989 / log((1.0-alpha_2) / (alpha_1 - alpha_2))) - 1);
     }
 
 
     inline void returnStages(list<NewEnumStage*> &stages)
     {
-        this->pool.splice(this->pool.end(),stages);
+        pool.splice(pool.end(),stages);
     }
 };
 
@@ -377,35 +380,35 @@ private:
 
     void prepare(unsigned long round, const Mat<ZZ>& newBasis_transposed, const Mat<ZZ>& newU_scaled, const Vec<RR>& new_target_coordinates)
     {
-        this->round = round;
-        conv(this->U_scaled_RR,newU_scaled);
-        this->tau = new_target_coordinates;
+        round = round;
+        conv(U_scaled_RR,newU_scaled);
+        tau = new_target_coordinates;
 
-        this->current_level = this->min_level;
-        this->stagesCheckedForEquations = 0;
+        current_level = min_level;
+        stagesCheckedForEquations = 0;
 
-        ComputeGS(newBasis_transposed, this->mu, this->R_ii_squared);
+        ComputeGS(newBasis_transposed, mu, R_ii_squared);
 
-        this->equations.clear();
+        equations.clear();
 
         // setting the decreasing behavior
-        this->decrease_max_distance = true;
+        decrease_max_distance = true;
 
-        this->precomputeLogV();
+        precomputeLogV();
 
         // start algorithm with a start parameter A
-        this->A_curr = 0;
-        for(long i = 1; i <= this->R_ii_squared.length(); i++)
+        A_curr = 0;
+        for(long i = 1; i <= R_ii_squared.length(); i++)
         {
-            this->A_curr += this->R_ii_squared(i);
+            A_curr += R_ii_squared(i);
         }
 
-        this->A_curr *= 0.25;
-        this->theoreticalMaxDistance = this->A_curr;
-        this->A_curr *= this->settings.A_start_factor;
-        this->heuristicMaxDistance = this->A_curr;
+        A_curr *= 0.25;
+        theoreticalMaxDistance = A_curr;
+        A_curr *= settings.A_start_factor;
+        heuristicMaxDistance = A_curr;
 
-        this->L.resetStorage(this->A_curr);
+        L.resetStorage(A_curr);
     }
 
     /**
@@ -430,7 +433,7 @@ private:
     inline void next(RR& out, const RR& u, const RR& y) const
     {
         RR temp;
-        this->closest_RR(temp, y);
+        closest_RR(temp, y);
 
         auto side1 = static_cast<float>(temp >= y) * 2 - 1.0f;
 //        float side1 = temp >= y ? 1.0f : -1.0f;
@@ -454,7 +457,7 @@ private:
      */
     inline void perform(NewEnumStage* current_stage)
     {
-        this->decrease_max_distance = true;
+        decrease_max_distance = true;
 
         long max_t = current_stage->t;
         long t = current_stage->t;          // projection to the n-t-1 last coordinates
@@ -476,14 +479,14 @@ private:
         // perform stages with s = current_level
         while(t <= max_t)
         {
-            // c(t) = c(t+1) + power(abs(u(t) - y(t)), 2) * this->R_ii_squared(t);
+            // c(t) = c(t+1) + power(abs(u(t) - y(t)), 2) * R_ii_squared(t);
             sub(c(t),u(t),y(t));
             abs(c(t),c(t));
             power(c(t),c(t),2);
-            c(t) *= this->R_ii_squared(t);
+            c(t) *= R_ii_squared(t);
             c(t) += c(t+1);
 
-            if(c(t) >= this->A_curr)
+            if(c(t) >= A_curr)
             {
                 // 2.1
                 goto cleanup;
@@ -491,46 +494,46 @@ private:
 
             if(t == 1)
             {
-                success = this->checkForEquation(u, c(1));
+                success = checkForEquation(u, c(1));
 
-                if(c(1) < this->A_curr)
+                if(c(1) < A_curr)
                 {
-                    if(this->decrease_max_distance || c(1) / this->A_curr < this->min_reduce_ratio)
+                    if(decrease_max_distance || c(1) / A_curr < min_reduce_ratio)
                     {
-                        this->A_curr = c(1);        // reduce max distance
-                        this->L.updateMaxDistance(this->A_curr);
+                        A_curr = c(1);        // reduce max distance
+                        L.updateMaxDistance(A_curr);
                     }
                 }
 
-                this->decrease_max_distance = this->decrease_max_distance && !success;
+                decrease_max_distance = decrease_max_distance && !success;
 
                 // 2.1
                 goto cleanup;
             }
 
             // compute the probability beta
-            if(t < 4 || (level = calculateLevel(t,c(t))) <= this->current_level)
+            if(t < 4 || (level = calculateLevel(t,c(t))) <= current_level)
             {
                 t--;
 
                 clear(y(t));        // y(t) = 0
-                for(long i = t + 1; i <= this->n; i++)    // 1/r_tt * sum_{i=t+1}^n (\tau_i - u_i) r_ti
+                for(long i = t + 1; i <= n; i++)    // 1/r_tt * sum_{i=t+1}^n (\tau_i - u_i) r_ti
                 {
-                    // y(t) += (this->tau(i) - u(i)) * this->mu(i, t);
-                    sub(temp,this->tau(i),u(i));
-                    mul(temp,temp,this->mu(i, t));
+                    // y(t) += (tau(i) - u(i)) * mu(i, t);
+                    sub(temp,tau(i),u(i));
+                    mul(temp,temp,mu(i, t));
                     y(t) += temp;
                 }
-                y(t) += this->tau(t);
+                y(t) += tau(t);
 
-                this->closest_RR(u(t),y(t));
+                closest_RR(u(t),y(t));
                 continue;
             }
 
             // the program comes only this far, if level > current_s holds
-            if(level <= this->max_level)
+            if(level <= max_level)
             {
-                if(this->L.storeStage(y(t),c(t),c(t+1),u,t,level))      // store the stage for later
+                if(L.storeStage(y(t),c(t),c(t+1),u,t,level))      // store the stage for later
                     return;
             }
 
@@ -539,7 +542,7 @@ private:
             t++;
             if(t > max_t)
                 break;
-            this->next(u(t), u(t), y(t));
+            next(u(t), u(t), y(t));
         }
     }
 
@@ -578,24 +581,24 @@ private:
     void precomputeLogV()
     {
         Vec<double> log_R_diag_prod;
-        conv(log_R_diag_prod, this->R_ii_squared);
+        conv(log_R_diag_prod, R_ii_squared);
 
-        for(long i = 1; i <= this->n; i++)
+        for(long i = 1; i <= n; i++)
         {
             log_R_diag_prod(i) = log(log_R_diag_prod(i)) / 2.0;
         }
 
-        for(long i = 2; i <= this->n; i++)
+        for(long i = 2; i <= n; i++)
         {
             log_R_diag_prod(i) += log_R_diag_prod(i - 1);
         }
 
-        this->log_V_minus_log_R_prod_minus_log_t = this->log_V;
+        log_V_minus_log_R_prod_minus_log_t = log_V;
 
-        for(long i = 1; i <= this->n; i++)
+        for(long i = 1; i <= n; i++)
         {
-            this->log_V_minus_log_R_prod_minus_log_t(i) -= log_R_diag_prod(i);
-            this->log_V_minus_log_R_prod_minus_log_t(i) -= this->log_t(i + 1);
+            log_V_minus_log_R_prod_minus_log_t(i) -= log_R_diag_prod(i);
+            log_V_minus_log_R_prod_minus_log_t(i) -= log_t(i + 1);
         }
     }
 
@@ -617,125 +620,125 @@ private:
      */
     bool checkForEquation(const Vec<RR>& input, const RR& c_1)
     {
-        this->stagesCheckedForEquations++;
-        mul(this->temp_vec, this->U_scaled_RR, input);
-        this->temp_vec += this->shift;
-        mul(this->close_vec, this->U_RR, this->temp_vec);
+        stagesCheckedForEquations++;
+        mul(temp_vec, U_scaled_RR, input);
+        temp_vec += shift;
+        mul(close_vec, U_RR, temp_vec);
 
-        conv(this->close_vec_long, this->close_vec);
+        conv(close_vec_long, close_vec);
 
-        this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
-        this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
+        raw_equation.SetLength(n + 1);     // exponents of the first primes and -1
+        equation.SetLength(n + 1);         // exponents of the first primes and -1
 
-        NTL::set(this->u);       // u = 1
+        NTL::set(u);       // u = 1
 
         ZZ temp_ZZ, temp_ZZ_2;
         RR temp_RR;
 
-        for(long i = 1; i <= this->n; i++)
+        for(long i = 1; i <= n; i++)
         {
-            if(this->close_vec(i) > 0)
+            if(close_vec(i) > 0)
             {
-                power(temp_ZZ, this->primes(i), this->close_vec_long(i));
-                this->u *= temp_ZZ;
-                this->raw_equation(i) = this->close_vec_long(i);
+                power(temp_ZZ, primes(i), close_vec_long(i));
+                u *= temp_ZZ;
+                raw_equation(i) = close_vec_long(i);
             }
             else
             {
-                this->raw_equation(i) = 0;
+                raw_equation(i) = 0;
             }
         }
 
-        conv(this->v, this->u);
-        conv(temp_RR, this->N);
-        this->v /= temp_RR;
+        conv(v, u);
+        conv(temp_RR, N);
+        v /= temp_RR;
 
-        this->closest_RR(temp_RR, this->v);
+        closest_RR(temp_RR, v);
 
-        sub(this->d, this->v, temp_RR);
+        sub(d, v, temp_RR);
 
-        NTL::abs(this->alpha_nm1, this->d);
+        NTL::abs(alpha_nm1, d);
 
-        this->closest_RR(temp_RR, this->v);
-        conv(this->vN, temp_RR);
-        this->vN *= this->N;
+        closest_RR(temp_RR, v);
+        conv(vN, temp_RR);
+        vN *= N;
 
-        NTL::clear(this->h_n);
-        NTL::set(this->h_nm1);
-        NTL::clear(this->h_nm2);
-        NTL::set(this->k_n);
-        NTL::clear(this->k_nm1);
-        NTL::set(this->k_nm2);
+        NTL::clear(h_n);
+        NTL::set(h_nm1);
+        NTL::clear(h_nm2);
+        NTL::set(k_n);
+        NTL::clear(k_nm1);
+        NTL::set(k_nm2);
 #ifndef FS_CCF
-        NTL::clear(this->a_nm1);
+        NTL::clear(a_nm1);
 #else
-        if(this->alpha_nm1 >= 0.5)
-        NTL::set(this->a_nm1);
+        if(alpha_nm1 >= 0.5)
+        NTL::set(a_nm1);
     else
-        NTL::clear(this->a_nm1);
+        NTL::clear(a_nm1);
 
     ZZ h_n_abs, k_n_abs;
 #endif
 
-        long sign = NTL::sign(this->d),
+        long sign = NTL::sign(d),
                 equation_counter = 0;
         bool cf_equation = false;
 
         do
         {
-            this->nextContinuedFraction(this->h_n, this->k_n, this->h_nm1, this->k_nm1, this->h_nm2, this->k_nm2,
-                                        this->a_nm1, this->alpha_nm1);
+            nextContinuedFraction(h_n, k_n, h_nm1, k_nm1, h_nm2, k_nm2,
+                                        a_nm1, alpha_nm1);
 
-            this->equation = this->raw_equation;
+            equation = raw_equation;
 
 #ifndef FS_CCF
-//        this->left_side = this->u * this->k_n;
-            mul(this->left_side, this->u, this->k_n);
-//        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
-            mul(temp_ZZ, this->vN, this->k_n);
-            sub(temp_ZZ, this->left_side, temp_ZZ);
-            mul(temp_ZZ_2, sign, this->h_n);
-            mul(temp_ZZ_2, temp_ZZ_2, this->N);
-            sub(this->right_side, temp_ZZ, temp_ZZ_2);
-            abs(this->right_side, this->right_side);
+//        left_side = u * k_n;
+            mul(left_side, u, k_n);
+//        abs(right_side,left_side - vN * k_n - sign * h_n * N);
+            mul(temp_ZZ, vN, k_n);
+            sub(temp_ZZ, left_side, temp_ZZ);
+            mul(temp_ZZ_2, sign, h_n);
+            mul(temp_ZZ_2, temp_ZZ_2, N);
+            sub(right_side, temp_ZZ, temp_ZZ_2);
+            abs(right_side, right_side);
 #else
-            //        this->left_side = this->u * this->k_n;
-        abs(k_n_abs,this->k_n);
-        abs(h_n_abs,this->h_n);
-        mul(this->left_side,this->u,k_n_abs);
-//        abs(this->right_side,this->left_side - this->vN * this->k_n - sign * this->h_n * this->N);
-        mul(temp_ZZ,this->vN,k_n_abs);
-        sub(temp_ZZ,this->left_side,temp_ZZ);
+            //        left_side = u * k_n;
+        abs(k_n_abs,k_n);
+        abs(h_n_abs,h_n);
+        mul(left_side,u,k_n_abs);
+//        abs(right_side,left_side - vN * k_n - sign * h_n * N);
+        mul(temp_ZZ,vN,k_n_abs);
+        sub(temp_ZZ,left_side,temp_ZZ);
         mul(temp_ZZ_2,sign,h_n_abs);
-        mul(temp_ZZ_2,temp_ZZ_2,this->N);
-        sub(this->right_side,temp_ZZ,temp_ZZ_2);
-        abs(this->right_side,this->right_side);
+        mul(temp_ZZ_2,temp_ZZ_2,N);
+        sub(right_side,temp_ZZ,temp_ZZ_2);
+        abs(right_side,right_side);
 #endif
 
 #ifndef FS_CCF
-            if(this->isSmooth(this->equation, this->k_n, this->left_side, this->right_side))
+            if(isSmooth(equation, k_n, left_side, right_side))
 #else
-                if(this->isSmooth(this->equation, k_n_abs, this->left_side, this->right_side))
+                if(isSmooth(equation, k_n_abs, left_side, right_side))
 #endif
             {
-                // this->ride_side_factor = conv<ZZ>(this->closest_RR(conv<RR>(left_side) / this->N_RR));
+                // ride_side_factor = conv<ZZ>(closest_RR(conv<RR>(left_side) / N_RR));
                 equation_counter++;
                 conv(temp_RR, left_side);
-                div(temp_RR, temp_RR, this->N_RR);
-                this->closest_RR(temp_RR, temp_RR);
-                conv(this->ride_side_factor, temp_RR);
+                div(temp_RR, temp_RR, N_RR);
+                closest_RR(temp_RR, temp_RR);
+                conv(ride_side_factor, temp_RR);
                 // temp_RR = c_1 / A_max
-                div(temp_RR, c_1, this->theoreticalMaxDistance);
-                this->equations.emplace_back(this->equation, this->ride_side_factor, this->current_level, conv<double>(temp_RR),
-                                  this->round, this->timer.step(), cf_equation);
+                div(temp_RR, c_1, theoreticalMaxDistance);
+                equations.emplace_back(equation, ride_side_factor, current_level, conv<double>(temp_RR),
+                                  round, timer.step(), cf_equation);
             }
 
             cf_equation = true;
         }
 #ifndef FS_CCF
-        while(this->k_n < this->threshold && this->settings.useContinuedFractions);
+        while(k_n < threshold && settings.useContinuedFractions);
 #else
-        while(k_n_abs < this->threshold && this->settings.useContinuedFractions);
+        while(k_n_abs < threshold && settings.useContinuedFractions);
 #endif
 
         return equation_counter > 0;
@@ -794,12 +797,12 @@ private:
     bool isSmooth(Vec<long>& equation, ZZ& k_n, ZZ& left_side, ZZ& right_side) const
     {
         // check smoothness of k_n
-        for(long i = 1; i <= this->n; i++)
+        for(long i = 1; i <= n; i++)
         {
-            while(k_n % this->primes(i) == 0)
+            while(k_n % primes(i) == 0)
             {
                 equation(i) += 1;
-                k_n /= this->primes(i);
+                k_n /= primes(i);
             }
         }
 
@@ -807,22 +810,22 @@ private:
             return false;
 
         if(right_side < 0)
-            equation(this->n + 1) = 1;
+            equation(n + 1) = 1;
         else
-            equation(this->n + 1) = 0;
+            equation(n + 1) = 0;
 
         ZZ right_side_abs = abs(right_side);
 
         // check smoothness of the right side
-        for(long i = 1; i <= this->n; i++)
+        for(long i = 1; i <= n; i++)
         {
-            while(right_side_abs % this->primes(i) == 0)
+            while(right_side_abs % primes(i) == 0)
             {
                 if(equation(i) > 0)       // cancel
-                    left_side /= this->primes(i);
+                    left_side /= primes(i);
 
                 equation(i) -= 1;
-                right_side_abs /= this->primes(i);
+                right_side_abs /= primes(i);
             }
         }
 
@@ -831,7 +834,7 @@ private:
 
     inline long calculateLevel(long t, const RR& c_t) const
     {
-        return conv<long>(floor(-((t-1)/2.0*log(conv<double>(this->A_curr - c_t)) + this->log_V_minus_log_R_prod_minus_log_t(t - 1)) / 0.693147180559945));    // log(2) = 0.69314...
+        return conv<long>(floor(-((t-1)/2.0*log(conv<double>(A_curr - c_t)) + log_V_minus_log_R_prod_minus_log_t(t - 1)) / 0.693147180559945));    // log(2) = 0.69314...
     }
 
 public:
@@ -860,8 +863,8 @@ public:
           log_V(NewEnum::precomputeVolumes(n)), L(StageStorage((unsigned long) settings.max_level))
     {
         // setting up the checkForEquation workspace
-        this->raw_equation.SetLength(this->n + 1);     // exponents of the first primes and -1
-        this->equation.SetLength(this->n + 1);         // exponents of the first primes and -1
+        raw_equation.SetLength(n + 1);     // exponents of the first primes and -1
+        equation.SetLength(n + 1);         // exponents of the first primes and -1
     }
 
     /**
@@ -869,14 +872,14 @@ public:
      */
     const list<Equation>& getEquations() const
     {
-        return this->equations;
+        return equations;
     }
 
     void getDistances(RR& theoretical, RR& heuristic, RR& reduced)
     {
-        theoretical = this->theoreticalMaxDistance;
-        heuristic = this->heuristicMaxDistance;
-        reduced = this->A_curr;
+        theoretical = theoreticalMaxDistance;
+        heuristic = heuristicMaxDistance;
+        reduced = A_curr;
     }
 
     /**
@@ -885,31 +888,31 @@ public:
      */
     void run(unsigned long round, const Mat<ZZ>& newBasis_transposed, const Mat<ZZ>& new_U_scaled, const Vec<RR>& new_target_coordinates)
     {
-        this->prepare(round, newBasis_transposed, new_U_scaled, new_target_coordinates);
+        prepare(round, newBasis_transposed, new_U_scaled, new_target_coordinates);
 
         cout << "Performing: ";
         // Reset list of delayed stages
-        this->current_level = this->min_level;
+        current_level = min_level;
 
         Vec<RR> u;                              // coordinates of a close vector
-        u.SetLength(this->n);
-        this->closest_RR(u(this->n),this->tau(this->n));
+        u.SetLength(n);
+        closest_RR(u(n),tau(n));
 
-        NewEnumStage* stage = new NewEnumStage(this->tau(this->n), conv<RR>(0), u, this->n);
+        NewEnumStage* stage = new NewEnumStage(tau(n), conv<RR>(0), u, n);
 
-        this->perform(stage);
-        this->L.returnStage(stage);
+        perform(stage);
+        L.returnStage(stage);
 
-        for(long l = 0; l <= this->max_level - this->min_level - 1; l++)
+        for(long l = 0; l <= max_level - min_level - 1; l++)
         {
-            this->L.incrementCurrentLevel();
-            this->current_level++;
+            L.incrementCurrentLevel();
+            current_level++;
 
             // perform delayed stages
-            while(this->L.getNext(stage))
+            while(L.getNext(stage))
             {
-                this->perform(stage);
-                this->L.returnStage(stage);
+                perform(stage);
+                L.returnStage(stage);
             }
 
             cout << ".";

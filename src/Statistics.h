@@ -54,85 +54,85 @@ public:
 
     void newSlightBkzTime(const double time)
     {
-        this->minSlightBkz = std::min(time, this->minSlightBkz);
-        this->maxSlightBkz = std::max(time, this->maxSlightBkz);
-        this->sumSlightBkz += time;
+        minSlightBkz = std::min(time, minSlightBkz);
+        maxSlightBkz = std::max(time, maxSlightBkz);
+        sumSlightBkz += time;
     }
 
     void newNewEnumTime(const double time, const bool eqn)
     {
-        this->minNewEnum = std::min(time, this->minNewEnum);
-        this->maxNewEnum = std::max(time, this->maxNewEnum);
-        this->sumNewEnum += time;
+        minNewEnum = std::min(time, minNewEnum);
+        maxNewEnum = std::max(time, maxNewEnum);
+        sumNewEnum += time;
 
         if(!eqn) return;
 
-        this->minNewEnumWE = std::min(time, this->minNewEnumWE);
-        this->maxNewEnumWE = std::max(time, this->maxNewEnumWE);
-        this->sumNewEnumWE += time;
+        minNewEnumWE = std::min(time, minNewEnumWE);
+        maxNewEnumWE = std::max(time, maxNewEnumWE);
+        sumNewEnumWE += time;
     }
 
     void updateDistanceStats(const RR& theoretical, const RR&heuristic, const RR& reduced)
     {
         auto reduce_ratio = conv<double>(reduced / theoretical);
 
-        this->minDistanceReduction = std::max(reduce_ratio, this->minDistanceReduction);
-        this->maxDistanceReduction = std::min(reduce_ratio, this->maxDistanceReduction);
+        minDistanceReduction = std::max(reduce_ratio, minDistanceReduction);
+        maxDistanceReduction = std::min(reduce_ratio, maxDistanceReduction);
 
         if(heuristic == reduced)
-            this->roundsWithoutReduction++;
+            roundsWithoutReduction++;
         else
-            this->sumDistanceReduction += reduce_ratio;
+            sumDistanceReduction += reduce_ratio;
     }
 
 
     void updateRoundStats(const bool delayed, const bool eqn)
     {
         if(!delayed)
-            this->roundsWithoutDelayedStages++;
+            roundsWithoutDelayedStages++;
 
         if(eqn)
-            this->roundsWithEquations++;
+            roundsWithEquations++;
     }
 
     void updateStagesCheckedForEquations(const unsigned long long stagesCheckedForEquations, const bool equationsFound)
     {
         if(equationsFound)
         {
-            this->totalStagesCheckedForEquationsWithEquations += stagesCheckedForEquations;
-            if(this->minStagesCheckedForEquationsWithEquations > stagesCheckedForEquations)
-                this->minStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
-            if(this->maxStagesCheckedForEquationsWithEquations < stagesCheckedForEquations)
-                this->maxStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+            totalStagesCheckedForEquationsWithEquations += stagesCheckedForEquations;
+            if(minStagesCheckedForEquationsWithEquations > stagesCheckedForEquations)
+                minStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+            if(maxStagesCheckedForEquationsWithEquations < stagesCheckedForEquations)
+                maxStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
         }
         else
         {
-            this->totalStagesCheckedForEquationsWithoutEquations += stagesCheckedForEquations;
-            if(this->minStagesCheckedForEquationsWithoutEquations > stagesCheckedForEquations)
-                this->minStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
-            if(this->maxStagesCheckedForEquationsWithoutEquations < stagesCheckedForEquations)
-                this->maxStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+            totalStagesCheckedForEquationsWithoutEquations += stagesCheckedForEquations;
+            if(minStagesCheckedForEquationsWithoutEquations > stagesCheckedForEquations)
+                minStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+            if(maxStagesCheckedForEquationsWithoutEquations < stagesCheckedForEquations)
+                maxStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
         }
     }
 
     void closeStatistics(const long totalRounds, const long uniqueEquations, const long duplicateEquations)
     {
-        this->roundsTotal = totalRounds;
-        this->eqnUniqueTotal = uniqueEquations;
-        this->eqnDuplicates = duplicateEquations;
+        roundsTotal = totalRounds;
+        eqnUniqueTotal = uniqueEquations;
+        eqnDuplicates = duplicateEquations;
 
-        this->avgStagesCheckedForEquationsWithEquations = 1.0 * this->totalStagesCheckedForEquationsWithEquations / totalRounds;
-        this->avgStagesCheckedForEquationsWithoutEquations = 1.0 * this->totalStagesCheckedForEquationsWithoutEquations / totalRounds;
+        avgStagesCheckedForEquationsWithEquations = 1.0 * totalStagesCheckedForEquationsWithEquations / totalRounds;
+        avgStagesCheckedForEquationsWithoutEquations = 1.0 * totalStagesCheckedForEquationsWithoutEquations / totalRounds;
 
-        this->avgSlightBkz = this->sumSlightBkz / this->roundsTotal;
+        avgSlightBkz = sumSlightBkz / roundsTotal;
 
-        this->avgNewEnum = this->sumNewEnum / this->roundsTotal;
-        this->avgNewEnumWE = this->sumNewEnumWE / this->roundsWithEquations;
+        avgNewEnum = sumNewEnum / roundsTotal;
+        avgNewEnumWE = sumNewEnumWE / roundsWithEquations;
 
-        this->avgNumEqnPerRoundWithEqn = 1.0 * (this->eqnUniqueTotal + this->eqnDuplicates) / this->roundsWithEquations;
-        this->avgNumUniqEqnPerRoundWithEqn =  1.0 * this->eqnUniqueTotal / this->roundsWithEquations;
+        avgNumEqnPerRoundWithEqn = 1.0 * (eqnUniqueTotal + eqnDuplicates) / roundsWithEquations;
+        avgNumUniqEqnPerRoundWithEqn =  1.0 * eqnUniqueTotal / roundsWithEquations;
 
-        this->avgDistanceReduction = this->sumDistanceReduction / (this->roundsTotal - this->roundsWithoutReduction);
+        avgDistanceReduction = sumDistanceReduction / (roundsTotal - roundsWithoutReduction);
     }
 };
 

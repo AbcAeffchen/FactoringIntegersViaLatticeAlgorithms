@@ -19,7 +19,7 @@ public:
      */
     void startTimer()
     {
-        this->startTime = clock();
+        startTime = clock();
     }
 
     /**
@@ -29,14 +29,14 @@ public:
      */
     double stopTimer()
     {
-        double time = (clock() - this->startTime) / CLOCKS_PER_SEC;
-        this->totalTime += time;
+        double time = (clock() - startTime) / CLOCKS_PER_SEC;
+        totalTime += time;
         return time;
     }
 
     double step()
     {
-        return ((clock() - this->startTime) / CLOCKS_PER_SEC);
+        return ((clock() - startTime) / CLOCKS_PER_SEC);
     }
 
     /**
@@ -44,7 +44,7 @@ public:
      */
     double getTotalTime()
     {
-        return this->totalTime;
+        return totalTime;
     }
 };
 

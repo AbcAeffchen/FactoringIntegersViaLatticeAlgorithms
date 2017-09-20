@@ -85,14 +85,14 @@ protected:
     void setScaledAndReducedBasis()
     {
         // scale
-        this->B_scaled_transposed = this->B;    // not yet transposed
+        B_scaled_transposed = B;    // not yet transposed
 
         long threshold1,threshold2;
         int scalingType;
-        if(this->settings.scalingType == FS_SCALING_MIXED)
+        if(settings.scalingType == FS_SCALING_MIXED)
         {
             uniform_int_distribution<int> scalingType_dist(0,49);
-            int choice = scalingType_dist(this->rgen);
+            int choice = scalingType_dist(rgen);
             if(choice <= 2)         // 6%
                 scalingType = FS_SCALING_ONE_FOURTH;
             else if(choice <= 6)    // 8%
@@ -104,7 +104,7 @@ protected:
         }
         else
         {
-            scalingType = this->settings.scalingType;
+            scalingType = settings.scalingType;
         }
 
         switch(scalingType)
@@ -131,40 +131,40 @@ protected:
                 break;
         }
 
-        uniform_int_distribution<int> dist(0,3);   // [0,3] random numbers uniform distribution
+        uniform_int_distribution<int> dist(0, 3);   // [0,3] random numbers uniform distribution
 
-        for(long i = 1; i <= this->settings.n/2; i++)
+        for(long i = 1; i <= settings.n/2; i++)
         {
-            if(dist(this->rgen) <= threshold1)       // P(scale row) = 1/2
+            if(dist(rgen) <= threshold1)       // P(scale row) = 1/2
             {
-                this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
-                this->scaled_primes[i-1] = true;
+                B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
+                scaled_primes[i-1] = true;
             }
             else
             {
-                this->scaled_primes[i-1] = false;
+                scaled_primes[i-1] = false;
             }
         }
 
-        for(long i = this->settings.n/2+1; i <= this->settings.n; i++)
+        for(long i = settings.n / 2 + 1; i <= settings.n; i++)
         {
-            if(dist(this->rgen) <= threshold2)       // P(scale row) = 1/4
+            if(dist(rgen) <= threshold2)       // P(scale row) = 1/4
             {
-                this->B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
-                this->scaled_primes[i-1] = true;
+                B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
+                scaled_primes[i-1] = true;
             }
             else
             {
-                this->scaled_primes[i-1] = false;
+                scaled_primes[i-1] = false;
             }
         }
 
         // reduce
-        transpose(this->B_scaled_transposed, this->B_scaled_transposed);    // now it is transposed
-        BKZ_FP(this->B_scaled_transposed, this->U_scaled, 0.99, this->settings.slight_bkz);
+        transpose(B_scaled_transposed, B_scaled_transposed);    // now it is transposed
+        BKZ_FP(B_scaled_transposed, U_scaled, 0.99, settings.slight_bkz);
 
-        transpose(this->U_scaled,this->U_scaled);
-        inv(this->U_scaled_inv, this->U_scaled);
+        transpose(U_scaled, U_scaled);
+        inv(U_scaled_inv, U_scaled);
 
         // apply the reduction to the coordinate vector
         mul(this->target_scaled_coordinates, conv<Mat<RR>>(this->U_scaled_inv), this->target_coordinates);
@@ -180,17 +180,17 @@ protected:
     void setBasis(const long accuracy_factor)
     {
         cout << "Setting Prime Lattice Basis: ";
-        long n = this->primes.length();
+        long n = primes.length();
 
         RR NpC;
-        conv(NpC, this->N);
-        pow(NpC, NpC, this->c);
-        this->B.SetDims(n, n + 1);    // transposed
+        conv(NpC, N);
+        pow(NpC, NpC, c);
+        B.SetDims(n, n + 1);    // transposed
         // Setting the basis
         for(long i = 1; i <= n; i++)
         {
-            conv(this->B(i, i), accuracy_factor * sqrt(log(this->primes(i))));
-            conv(this->B(i, n + 1), NpC * accuracy_factor * log(this->primes(i)));
+            conv(B(i, i), accuracy_factor * sqrt(log(primes(i))));
+            conv(B(i, n + 1), NpC * accuracy_factor * log(primes(i)));
         }
 
         cout << "finished" << endl;
@@ -206,15 +206,15 @@ protected:
     Vec<RR> orthogonalProjection_pl() const
     {
         Vec<RR> orth_target;
-        long n = this->primes.length();
+        long n = primes.length();
         orth_target.SetLength(n);
 
-        RR N_RR = conv<RR>(this->N);
-        RR N_RR_2c = pow(N_RR, 2 * this->c);
+        RR N_RR = conv<RR>(N);
+        RR N_RR_2c = pow(N_RR, 2 * c);
 
         double log_prim_prod = 0;
         for(long i = 1; i <= n; i++)
-            log_prim_prod += log(this->primes(i));
+            log_prim_prod += log(primes(i));
 
         RR a = ( N_RR_2c * log(N_RR) ) / (1 + N_RR_2c * log_prim_prod);
 
@@ -232,45 +232,43 @@ protected:
     void setTargetCoordinates()
     {
         // getting the coordinates respecting the prime number lattice
-        Vec<RR> target_coordinates = this->orthogonalProjection_pl();
-
-        // taking care of the strong reduction
-        mul(this->target_coordinates, conv<Mat<RR> >(this->U_inv), target_coordinates);
+        // and taking care of the strong reduction
+        mul(this->target_coordinates, conv<Mat<RR> >(U_inv), orthogonalProjection_pl());
 
         // make the shift
-        long n = this->primes.length();
-        this->shift.SetLength(n);
+        long n = primes.length();
+        shift.SetLength(n);
 
         for(long i = 1; i <= n; i++)
         {
             // the shift could also be done by using floor or ceil.
-            this->shift(i) = round(this->target_coordinates(i));
-            this->target_coordinates(i) -= this->shift(i);
+            shift(i) = round(target_coordinates(i));
+            target_coordinates(i) -= shift(i);
         }
     }
 
     /**
-     * Performs a strong BKZ reduction and sets this->U
+     * Performs a strong BKZ reduction and sets U
      * @param strong_bkz Block size of the BKZ reduction
      */
     void reduceBasis(const long strong_bkz)
     {
-        this->timer.startTimer();
+        timer.startTimer();
 
-        // this->B is still transposed
+        // B is still transposed
 
         cout << "Strong BKZ reduction: ";
-        BKZ_FP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
-//    BKZ_QP(this->B, this->U, 0.99, strong_bkz);                 // strong reducing
+        BKZ_FP(B, U, 0.99, strong_bkz);                 // strong reducing
+//    BKZ_QP(B, U, 0.99, strong_bkz);                 // strong reducing
 
-        transpose(this->B,this->B);
-        transpose(this->U,this->U);
+        transpose(B,B);
+        transpose(U,U);
 
-        inv(this->U_inv, this->U);
+        inv(U_inv, U);
 
         cout << "finished" << endl;
 
-        this->file.statisticsStrongBkzTime(this->timer.stopTimer());
+        file.statisticsStrongBkzTime(timer.stopTimer());
     }
 
     /**
@@ -285,59 +283,59 @@ protected:
         long newDuplicates;
         unsigned long round = 0;
 
-        NewEnum newEnum = NewEnum(this->settings, this->timer, this->primes, this->U, this->shift);
+        NewEnum newEnum = NewEnum(settings, timer, primes, U, shift);
 
         RR theoretical, heuristic, reduced;
 
-        while(this->uniqueEquations.size() < this->settings.min_eqns)
+        while(uniqueEquations.size() < settings.min_eqns)
         {
             round++;
             cout << "Round " << round << endl;
-            this->file.statisticNewRound(round);
+            file.statisticNewRound(round);
 
-            this->timer.startTimer();
-            this->setScaledAndReducedBasis();    // scale and slight bkz
-            slightBkzTime = this->timer.stopTimer();
+            timer.startTimer();
+            setScaledAndReducedBasis();    // scale and slight bkz
+            slightBkzTime = timer.stopTimer();
 
-            this->timer.startTimer();
+            timer.startTimer();
 
-            newEnum.run(round, this->B_scaled_transposed, this->U_scaled, this->target_scaled_coordinates);
+            newEnum.run(round, B_scaled_transposed, U_scaled, target_scaled_coordinates);
             newEquations = newEnum.getEquations();
-            newDuplicates = this->addEquations(newEquations);
+            newDuplicates = addEquations(newEquations);
 
-            newEnumTime = this->timer.stopTimer();
+            newEnumTime = timer.stopTimer();
 
             newEnum.getDistances(theoretical,heuristic,reduced);
 
             // statistics
-            this->stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, !newEquations.empty());
-            this->stats.updateDistanceStats(theoretical,heuristic,reduced);
-            this->stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations, !newEquations.empty());
-            this->stats.newSlightBkzTime(slightBkzTime);
-            this->stats.newNewEnumTime(newEnumTime, !newEquations.empty());
-            this->file.statisticsDelayedStagesOnLevel(this->settings.max_level,
+            stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, !newEquations.empty());
+            stats.updateDistanceStats(theoretical,heuristic,reduced);
+            stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations, !newEquations.empty());
+            stats.newSlightBkzTime(slightBkzTime);
+            stats.newNewEnumTime(newEnumTime, !newEquations.empty());
+            file.statisticsDelayedStagesOnLevel(settings.max_level,
                                                       newEnum.L.maxDelayedAndPerformedStages,
                                                       newEnum.L.delayedStages,
                                                       newEnum.L.totalDelayedAndPerformedStages);
-            this->file.statisticSlightBKZ(slightBkzTime, newEnumTime);
-            this->file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);
-            this->file.statisticsDistances(theoretical,heuristic,reduced);
-            this->file.statisticsWriteScaledPrimes(this->scaled_primes,this->primes);
-            this->file.statisticsNewEquations(newEquations,this->primes);
+            file.statisticSlightBKZ(slightBkzTime, newEnumTime);
+            file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);
+            file.statisticsDistances(theoretical,heuristic,reduced);
+            file.statisticsWriteScaledPrimes(scaled_primes,primes);
+            file.statisticsNewEquations(newEquations,primes);
 
             // display round results
-            cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << this->uniqueEquations.size() << " (" << this->settings.min_eqns << ")" << endl;
-            cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << this->eqnDuplicates << endl;
+            cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << uniqueEquations.size() << " (" << settings.min_eqns << ")" << endl;
+            cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << eqnDuplicates << endl;
         }
 
-        this->stats.closeStatistics(round,this->uniqueEquations.size(),this->eqnDuplicates);
+        stats.closeStatistics(round,uniqueEquations.size(),eqnDuplicates);
 
-        this->file.writeFormattedEquationList(this->uniqueEquations, this->primes);
-        this->file.writeSummary(this->stats, this->timer.getTotalTime(), this->settings.n, this->uniqueEquations);
-        this->file.closeEquationFile();
-        this->file.closeStatisticsFile();
+        file.writeFormattedEquationList(uniqueEquations, primes);
+        file.writeSummary(stats, timer.getTotalTime(), settings.n, uniqueEquations);
+        file.closeEquationFile();
+        file.closeStatisticsFile();
 
-        this->file.texToPdf();
+        file.texToPdf();
     }
 
 
@@ -351,7 +349,7 @@ protected:
         long duplicates = 0;
         for(auto& newEquation : newEquations)
         {
-            std::pair<std::set<Equation>::iterator, bool> res = this->uniqueEquations.insert(newEquation);
+            std::pair<std::set<Equation>::iterator, bool> res = uniqueEquations.insert(newEquation);
             if(!res.second)  // equation was not inserted
             {
                 duplicates++;
@@ -359,24 +357,24 @@ protected:
                 // reinserted after the change, due to sorting reasons.
                 Equation upCounted = *(res.first);
                 upCounted.counter++;
-                this->uniqueEquations.erase(res.first);
-                this->uniqueEquations.insert(upCounted);
+                uniqueEquations.erase(res.first);
+                uniqueEquations.insert(upCounted);
             }
         }
-        this->eqnDuplicates += duplicates;
+        eqnDuplicates += duplicates;
 
         return duplicates;
     }
 
     void setPrimes(long n)
     {
-        this->primes.SetLength(n);
+        primes.SetLength(n);
 
         for(long i = 0; i < min(n,300); ++i)
-            this->primes[i] = _primes[i];
+            primes[i] = _primes[i];
 
         for(long i = 301; i <= n; i++)
-            this->primes(i) = NextPrime(this->primes(i-1)+2);
+            primes(i) = NextPrime(primes(i-1)+2);
     }
 
 public:
@@ -401,9 +399,9 @@ public:
           c(settings.c),
           scaled_primes(vector<bool>(settings.n, false))
     {
-        this->timer = Timer();
+        timer = Timer();
 
-        this->setPrimes(settings.n);
+        setPrimes(settings.n);
 
         // setup random number generator
         unsigned int seed;
@@ -417,15 +415,15 @@ public:
         else
             seed = (unsigned int) settings.seed_type;
 
-        this->rgen = mt19937(seed);
+        rgen = mt19937(seed);
 
         // write the current settings
-        this->file.writeSettings(this->settings, this->primes(settings.n), seed);
+        file.writeSettings(settings, primes(settings.n), seed);
 
-        this->setBasis(settings.accuracy_factor);
-        this->reduceBasis(settings.strong_bkz);
-        this->setTargetCoordinates();
-        this->search();
+        setBasis(settings.accuracy_factor);
+        reduceBasis(settings.strong_bkz);
+        setTargetCoordinates();
+        search();
     }
 };
 

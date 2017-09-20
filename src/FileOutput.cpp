@@ -72,30 +72,30 @@ void FileOutput::writeEqnFormatted(fstream &file, const Equation& eqn, const Vec
 void FileOutput::writeEqnStatistics(const Equation& eqn, const Vec<long>& primes)
 {
     bool nEmp = false;
-    this->statistics << eqn.reduced << " & "
+    statistics << eqn.reduced << " & "
                      << eqn.level << " & ";
 
-    this->statistics << "$";
+    statistics << "$";
 
     for(long i = 1; i <= primes.length(); i++)
     {
         if(eqn.e(i) > 0)
         {
             if(nEmp)
-                this->statistics << " \\cdot ";
-            this->statistics << primes(i);
+                statistics << " \\cdot ";
+            statistics << primes(i);
             if(eqn.e(i) > 1)
             {
-                this->statistics << "^{" << eqn.e(i) << "}";
+                statistics << "^{" << eqn.e(i) << "}";
             }
             nEmp = true;
         }
     }
     if(!nEmp)
     {
-        this->statistics << "1";
+        statistics << "1";
     }
-    this->statistics << "$ & $"<< eqn.v << "$ & $";
+    statistics << "$ & $"<< eqn.v << "$ & $";
     nEmp = false;
 
     for(long i = 1; i <= primes.length(); i++)
@@ -104,28 +104,28 @@ void FileOutput::writeEqnStatistics(const Equation& eqn, const Vec<long>& primes
         {
             if(nEmp)
             {
-                this->statistics << " \\cdot ";
+                statistics << " \\cdot ";
             }
-            this->statistics << primes(i);
+            statistics << primes(i);
             if(eqn.e(i) < -1)
             {
-                this->statistics << "^{" << -eqn.e(i) << "}";
+                statistics << "^{" << -eqn.e(i) << "}";
             }
             nEmp = true;
         }
     }
     if(!nEmp)
     {
-        this->statistics << "1";
+        statistics << "1";
     }
-    this->statistics << "$ & $" <<  eqn.time << "$s & ";
+    statistics << "$ & $" <<  eqn.time << "$s & ";
 
     if(eqn.fromContinuedFraction)
-        this->statistics << "\\checkmark";
+        statistics << "\\checkmark";
     else
-        this->statistics << "\\cross";
+        statistics << "\\cross";
 
-    this->statistics << "\\\\" << endl;
+    statistics << "\\\\" << endl;
 }
 
 void FileOutput::createDirectory()
@@ -149,21 +149,21 @@ string FileOutput::getFilePrefix()
 
 FileOutput::FileOutput()
 {
-    this->createDirectory();
+    createDirectory();
 
-    string filePrefix = this->getFilePrefix();
+    string filePrefix = getFilePrefix();
     std::stringstream formattedName;
     formattedName << "./output/" << filePrefix << "_summary.tex";
-    this->summaryName = filePrefix + "_summary";
+    summaryName = filePrefix + "_summary";
     std::stringstream statisticsName;
     statisticsName << "./output/" << filePrefix << "_statistics.tex";
-    this->statsName = filePrefix + "_statistics";
+    statsName = filePrefix + "_statistics";
 
-    this->summary.open(formattedName.str().c_str(), ios::out);
-    this->statistics.open(statisticsName.str().c_str(), ios::out);
+    summary.open(formattedName.str().c_str(), ios::out);
+    statistics.open(statisticsName.str().c_str(), ios::out);
 
     // Init formatted file
-    this->summary << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
+    summary << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
                      << "\\usepackage[a4paper, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
                      << "\\usepackage{fancyhdr}" << endl
                      << "\\usepackage{amsmath}" << endl
@@ -181,7 +181,7 @@ FileOutput::FileOutput()
                      << "\\begin{document}" << endl
                      << "\\onehalfspacing" << endl << endl;
 
-    this->statistics << "\\documentclass[a4paper,twoside,10pt]{report}" << endl  << endl
+    statistics << "\\documentclass[a4paper,twoside,10pt]{report}" << endl  << endl
                      << "\\usepackage[a4paper, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
                      << "\\usepackage{fancyhdr}" << endl
                      << "\\usepackage{amsmath}" << endl
@@ -209,13 +209,13 @@ FileOutput::FileOutput()
 
 void FileOutput::statisticNewRound(long round)
 {
-    this->statistics << "\\section*{Round " << round << "}" << endl
+    statistics << "\\section*{Round " << round << "}" << endl
                      << "\\begin{longtable}{p{13cm}p{4cm}}" << endl;
 }
 
 void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
 {
-    this->statistics << "& \\textbf{Distances:}\\newline" << endl
+    statistics << "& \\textbf{Distances:}\\newline" << endl
                      << "\\resizebox{\\linewidth}{!}{%" << endl
                      << "\\begin{tabular}[t]{ll}" << endl
                      << "Slight BKZ:&" << slightBkz << "s\\\\" << endl
@@ -224,12 +224,12 @@ void FileOutput::statisticSlightBKZ(double slightBkz, double newEnum)
 
 void FileOutput::statisticsWriteStagesChecked(unsigned long long stagesChecked)
 {
-    this->statistics << "Checked Stages: & " << stagesChecked << "\\\\\\\\" << endl;
+    statistics << "Checked Stages: & " << stagesChecked << "\\\\\\\\" << endl;
 }
 
 void FileOutput::statisticsDistances(RR theoretical, RR heuristic, RR reduced)
 {
-    this->statistics
+    statistics
                      << "$A=\\frac{1}{4}\\sum_{i=1}^n r_{ii}^2$:&" << trunc(theoretical) << "\\\\" << endl
                      << "$\\frac{1}{5}A$:&" << trunc(heuristic) << "\\\\" << endl
                      << "Reduced to $A'$:&" << trunc(reduced) << "\\\\" << endl
@@ -270,94 +270,94 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level,
     for(long level = 0; level < max_level - 10; level++)
         totalDelayedStages += totalSumDelayedStages[level];
 
-    this->statistics << "\\textbf{Delayed Stages}\\newline\\resizebox{\\linewidth}{!}{%" << endl
+    statistics << "\\textbf{Delayed Stages}\\newline\\resizebox{\\linewidth}{!}{%" << endl
                      << "\\begin{tabular}[t]{c|C{4cm}C{4cm}C{4cm}|C{4cm}}" << endl
-                     << "\\textbf{\\green{" << totalDelayedAndPerformedStages << "}}, \\textbf{\\red{" << totalDelayedStages <<"}}& " << this->t_indicator[0] << "&" << this->t_indicator[1] << "&"  << this->t_indicator[2] << "&\\\\\\midrule" << endl;
+                     << "\\textbf{\\green{" << totalDelayedAndPerformedStages << "}}, \\textbf{\\red{" << totalDelayedStages <<"}}& " << t_indicator[0] << "&" << t_indicator[1] << "&"  << t_indicator[2] << "&\\\\\\midrule" << endl;
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
     {
-        this->statistics << this->alpha_2_indicator_text[alpha_2_indicator];
+        statistics << alpha_2_indicator_text[alpha_2_indicator];
         for(long t_indicator = 0; t_indicator < 3; t_indicator++)
         {
             // delayed and performed (green)
-            this->statistics << "& \\green{";
-            this->statistics << delayedAndPerformedStages[alpha_2_indicator][t_indicator][0];
+            statistics << "& \\green{";
+            statistics << delayedAndPerformedStages[alpha_2_indicator][t_indicator][0];
             for (long level = 1; level < max_level - 10; level++)
             {
-                this->statistics << "," <<
+                statistics << "," <<
                 delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
             }
 
-            this->statistics << "} \\newline" << endl << "\\red{";
+            statistics << "} \\newline" << endl << "\\red{";
             // delayed stages (red)
-            this->statistics << delayedStages[alpha_2_indicator][t_indicator][0];
+            statistics << delayedStages[alpha_2_indicator][t_indicator][0];
             for (long level = 1; level < max_level - 10; level++)
             {
-                this->statistics << "," <<
+                statistics << "," <<
                 delayedStages[alpha_2_indicator][t_indicator][level];
             }
 
-            this->statistics << "}";
+            statistics << "}";
         }
 
-        this->statistics << "& \\green{";
-        this->statistics << sumDelayedAndPerformedStagesOverT[alpha_2_indicator][0];
+        statistics << "& \\green{";
+        statistics << sumDelayedAndPerformedStagesOverT[alpha_2_indicator][0];
         for (long level = 1; level < max_level - 10; level++)
         {
-            this->statistics << "," <<
+            statistics << "," <<
             sumDelayedAndPerformedStagesOverT[alpha_2_indicator][level];
         }
 
-        this->statistics << "} \\newline" << endl << "\\red{" <<
+        statistics << "} \\newline" << endl << "\\red{" <<
         sumDelayedStagesOverT[alpha_2_indicator][0];
         for (long level = 1; level < max_level - 10; level++)
         {
-            this->statistics << "," << sumDelayedStagesOverT[alpha_2_indicator][level];
+            statistics << "," << sumDelayedStagesOverT[alpha_2_indicator][level];
         }
-        this->statistics << "}\\\\" << endl;
+        statistics << "}\\\\" << endl;
     }
 
-    this->statistics << "\\midrule" << endl;
+    statistics << "\\midrule" << endl;
 
     for(long t_indicator = 0; t_indicator < 3; t_indicator++)
     {
-        this->statistics << "& \\green{" << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][0];
+        statistics << "& \\green{" << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][0];
         for(long level = 1; level < max_level- 10;level++)
         {
-            this->statistics << "," << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][level];
+            statistics << "," << sumDelayedAndPerformedStagesOverAlpha2[t_indicator][level];
         }
-        this->statistics << "} \\newline\\red{" << sumDelayedStagesOverAlpha2[t_indicator][0];
+        statistics << "} \\newline\\red{" << sumDelayedStagesOverAlpha2[t_indicator][0];
         for(long level = 1; level < max_level- 10;level++)
         {
-            this->statistics << "," << sumDelayedStagesOverAlpha2[t_indicator][level];
+            statistics << "," << sumDelayedStagesOverAlpha2[t_indicator][level];
         }
-        this->statistics << "}";
+        statistics << "}";
     }
 
-    this->statistics << "& \\green{" << totalSumDelayedAndPerformedStages[0];
+    statistics << "& \\green{" << totalSumDelayedAndPerformedStages[0];
     for(long level = 1; level < max_level- 10; level++)
     {
-        this->statistics << "," << totalSumDelayedAndPerformedStages[level];
+        statistics << "," << totalSumDelayedAndPerformedStages[level];
     }
-    this->statistics << "} \\newline\\red{" << totalSumDelayedStages[0];
+    statistics << "} \\newline\\red{" << totalSumDelayedStages[0];
     for(long level = 1; level < max_level- 10; level++)
     {
-        this->statistics << "," << totalSumDelayedStages[level];
+        statistics << "," << totalSumDelayedStages[level];
     }
 
-    this->statistics << "}\\end{tabular}}" << endl;
+    statistics << "}\\end{tabular}}" << endl;
 }
 
 void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes)
 {
     if(eqns.empty())
     {
-        this->statistics << "\\subsection*{No Equations found}" << endl;
+        statistics << "\\subsection*{No Equations found}" << endl;
         return;
     }
 
-    this->statistics << "\\subsection*{" << eqns.size() << " new equations}" << endl;
-    this->statistics << "\\begin{longtable}{p{1.5cm}lp{5.0cm}R{3.5cm}p{3.0cm}rc}" << endl
+    statistics << "\\subsection*{" << eqns.size() << " new equations}" << endl;
+    statistics << "\\begin{longtable}{p{1.5cm}lp{5.0cm}R{3.5cm}p{3.0cm}rc}" << endl
                      << "\\toprule" << endl
                      << "dist& level & $u$ & $v$ & $|u-vN|$ & time until & CF\\\\\\midrule" << endl
                      << "\\endfirsthead" << endl
@@ -366,9 +366,9 @@ void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<lo
                      << "\\endhead" << endl;
     for(const auto& eqn : eqns)
     {
-        this->writeEqnStatistics(eqn, primes);
+        writeEqnStatistics(eqn, primes);
     }
-    this->statistics << "\\end{longtable}" << endl;
+    statistics << "\\end{longtable}" << endl;
 }
 
 void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes)
@@ -377,7 +377,7 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
 
     eqnList.sort(sort_equations);
 
-    this->summary << "\\newpage" << endl
+    summary << "\\newpage" << endl
     << "\\section*{Equations}" << endl
     << "%\\begin{landscape}" << endl
     << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
@@ -388,7 +388,7 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
     << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
     << "\\endhead" << endl;
 
-    this->statistics << "\\newpage" << endl
+    statistics << "\\newpage" << endl
      << "\\section*{Equations}" << endl
      << "%\\begin{landscape}" << endl
     << "\\begin{longtable}{rrcp{5cm}rp{5cm}r}" << endl
@@ -401,20 +401,20 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
 
     for(const auto& it : eqnList)
     {
-        this->writeEqnFormatted(this->summary, it, primes);
-        this->writeEqnFormatted(this->statistics, it, primes);
+        writeEqnFormatted(summary, it, primes);
+        writeEqnFormatted(statistics, it, primes);
     }
 
-    this->summary << "\\end{longtable}" << endl
+    summary << "\\end{longtable}" << endl
     << "%\\end{landscape}" << endl;
 
-    this->statistics << "\\end{longtable}" << endl
+    statistics << "\\end{longtable}" << endl
     << "%\\end{landscape}" << endl;
 }
 
 void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime, long long int seed)
 {
-    this->summary << "\\section*{Settings}" << endl
+    summary << "\\section*{Settings}" << endl
     << "\\begin{tabular}{ll}" << endl
     << "NTL Version: & " << NTL_VERSION << "\\\\"
     #ifdef __GNUC__
@@ -434,30 +434,30 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
     << "Scaling type: & ";
     switch(settings.scalingType)
     {
-        case FS_SCALING_MIXED: this->summary << "Use various scaleing types:\\\\"
+        case FS_SCALING_MIXED: summary << "Use various scaleing types:\\\\"
                 << "& (\\phantom{7}6\\% of rounds): Scale every row with probability 1/4\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with probability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with probability 1/2\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with probability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with probability 1/4\\\\"
                 << "& (78\\% of rounds): Scale every row with probability 1/2\\\\";
             break;
-        case FS_SCALING_ONE_FOURTH: this->summary << "Scale every row with probability 1/4\\\\";
+        case FS_SCALING_ONE_FOURTH: summary << "Scale every row with probability 1/4\\\\";
             break;
-        case FS_SCALING_THREE_FORTH: this->summary << "Scale every row with probability 3/4\\\\";
+        case FS_SCALING_THREE_FORTH: summary << "Scale every row with probability 3/4\\\\";
             break;
-        case FS_SCALING_ONE_FOURTH_ONE_HALF: this->summary << "Scale the first n/2 rows with probability 1/4,\\\\& the n/2 last rows with probability 1/2\\\\";
+        case FS_SCALING_ONE_FOURTH_ONE_HALF: summary << "Scale the first n/2 rows with probability 1/4,\\\\& the n/2 last rows with probability 1/2\\\\";
             break;
-        case FS_SCALING_ONE_HALF_ONE_FOURTH: this->summary << "Scale the first n/2 rows with probability 1/2,\\\\& the n/2 last rows with probability 1/4\\\\";
+        case FS_SCALING_ONE_HALF_ONE_FOURTH: summary << "Scale the first n/2 rows with probability 1/2,\\\\& the n/2 last rows with probability 1/4\\\\";
             break;
-        default: this->summary << "Scale every row with probability 1/2\\\\";   // FS_SCALING_ONE_HALF
+        default: summary << "Scale every row with probability 1/2\\\\";   // FS_SCALING_ONE_HALF
     }
 #ifndef FS_CCF
-    this->summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
+    summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
 #else
-    this->summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
+    summary << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
 #endif
-    this->summary << "\\end{tabular}\\\\" << endl;
+    summary << "\\end{tabular}\\\\" << endl;
 
-    this->statistics << "\\section*{Settings}" << endl
+    statistics << "\\section*{Settings}" << endl
                      << "\\begin{tabular}{ll}" << endl
                      << "NTL Version: & " << NTL_VERSION << "\\\\"
                 #ifdef __GNUC__
@@ -477,49 +477,49 @@ void FileOutput::writeSettings(const FactoringSettings &settings, long max_prime
                      << "Scaling type: & ";
     switch(settings.scalingType)
     {
-        case FS_SCALING_MIXED: this->statistics << "Use various scaleing types:\\\\"
+        case FS_SCALING_MIXED: statistics << "Use various scaleing types:\\\\"
                 << "& (\\phantom{7}6\\% of rounds): Scale every row with probability 1/4\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with probability 1/4,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with probability 1/2\\\\"
                 << "& (\\phantom{7}8\\% of rounds): Scale the first n/2 rows with probability 1/2,\\\\& \\phantom{(76\\% of rounds): } the n/2 last rows with probability 1/4\\\\"
                 << "& (78\\% of rounds): Scale every row with probability 1/2\\\\";
             break;
-        case FS_SCALING_ONE_FOURTH: this->statistics << "Scale every row with probability 1/4\\\\";
+        case FS_SCALING_ONE_FOURTH: statistics << "Scale every row with probability 1/4\\\\";
             break;
-        case FS_SCALING_THREE_FORTH: this->statistics << "Scale every row with probability 3/4\\\\";
+        case FS_SCALING_THREE_FORTH: statistics << "Scale every row with probability 3/4\\\\";
             break;
-        case FS_SCALING_ONE_FOURTH_ONE_HALF: this->statistics << "Scale the first n/2 rows with probability 1/4,\\\\& the n/2 last rows with probability 1/2\\\\";
+        case FS_SCALING_ONE_FOURTH_ONE_HALF: statistics << "Scale the first n/2 rows with probability 1/4,\\\\& the n/2 last rows with probability 1/2\\\\";
             break;
-        case FS_SCALING_ONE_HALF_ONE_FOURTH: this->statistics << "Scale the first n/2 rows with probability 1/2,\\\\& the n/2 last rows with probability 1/4\\\\";
+        case FS_SCALING_ONE_HALF_ONE_FOURTH: statistics << "Scale the first n/2 rows with probability 1/2,\\\\& the n/2 last rows with probability 1/4\\\\";
             break;
-        default: this->statistics << "Scale every row with probability 1/2\\\\";    // FS_SCALING_ONE_HALF
+        default: statistics << "Scale every row with probability 1/2\\\\";    // FS_SCALING_ONE_HALF
     }
 
 #ifndef FS_CCF
-    this->statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
+    statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes" : "no") << "\\\\" << endl;
 #else
-    this->statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
+    statistics << endl << "Use Continued Fractions (CF): & " << (settings.useContinuedFractions ? "yes (centered)" : "no") << "\\\\" << endl;
 #endif
 
-    this->statistics << "\\end{tabular}\\\\" << endl;
+    statistics << "\\end{tabular}\\\\" << endl;
 
     // todo add explanation for tables to statistics file
 }
 
 void FileOutput::statisticsStrongBkzTime(double time)
 {
-    this->statistics << "\\paragraph{Strong BKZ:}" << time << "s" << endl;
+    statistics << "\\paragraph{Strong BKZ:}" << time << "s" << endl;
 }
 
 void FileOutput::closeEquationFile()
 {
-    this->summary << "\\end{document}" << endl;
-    this->summary.close();
+    summary << "\\end{document}" << endl;
+    summary.close();
 }
 
 void FileOutput::closeStatisticsFile()
 {
-    this->statistics << "\\end{document}" << endl;
-    this->statistics.close();
+    statistics << "\\end{document}" << endl;
+    statistics.close();
 }
 
 void FileOutput::writeSummary(const Statistics& stats, double time, long n, std::set<Equation> &uniqueEquations)
@@ -596,7 +596,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
         }
     }
 
-    this->statistics << endl << endl << "\\newpage" << endl
+    statistics << endl << endl << "\\newpage" << endl
                     << "\\section*{Summary}" << endl
                     << "\\resizebox{\\textwidth}{!}{" << endl
                     << "\\begin{tabular}{llll}" << endl
@@ -643,7 +643,7 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
 
                     <<"\\end{tabular}}" << endl;
 
-    this->summary << endl << endl << "\\newpage" << endl
+    summary << endl << endl << "\\newpage" << endl
                     << "\\section*{Summary}" << endl
                     << "\\resizebox{\\textwidth}{!}{" << endl
                     << "\\begin{tabular}{llll}" << endl
@@ -695,17 +695,17 @@ void FileOutput::texToPdf()
 {
     string pdftex;
     chdir("output");
-    pdftex = "pdflatex " + this->summaryName + ".tex && pdflatex " + this->statsName + ".tex";
+    pdftex = "pdflatex " + summaryName + ".tex && pdflatex " + statsName + ".tex";
     system(pdftex.c_str());
     system(pdftex.c_str());
     string trash;
-    trash = this->summaryName + ".log";
+    trash = summaryName + ".log";
     remove(trash.c_str());
-    trash = this->summaryName + ".aux";
+    trash = summaryName + ".aux";
     remove(trash.c_str());
-    trash = this->statsName + ".log";
+    trash = statsName + ".log";
     remove(trash.c_str());
-    trash = this->statsName + ".aux";
+    trash = statsName + ".aux";
     remove(trash.c_str());
     chdir("..");
 }
@@ -713,12 +713,12 @@ void FileOutput::texToPdf()
 void FileOutput::statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes,
                                              const Vec<long> &primes)
 {
-    this->statistics << "\\paragraph*{Scaled prime numbers:}";
+    statistics << "\\paragraph*{Scaled prime numbers:}";
     long n = primes.length();
     for(long i = 0; i < n; i++)
     {
         if(scaledPrimes[i])
-            this->statistics << primes[i] << " ";
+            statistics << primes[i] << " ";
     }
 
 }
