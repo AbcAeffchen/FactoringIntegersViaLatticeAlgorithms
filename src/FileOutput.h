@@ -1,6 +1,6 @@
 
 #ifndef FILEOUTPUT_H
-#define	FILEOUTPUT_H
+#define    FILEOUTPUT_H
 
 #include "Equation.h"
 #include "Statistics.h"
@@ -15,11 +15,11 @@
 #include <list>
 #include <set>
 #include <vector>
-#include <time.h>
+#include <ctime>
 #include <cstdlib>
 
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdio>
 
 using namespace NTL;
@@ -56,7 +56,7 @@ private:
                                    "$18 \\leq t < 40$",
                                    "$t \\geq 40$"};
 
-    void writeEqnFormatted(fstream &file, const Equation& eqn, const Vec<long>& primes);
+    void writeEqnFormatted(fstream& file, const Equation& eqn, const Vec<long>& primes);
 
     void writeEqnStatistics(const Equation& eqn, const Vec<long>& primes);
 
@@ -77,17 +77,17 @@ public:
     void statisticsDistances(RR theoretical, RR heuristic, RR reduced);
 
     void statisticsDelayedStagesOnLevel(int max_level,
-                                        const vector<vector<vector<unsigned long long>>> &delayedAndPerformedStages,
-                                        const vector<vector<vector<unsigned long long>>> &delayedStages,
+                                        const vector<vector<vector<unsigned long long>>>& delayedAndPerformedStages,
+                                        const vector<vector<vector<unsigned long long>>>& delayedStages,
                                         unsigned long long totalDelayedAndPerformedStages);
 
     void statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes);
 
-    void statisticsWriteScaledPrimes(const vector<bool> &scaledPrimes, const Vec<long> &primes);
+    void statisticsWriteScaledPrimes(const vector<bool>& scaledPrimes, const Vec<long>& primes);
 
     void writeFormattedEquationList(std::set<Equation>& eqns, const Vec<long>& primes);
 
-    void writeSettings(const FactoringSettings &settings, long max_prime, long long int seed);
+    void writeSettings(const FactoringSettings& settings, long max_prime, long long int seed);
 
     void statisticsStrongBkzTime(double time);
 
@@ -95,10 +95,10 @@ public:
 
     void closeStatisticsFile();
 
-    void writeSummary(const Statistics& stats, double time, long n, std::set<Equation> &uniqueEquations);
+    void writeSummary(const Statistics& stats, double time, long n, std::set<Equation>& uniqueEquations);
 
     void texToPdf();
 
 };
 
-#endif	/* FILEOUTPUT_H */
+#endif    /* FILEOUTPUT_H */

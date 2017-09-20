@@ -5,6 +5,8 @@
 #include <NTL/ZZ.h>
 #include <NTL/RR.h>
 
+#include <utility>
+
 #define FS_SCALING_ONE_HALF 1
 #define FS_SCALING_ONE_FOURTH 2
 #define FS_SCALING_THREE_FORTH 3
@@ -28,19 +30,19 @@ struct FactoringSettings
     const bool useContinuedFractions = true;
     const int scalingType = 0;
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c)
-            : N(N), n(n), c(c), min_eqns(n+1)
+    FactoringSettings(ZZ N, unsigned long n, RR c)
+            : N(std::move(N)), n(n), c(std::move(c)), min_eqns(n+1)
     { }
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, unsigned long min_eqns)
-            : N(N), n(n), c(c), min_eqns(min_eqns)
+    FactoringSettings(ZZ N, unsigned long n, RR c, unsigned long min_eqns)
+            : N(std::move(N)), n(n), c(std::move(c)), min_eqns(min_eqns)
     { }
 
-    FactoringSettings(const ZZ &N, unsigned long n, const RR &c, int max_level,
+    FactoringSettings(ZZ N, unsigned long n, RR c, int max_level,
                       double A_start_factor, double reduce_ratio, long accuracy_factor,
                       long strong_bkz, long slight_bkz, unsigned long min_eqns,
                       long long int seed_type = -2, bool useContinuedFractions = true, int scalingType = 0)
-            : N(N), n(n), c(c), max_level(max(10, max_level)), A_start_factor(A_start_factor),
+            : N(std::move(N)), n(n), c(std::move(c)), max_level(max(10, max_level)), A_start_factor(A_start_factor),
               reduce_ratio(reduce_ratio > 0 ? reduce_ratio : 0), accuracy_factor(accuracy_factor),
               strong_bkz(strong_bkz), slight_bkz(slight_bkz), min_eqns(min_eqns), seed_type(seed_type),
               useContinuedFractions(useContinuedFractions),scalingType(scalingType)

@@ -138,8 +138,8 @@ void FileOutput::createDirectory()
  */
 string FileOutput::getFilePrefix()
 {
-    time_t now = time(0);
-    struct tm  tstruct;
+    time_t now = time(nullptr);
+    struct tm tstruct;
     tstruct = *localtime(&now);
     char buf[80];
     strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", &tstruct);
@@ -242,12 +242,12 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level,
                                                 const vector<vector<vector<unsigned long long>>> &delayedStages,
                                                 unsigned long long totalDelayedAndPerformedStages)
 {
-    vector<vector<long long>> sumDelayedStagesOverAlpha2 = vector<vector<long long>>(3,vector<long long>(max_level- 10,0));
-    vector<vector<long long>> sumDelayedStagesOverT = vector<vector<long long>>(3,vector<long long>(max_level- 10,0));
+    vector<vector<long long>> sumDelayedStagesOverAlpha2(3,vector<long long>(max_level- 10,0));
+    vector<vector<long long>> sumDelayedStagesOverT(3,vector<long long>(max_level- 10,0));
     vector<long long> totalSumDelayedStages = vector<long long>(max_level- 10,0);
     long long totalDelayedStages = 0;
-    vector<vector<long long>> sumDelayedAndPerformedStagesOverAlpha2 = vector<vector<long long>>(3,vector<long long>(max_level- 10,0));
-    vector<vector<long long>> sumDelayedAndPerformedStagesOverT = vector<vector<long long>>(3,vector<long long>(max_level- 10,0));
+    vector<vector<long long>> sumDelayedAndPerformedStagesOverAlpha2(3,vector<long long>(max_level- 10,0));
+    vector<vector<long long>> sumDelayedAndPerformedStagesOverT(3,vector<long long>(max_level- 10,0));
     vector<long long> totalSumDelayedAndPerformedStages = vector<long long>(max_level- 10,0);
 
     for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
@@ -350,7 +350,7 @@ void FileOutput::statisticsDelayedStagesOnLevel(int max_level,
 
 void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<long>& primes)
 {
-    if(eqns.size() == 0)
+    if(eqns.empty())
     {
         this->statistics << "\\subsection*{No Equations found}" << endl;
         return;
@@ -364,9 +364,9 @@ void FileOutput::statisticsNewEquations(const list<Equation>& eqns, const Vec<lo
                      << "\\toprule" << endl
                      << "dist& level & $u$ & $v$ & $|u-vN|$ & time until & CF\\\\\\midrule" << endl
                      << "\\endhead" << endl;
-    for(std::list<Equation>::const_iterator it = eqns.begin(); it != eqns.end(); ++it)
+    for(const auto& eqn : eqns)
     {
-        this->writeEqnStatistics(*it, primes);
+        this->writeEqnStatistics(eqn, primes);
     }
     this->statistics << "\\end{longtable}" << endl;
 }
@@ -399,10 +399,10 @@ void FileOutput::writeFormattedEquationList(std::set<Equation>& eqns, const Vec<
     << "round & \\# & CF & $u$ & $v$ & $|u-vN|$ & $\\sign(u-vN)$\\\\\\midrule" << endl
     << "\\endhead" << endl;
 
-    for(std::list<Equation>::iterator it = eqnList.begin(); it != eqnList.end(); ++it)
+    for(const auto& it : eqnList)
     {
-        this->writeEqnFormatted(this->summary,*it, primes);
-        this->writeEqnFormatted(this->statistics,*it, primes);
+        this->writeEqnFormatted(this->summary, it, primes);
+        this->writeEqnFormatted(this->statistics, it, primes);
     }
 
     this->summary << "\\end{longtable}" << endl
@@ -530,17 +530,17 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
 
     RR v_avg = conv<RR>(0), v_cf_avg = conv<RR>(0);
     ZZ v_min = conv<ZZ>(0), v_cf_min = conv<ZZ>(0), v_max = conv<ZZ>(0), v_cf_max = conv<ZZ>(0), v_median = conv<ZZ>(0), v_cf_median = conv<ZZ>(0);
-    for(std::list<Equation>::iterator it = eqns.begin(); it != eqns.end(); ++it)
+    for(const auto& eqn : eqns)
     {
-        if(it->fromContinuedFraction)
+        if(eqn.fromContinuedFraction)
         {
-            v_cf_avg += conv<RR>(it->v);
-            eqnList_cf.push_front(*it);
+            v_cf_avg += conv<RR>(eqn.v);
+            eqnList_cf.push_front(eqn);
         }
         else
         {
-            eqnList.push_front(*it);
-            v_avg += conv<RR>(it->v);
+            eqnList.push_front(eqn);
+            v_avg += conv<RR>(eqn.v);
         }
     }
 
@@ -564,13 +564,13 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
     {
         if (eqnList.size() % 2 == 1)
         {
-            std::list<Equation>::iterator it = eqnList.begin();
+            auto it = eqnList.begin();
             std::advance(it, (eqnList.size() - 1) / 2);
             v_median = it->v;
         }
         else
         {
-            std::list<Equation>::iterator it = eqnList.begin();
+            auto it = eqnList.begin();
             std::advance(it, eqnList.size() / 2);
             v_median = it->v;
             v_median += (--it)->v;
@@ -582,13 +582,13 @@ void FileOutput::writeSummary(const Statistics& stats, double time, long n, std:
     {
         if (eqnList_cf.size() % 2 == 1)
         {
-            std::list<Equation>::iterator it = eqnList_cf.begin();
+            auto it = eqnList_cf.begin();
             std::advance(it, (eqnList_cf.size() - 1) / 2);
             v_cf_median = it->v;
         }
         else
         {
-            std::list<Equation>::iterator it = eqnList_cf.begin();
+            auto it = eqnList_cf.begin();
             std::advance(it, eqnList_cf.size() / 2);
             v_cf_median = it->v;
             v_cf_median += (--it)->v;

@@ -50,19 +50,90 @@ public:
     double minDistanceReduction = 0;
     double avgDistanceReduction = 0;
 
-    Statistics() {}
+    Statistics() = default;
 
-    void newSlightBkzTime(double time);
+    void newSlightBkzTime(const double time)
+    {
+        this->minSlightBkz = std::min(time, this->minSlightBkz);
+        this->maxSlightBkz = std::max(time, this->maxSlightBkz);
+        this->sumSlightBkz += time;
+    }
 
-    void newNewEnumTime(double time, bool eqn);
+    void newNewEnumTime(const double time, const bool eqn)
+    {
+        this->minNewEnum = std::min(time, this->minNewEnum);
+        this->maxNewEnum = std::max(time, this->maxNewEnum);
+        this->sumNewEnum += time;
 
-    void updateDistanceStats(const RR& theoretical, const RR&heuristic, const RR& reduced);
+        if(!eqn) return;
 
-    void updateRoundStats(bool delayed, bool eqn);
+        this->minNewEnumWE = std::min(time, this->minNewEnumWE);
+        this->maxNewEnumWE = std::max(time, this->maxNewEnumWE);
+        this->sumNewEnumWE += time;
+    }
 
-    void updateStagesCheckedForEquations(unsigned long long stagesCheckedForEquations, bool equationsFound);
+    void updateDistanceStats(const RR& theoretical, const RR&heuristic, const RR& reduced)
+    {
+        auto reduce_ratio = conv<double>(reduced / theoretical);
 
-    void closeStatistics(long totalRounds, long uniqueEquations, long duplicateEquations);
+        this->minDistanceReduction = std::max(reduce_ratio, this->minDistanceReduction);
+        this->maxDistanceReduction = std::min(reduce_ratio, this->maxDistanceReduction);
+
+        if(heuristic == reduced)
+            this->roundsWithoutReduction++;
+        else
+            this->sumDistanceReduction += reduce_ratio;
+    }
+
+
+    void updateRoundStats(const bool delayed, const bool eqn)
+    {
+        if(!delayed)
+            this->roundsWithoutDelayedStages++;
+
+        if(eqn)
+            this->roundsWithEquations++;
+    }
+
+    void updateStagesCheckedForEquations(const unsigned long long stagesCheckedForEquations, const bool equationsFound)
+    {
+        if(equationsFound)
+        {
+            this->totalStagesCheckedForEquationsWithEquations += stagesCheckedForEquations;
+            if(this->minStagesCheckedForEquationsWithEquations > stagesCheckedForEquations)
+                this->minStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+            if(this->maxStagesCheckedForEquationsWithEquations < stagesCheckedForEquations)
+                this->maxStagesCheckedForEquationsWithEquations = stagesCheckedForEquations;
+        }
+        else
+        {
+            this->totalStagesCheckedForEquationsWithoutEquations += stagesCheckedForEquations;
+            if(this->minStagesCheckedForEquationsWithoutEquations > stagesCheckedForEquations)
+                this->minStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+            if(this->maxStagesCheckedForEquationsWithoutEquations < stagesCheckedForEquations)
+                this->maxStagesCheckedForEquationsWithoutEquations = stagesCheckedForEquations;
+        }
+    }
+
+    void closeStatistics(const long totalRounds, const long uniqueEquations, const long duplicateEquations)
+    {
+        this->roundsTotal = totalRounds;
+        this->eqnUniqueTotal = uniqueEquations;
+        this->eqnDuplicates = duplicateEquations;
+
+        this->avgStagesCheckedForEquationsWithEquations = 1.0 * this->totalStagesCheckedForEquationsWithEquations / totalRounds;
+        this->avgStagesCheckedForEquationsWithoutEquations = 1.0 * this->totalStagesCheckedForEquationsWithoutEquations / totalRounds;
+
+        this->avgSlightBkz = this->sumSlightBkz / this->roundsTotal;
+
+        this->avgNewEnum = this->sumNewEnum / this->roundsTotal;
+        this->avgNewEnumWE = this->sumNewEnumWE / this->roundsWithEquations;
+
+        this->avgNumEqnPerRoundWithEqn = 1.0 * (this->eqnUniqueTotal + this->eqnDuplicates) / this->roundsWithEquations;
+        this->avgNumUniqEqnPerRoundWithEqn =  1.0 * this->eqnUniqueTotal / this->roundsWithEquations;
+
+        this->avgDistanceReduction = this->sumDistanceReduction / (this->roundsTotal - this->roundsWithoutReduction);
+    }
 };
 
 #endif	/* STATISTICS_H */
