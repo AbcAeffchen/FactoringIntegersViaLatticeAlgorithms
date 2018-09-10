@@ -16,7 +16,7 @@ struct Equation
     double reduced;
     long round;
     double time;
-    long counter;
+    long counter = 1;
     bool fromContinuedFraction;
 
     Equation(NTL::Vec<long> e, NTL::ZZ v, long level, double reduced, long round, double time, bool fromContinuedFraction = false)
@@ -26,7 +26,6 @@ struct Equation
           reduced(reduced),
           round(round),
           time(time),
-          counter(1),
           fromContinuedFraction(fromContinuedFraction)
     {}
 
@@ -95,7 +94,7 @@ inline bool sort_equations(const Equation& left, const Equation& right)
  */
 inline bool sort_equations_by_v(const Equation& left, const Equation& right)
 {
-    return left.v < right.v != 0;
+    return (left.v < right.v) != 0;
 }
 
 #endif	/* EQUATION_H */

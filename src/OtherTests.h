@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <cstdio>
+
 using namespace NTL;
 using namespace std;
 
@@ -48,30 +49,31 @@ const vector<long> primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                              1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931,
                              1933, 1949, 1951, 1973, 1979, 1987};
 
-void createImage(vector<vector<int>> val, int dim, int bkz)
+void createImage(const vector<vector<int>>& val, unsigned int dim, unsigned int bkz)
 {
-    FILE *f;
-    int x,y;
+    // todo this should be an svg image for simplicity
+    FILE* f;
+    unsigned int x, y;
     unsigned char color;
-    unsigned char *img = NULL;
-    int filesize = 54 + 3*dim*dim;  //w is your image width, h is image height, both int
-    if( img )
-        free( img );
-    img = (unsigned char *)malloc(3*dim*dim);
-    memset(img,0,sizeof(img));
+//    unsigned char* img = nullptr;
+    unsigned int filesize = 54 + 3 * dim * dim;  // w is your image width, h is image height, both int
 
-    for(int i=0; i<dim; i++)
+    auto* img = static_cast<unsigned char*>(malloc(3 * dim * dim));
+    memset(img, 0, 3 * dim * dim);
+
+    for(unsigned int i = 0; i < dim; i++)
     {
-        for(int j=0; j<dim; j++)
+        for(unsigned int j = 0; j < dim; j++)
         {
-            x=i; y=(dim-1)-j;
+            x = i;
+            y = (dim - 1) - j;
 
             if(val[i][j] == 0)
                 color = 255;
             else
                 color = 0;
 
-            if(j == dim-50)
+            if(j == dim - 50)
             {
                 if(val[i][j] == 0)
                 {
@@ -95,126 +97,115 @@ void createImage(vector<vector<int>> val, int dim, int bkz)
         }
     }
 
-    unsigned char bmpfileheader[14] = {'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0};
-    unsigned char bmpinfoheader[40] = {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0};
-    unsigned char bmppad[3] = {0,0,0};
+    unsigned char bmpfileheader[14] = {'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0};
+    unsigned char bmpinfoheader[40] = {40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0};
+    unsigned char bmppad[3] = {0, 0, 0};
 
-    bmpfileheader[ 2] = (unsigned char)(filesize    );
-    bmpfileheader[ 3] = (unsigned char)(filesize>> 8);
-    bmpfileheader[ 4] = (unsigned char)(filesize>>16);
-    bmpfileheader[ 5] = (unsigned char)(filesize>>24);
+    bmpfileheader[2] = static_cast<unsigned char>((filesize));
+    bmpfileheader[3] = static_cast<unsigned char>((filesize >> 8));
+    bmpfileheader[4] = static_cast<unsigned char>((filesize >> 16));
+    bmpfileheader[5] = static_cast<unsigned char>((filesize >> 24));
 
-    bmpinfoheader[ 4] = (unsigned char)(       dim    );
-    bmpinfoheader[ 5] = (unsigned char)(       dim>> 8);
-    bmpinfoheader[ 6] = (unsigned char)(       dim>>16);
-    bmpinfoheader[ 7] = (unsigned char)(       dim>>24);
-    bmpinfoheader[ 8] = (unsigned char)(       dim    );
-    bmpinfoheader[ 9] = (unsigned char)(       dim>> 8);
-    bmpinfoheader[10] = (unsigned char)(       dim>>16);
-    bmpinfoheader[11] = (unsigned char)(       dim>>24);
+    bmpinfoheader[4] = static_cast<unsigned char>((dim));
+    bmpinfoheader[5] = static_cast<unsigned char>((dim >> 8));
+    bmpinfoheader[6] = static_cast<unsigned char>((dim >> 16));
+    bmpinfoheader[7] = static_cast<unsigned char>((dim >> 24));
+    bmpinfoheader[8] = static_cast<unsigned char>((dim));
+    bmpinfoheader[9] = static_cast<unsigned char>((dim >> 8));
+    bmpinfoheader[10] = static_cast<unsigned char>((dim >> 16));
+    bmpinfoheader[11] = static_cast<unsigned char>((dim >> 24));
 
-    char str[80];
+    f = fopen(("./output/" + std::to_string(dim) + "_" + std::to_string(bkz) + ".bmp").c_str(), "wb");
 
-    strcpy (str,std::to_string(dim).c_str());
-    strcat (str,"_");
-    strcat (str,std::to_string(bkz).c_str());
-    strcat (str,".bmp");
+    fwrite(bmpfileheader, 1, 14, f);
+    fwrite(bmpinfoheader, 1, 40, f);
 
-    f = fopen(str,"wb");
-    fwrite(bmpfileheader,1,14,f);
-    fwrite(bmpinfoheader,1,40,f);
-    for(int i=0; i<dim; i++)
+    for(unsigned int i = 0; i < dim; i++)
     {
-        fwrite(img+(dim*(dim-i-1)*3),3,dim,f);
-        fwrite(bmppad,1,(4-(dim*3)%4)%4,f);
+        fwrite(img + (dim * (dim - i - 1) * 3), 3, static_cast<size_t>(dim), f);
+        fwrite(bmppad, 1, static_cast<size_t>((4 - (dim * 3) % 4) % 4), f);
     }
+
     fclose(f);
 }
 
-void createGraphDataFile(long dim, long bkz, Vec<RR> r_ii_squared)
+void createGraphDataFile(unsigned int dim, unsigned int bkz, const Vec<RR>& r_ii_squared)
 {
-    char fileName[80];
-
-    strcpy (fileName, "./output/");
-    strcat (fileName, std::to_string(dim).c_str());
-    strcat (fileName, "_");
-    strcat (fileName, std::to_string(bkz).c_str());
-    strcat (fileName, ".dat");
-
     fstream graphFile;
-    graphFile.open(fileName, ios::out);
+    graphFile.open("./output/" + std::to_string(dim) + "_" + std::to_string(bkz) + ".dat", ios::out);
 
-    RR quot_min = r_ii_squared[1]/r_ii_squared[0];
-    RR quot_max = r_ii_squared[1]/r_ii_squared[0];
-    RR quot_avg = r_ii_squared[1]/r_ii_squared[0];
+    RR quot_min = r_ii_squared[1] / r_ii_squared[0];
+    RR quot_max = r_ii_squared[1] / r_ii_squared[0];
+    RR quot_avg = r_ii_squared[1] / r_ii_squared[0];
 
-    for(long i = 2; i < dim; i++)
-    {
-    }
-    quot_avg /= (dim-1);
+    quot_avg /= (dim - 1);
 
     graphFile << "\\def\\quotientsData{";
-    for (int i = 1; i < dim; ++i)
+    for(unsigned int i = 1; i < dim; i++)
     {
-        if(r_ii_squared[i]/r_ii_squared[i-1] < quot_min)
-            quot_min = r_ii_squared[i]/r_ii_squared[i-1];
-        if(r_ii_squared[i]/r_ii_squared[i-1] > quot_max)
-            quot_max = r_ii_squared[i]/r_ii_squared[i-1];
-        quot_avg += r_ii_squared[i]/r_ii_squared[i-1];
+        const auto quot = r_ii_squared[i] / r_ii_squared[i - 1];
 
-        graphFile << "(" << i << "," << (r_ii_squared[i]/r_ii_squared[i-1]) << ")";
+        if(quot < quot_min)
+            quot_min = quot;
+
+        if(quot > quot_max)
+            quot_max = quot;
+
+        quot_avg += quot;
+
+        graphFile << "(" << i << "," << (quot) << ")";
     }
-    graphFile << "}" << endl;
 
-    quot_avg /= (dim-1);
+    quot_avg /= (dim - 1);
 
-    graphFile << "\\def\\quotientMin{" << quot_min << "}" << endl;
-    graphFile << "\\def\\quotientMax{" << quot_max << "}" << endl;
-    graphFile << "\\def\\quotientAVG{" << quot_avg << "}" << endl;
+    graphFile << "}\n\\def\\quotientMin{" << quot_min << "}\n"
+              << "\\def\\quotientMax{" << quot_max << "}\n"
+              << "\\def\\quotientAVG{" << quot_avg << "}\n";
 
     graphFile.close();
 }
 
-void BasisTests(ZZ N, RR c, long dim, long blockSize)
+void BasisTests(const ZZ& N, const RR& c, unsigned int dim, unsigned int blockSize)
 {
-    Mat<ZZ> B,U;
+    Mat<ZZ> B, U;
 
-    vector<vector<int>> val = vector<vector<int>>(dim,vector<int>(dim));
+    vector<vector<int>> val = vector<vector<int>>(dim, vector<int>(dim));
 
     if(dim < 50)
         dim = 50;
 
     B.SetDims(dim, dim + 1);    // transposed
     // Setting the basis
-    for(long i = 1; i <= dim; i++)
+    for(unsigned long i = 1; i <= dim; i++)
     {
-        B(i,i) = conv<ZZ>(10000 * SqrRoot(log(conv<RR>(primes[i-1]))));
+        B(i, i) = conv<ZZ>(10000 * SqrRoot(log(conv<RR>(primes[i - 1]))));
         if(c < 1)
-            B(i, dim + 1) = conv<ZZ>(pow(conv<RR>(N),c) * 10000 * log(conv<RR>(primes[i-1])));
+            B(i, dim + 1) = conv<ZZ>(pow(conv<RR>(N), c) * 10000 * log(conv<RR>(primes[i - 1])));
         else
-            B(i, dim + 1) = conv<ZZ>(conv<RR>(N * 10000) * log(conv<RR>(primes[i-1])));
+            B(i, dim + 1) = conv<ZZ>(conv<RR>(N * 10000) * log(conv<RR>(primes[i - 1])));
     }
 
     BKZ_FP(B, U, 0.99, blockSize);                 // strong reducing
 
-    transpose(U,U);
+    transpose(U, U);
 
     // open file
 
-    system("mkdir output");
+    if(system("mkdir output") == 0)
+        cout << "output directory created" << endl;
 
-    time_t now = time(0);
-    struct tm  tstruct;
-    tstruct = *localtime(&now);
+    time_t now = time(nullptr);
+    auto tstruct = *localtime(&now);
     char buf1[80];
     char buf2[80];
     strftime(buf1, sizeof(buf1), "./output/%Y-%m-%d_%H-%M-%S_BasisTests.tex", &tstruct);
     strftime(buf2, sizeof(buf2), "./output/%Y-%m-%d_%H-%M-%S_BasisTests.data", &tstruct);
     fstream basisTest;
-    basisTest.open(buf1,ios::out);
+    basisTest.open(buf1, ios::out);
 
     basisTest << "\\documentclass[a4paper,twoside,10pt]{report}" << endl << endl
-              << "\\usepackage[paperheight=" << 30.0/90.0 * dim + 2 << "cm,paperwidth=" << 62.0/90.0 * dim << "cm, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
+              << "\\usepackage[paperheight=" << 30.0 / 90.0 * dim + 2 << "cm,paperwidth=" << 62.0 / 90.0 * dim
+              << "cm, left=1cm, right=1cm, top=2cm,bottom=2cm]{geometry}" << endl
               << "\\usepackage{amsmath}" << endl
               << "\\usepackage{setspace}" << endl
               << "\\pagestyle{empty}" << endl << endl
@@ -228,14 +219,14 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
               << "\\tiny" << endl
               << "\\[ \\begin{tabular}{*{" << dim << "}{R}}" << endl;
 
-    for(long i = 1; i <= dim; i++)
+    for(unsigned long i = 1; i <= dim; i++)
     {
         basisTest << U(i, 1);
-        val[0][dim-i] = conv<int>(U(i,1));
-        for(long j = 2; j <= dim; j++)
+        val[0][dim - i] = conv<int>(U(i, 1));
+        for(unsigned long j = 2; j <= dim; j++)
         {
             basisTest << " & " << U(i, j);
-            val[j-1][dim-i] = conv<int>(U(i,j));
+            val[j - 1][dim - i] = conv<int>(U(i, j));
         }
         basisTest << " \\\\" << endl;
     }
@@ -244,34 +235,33 @@ void BasisTests(ZZ N, RR c, long dim, long blockSize)
 
     Mat<RR> mu;
     Vec<RR> r_ii_square;
-    ComputeGS(B,mu,r_ii_square);
+    ComputeGS(B, mu, r_ii_square);
 
     RR quot_min, quot_max, quot_avg;
 
-    quot_min = r_ii_square[1]/r_ii_square[0];
-    quot_max = r_ii_square[1]/r_ii_square[0];
-    quot_avg = r_ii_square[1]/r_ii_square[0];
+    quot_min = r_ii_square[1] / r_ii_square[0];
+    quot_max = r_ii_square[1] / r_ii_square[0];
+    quot_avg = r_ii_square[1] / r_ii_square[0];
 
-    for(long i = 2; i < dim; i++)
+    for(unsigned long i = 2; i < dim; i++)
     {
-        if(r_ii_square[i]/r_ii_square[i-1] < quot_min)
-            quot_min = r_ii_square[i]/r_ii_square[i-1];
-        if(r_ii_square[i]/r_ii_square[i-1] > quot_max)
-            quot_max = r_ii_square[i]/r_ii_square[i-1];
-        quot_avg += r_ii_square[i]/r_ii_square[i-1];
+        if(r_ii_square[i] / r_ii_square[i - 1] < quot_min)
+            quot_min = r_ii_square[i] / r_ii_square[i - 1];
+        if(r_ii_square[i] / r_ii_square[i - 1] > quot_max)
+            quot_max = r_ii_square[i] / r_ii_square[i - 1];
+        quot_avg += r_ii_square[i] / r_ii_square[i - 1];
     }
-    quot_avg /= (dim-1);
+    quot_avg /= (dim - 1);
 
-    basisTest << "$\\min\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_min << endl
-              << "\\\\$\\max\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_max << endl
-              << "\\\\avg $\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_avg << endl;
-
-    basisTest << "\\end{document}" << endl;
+    basisTest << "$\\min\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_min
+              << "\n\\\\$\\max\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_max
+              << "\n\\\\avg $\\frac{r_{i,i}^2}{r_{i-1,i-1}^2}$ " << quot_avg
+              << "\n\\end{document}" << endl;
 
     basisTest.close();
 
-    createImage(val,dim,blockSize);
-    createGraphDataFile(dim,blockSize,r_ii_square);
+    createImage(val, dim, blockSize);
+    createGraphDataFile(dim, blockSize, r_ii_square);
 }
 
 #endif //FACTORINGINTEGERSVIALATTICEALGORITHMS_OTHERTESTS_H

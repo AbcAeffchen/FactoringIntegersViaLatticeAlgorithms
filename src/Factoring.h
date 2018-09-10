@@ -1,6 +1,6 @@
 
 #ifndef FACTORINGINTEGERS_H
-#define	FACTORINGINTEGERS_H
+#define    FACTORINGINTEGERS_H
 
 #include "NewEnum.h"
 #include "Equation.h"
@@ -57,15 +57,15 @@ protected:
 
     // Data often used
     Mat<ZZ> B,                          /**< The used strong reduced prim lattice basis */
-            U,                          /**< The transition matrix with B_old*U = BKZ */
-            U_inv;                      /**< The inverse of U */
+        U,                          /**< The transition matrix with B_old*U = BKZ */
+        U_inv;                      /**< The inverse of U */
     Vec<RR> target_coordinates,         /**< The coordinates of th target vector (reduced and shifted) */
-            shift;                      /**< The shift */
+        shift;                      /**< The shift */
 
     // Buffer
     Mat<ZZ> B_scaled_transposed,        /**< The scaled BKZ-basis */
-            U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
-            U_scaled_inv;               /**< The inverse of U_scale */
+        U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
+        U_scaled_inv;               /**< The inverse of U_scale */
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
     vector<bool> scaled_primes;
 
@@ -87,11 +87,11 @@ protected:
         // scale
         B_scaled_transposed = B;    // not yet transposed
 
-        long threshold1,threshold2;
+        long threshold1, threshold2;
         int scalingType;
         if(settings.scalingType == FS_SCALING_MIXED)
         {
-            uniform_int_distribution<int> scalingType_dist(0,49);
+            uniform_int_distribution<int> scalingType_dist(0, 49);
             int choice = scalingType_dist(rgen);
             if(choice <= 2)         // 6%
                 scalingType = FS_SCALING_ONE_FOURTH;
@@ -133,29 +133,29 @@ protected:
 
         uniform_int_distribution<int> dist(0, 3);   // [0,3] random numbers uniform distribution
 
-        for(long i = 1; i <= settings.n/2; i++)
+        for(unsigned long i = 1; i <= settings.n / 2; i++)
         {
             if(dist(rgen) <= threshold1)       // P(scale row) = 1/2
             {
                 B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
-                scaled_primes[i-1] = true;
+                scaled_primes[i - 1] = true;
             }
             else
             {
-                scaled_primes[i-1] = false;
+                scaled_primes[i - 1] = false;
             }
         }
 
-        for(long i = settings.n / 2 + 1; i <= settings.n; i++)
+        for(unsigned long i = settings.n / 2 + 1; i <= settings.n; i++)
         {
             if(dist(rgen) <= threshold2)       // P(scale row) = 1/4
             {
                 B_scaled_transposed(i) *= 2;     // multiply the whole row by 2
-                scaled_primes[i-1] = true;
+                scaled_primes[i - 1] = true;
             }
             else
             {
-                scaled_primes[i-1] = false;
+                scaled_primes[i - 1] = false;
             }
         }
 
@@ -216,7 +216,7 @@ protected:
         for(long i = 1; i <= n; i++)
             log_prim_prod += log(primes(i));
 
-        RR a = ( N_RR_2c * log(N_RR) ) / (1 + N_RR_2c * log_prim_prod);
+        RR a = (N_RR_2c * log(N_RR)) / (1 + N_RR_2c * log_prim_prod);
 
         for(long i = 1; i <= n; i++)
             orth_target(i) = a;
@@ -261,8 +261,8 @@ protected:
         BKZ_FP(B, U, 0.99, strong_bkz);                 // strong reducing
 //    BKZ_QP(B, U, 0.99, strong_bkz);                 // strong reducing
 
-        transpose(B,B);
-        transpose(U,U);
+        transpose(B, B);
+        transpose(U, U);
 
         inv(U_inv, U);
 
@@ -290,7 +290,8 @@ protected:
         while(uniqueEquations.size() < settings.min_eqns)
         {
             round++;
-            cout << "Round " << round << endl;
+            cout << "Round " << round << "\n";
+
             file.statisticNewRound(round);
 
             timer.startTimer();
@@ -305,30 +306,31 @@ protected:
 
             newEnumTime = timer.stopTimer();
 
-            newEnum.getDistances(theoretical,heuristic,reduced);
+            newEnum.getDistances(theoretical, heuristic, reduced);
 
             // statistics
             stats.updateRoundStats(newEnum.L.totalDelayedAndPerformedStages > 0, !newEquations.empty());
-            stats.updateDistanceStats(theoretical,heuristic,reduced);
+            stats.updateDistanceStats(theoretical, heuristic, reduced);
             stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations, !newEquations.empty());
             stats.newSlightBkzTime(slightBkzTime);
             stats.newNewEnumTime(newEnumTime, !newEquations.empty());
             file.statisticsDelayedStagesOnLevel(settings.max_level,
-                                                      newEnum.L.maxDelayedAndPerformedStages,
-                                                      newEnum.L.delayedStages,
-                                                      newEnum.L.totalDelayedAndPerformedStages);
+                                                newEnum.L.maxDelayedAndPerformedStages,
+                                                newEnum.L.delayedStages,
+                                                newEnum.L.totalDelayedAndPerformedStages);
             file.statisticSlightBKZ(slightBkzTime, newEnumTime);
             file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);
-            file.statisticsDistances(theoretical,heuristic,reduced);
-            file.statisticsWriteScaledPrimes(scaled_primes,primes);
-            file.statisticsNewEquations(newEquations,primes);
+            file.statisticsDistances(theoretical, heuristic, reduced);
+            file.statisticsWriteScaledPrimes(scaled_primes, primes);
+            file.statisticsNewEquations(newEquations, primes);
 
             // display round results
-            cout << " -> total equations (new | total):       " << newEquations.size() << "  |  " << uniqueEquations.size() << " (" << settings.min_eqns << ")" << endl;
-            cout << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << eqnDuplicates << endl;
+            cout << " -> total equations (new | total):       " << newEquations.size() << "  |  "
+                 << uniqueEquations.size() << " (" << settings.min_eqns << ")\n"
+                 << " -> duplicate equations (new | total):   " << newDuplicates << "  |  " << eqnDuplicates << endl;
         }
 
-        stats.closeStatistics(round,uniqueEquations.size(),eqnDuplicates);
+        stats.closeStatistics(round, uniqueEquations.size(), eqnDuplicates);
 
         file.writeFormattedEquationList(uniqueEquations, primes);
         file.writeSummary(stats, timer.getTotalTime(), settings.n, uniqueEquations);
@@ -337,7 +339,6 @@ protected:
 
         file.texToPdf();
     }
-
 
     /**
      * Adds new equations to the equation set and count duplicate equations.
@@ -361,6 +362,7 @@ protected:
                 uniqueEquations.insert(upCounted);
             }
         }
+
         eqnDuplicates += duplicates;
 
         return duplicates;
@@ -370,11 +372,11 @@ protected:
     {
         primes.SetLength(n);
 
-        for(long i = 0; i < min(n,300); ++i)
+        for(long i = 0; i < min(n, 300); ++i)
             primes[i] = _primes[i];
 
         for(long i = 301; i <= n; i++)
-            primes(i) = NextPrime(primes(i-1)+2);
+            primes(i) = NextPrime(primes(i - 1) + 2);
     }
 
 public:
@@ -406,14 +408,18 @@ public:
         // setup random number generator
         unsigned int seed;
         if(settings.seed_type <= -2)
-            seed = (unsigned int) time(nullptr);
+        {
+            seed = static_cast<unsigned int>(time(nullptr));
+        }
         else if(settings.seed_type == -1)
         {
             random_device rd;
             seed = rd();
         }
         else
-            seed = (unsigned int) settings.seed_type;
+        {
+            seed = static_cast<unsigned int>(settings.seed_type);
+        }
 
         rgen = mt19937(seed);
 
@@ -439,4 +445,4 @@ inline ZZ getN(long e)
     return p1 * p2;
 }
 
-#endif	/* FACTORINGINTEGERS_H */
+#endif    /* FACTORINGINTEGERS_H */
