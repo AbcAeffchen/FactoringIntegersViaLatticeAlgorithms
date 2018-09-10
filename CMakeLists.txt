@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(FactoringIntegersViaLatticeAlgorithms C CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -lpthread -m64")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -lpthread -m64 -fpermissive -Wall -Wextra -Wold-style-cast -Wuseless-cast -Wshadow")
 
 set(SOURCE_PATH src)
 set(SOURCE_FILES ${SOURCE_PATH}/startProgram.cpp
