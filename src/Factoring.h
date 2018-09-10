@@ -334,8 +334,6 @@ protected:
 
         file.writeFormattedEquationList(uniqueEquations, primes);
         file.writeSummary(stats, timer.getTotalTime(), settings.n, uniqueEquations);
-        file.closeEquationFile();
-        file.closeStatisticsFile();
 
         file.texToPdf();
     }
