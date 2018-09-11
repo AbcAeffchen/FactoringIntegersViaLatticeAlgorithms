@@ -602,22 +602,30 @@ public:
             return;
         }
 
+        cout << "\nRendering latex files ... ";
         // run pdf latex twice on summary and equation list.
-        string pdftex = "pdflatex " + summaryName + ".tex && pdflatex " + statsName + ".tex";
+        // suppressing pdflatex output
+#ifdef _WIN32
+        // not tested
+        std::string nullDevice = "nul";
+#else
+        std::string nullDevice = "/dev/null";
+#endif
+
+        const string pdftex = "pdflatex " + summaryName + ".tex > " + nullDevice + " && pdflatex " + statsName + ".tex > " + nullDevice;
         if(system(pdftex.c_str()) != 0 || system(pdftex.c_str()) != 0)
         {
             cerr << "Couldn't run pdflatex." << endl;
         }
 
-        string trash;
-        trash = summaryName + ".log";
-        remove(trash.c_str());
-        trash = summaryName + ".aux";
-        remove(trash.c_str());
-        trash = statsName + ".log";
-        remove(trash.c_str());
-        trash = statsName + ".aux";
-        remove(trash.c_str());
+        cout << "finished\nRemoving latex generated files (.log, .aux) ... ";
+
+        remove((summaryName + ".log").c_str());
+        remove((summaryName + ".aux").c_str());
+        remove((statsName + ".log").c_str());
+        remove((statsName + ".aux").c_str());
+
+        cout << "finished\n";
 
         if(chdir("..") != 0)
             cerr << "Couldn't go out of output directory." << endl;
