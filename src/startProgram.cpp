@@ -8,71 +8,71 @@ using namespace std;
 void manual_settings_input()
 {
     long N_size;
-    cout << endl << "N ~ 10^";
+    cout << "\nN ~ 10^";
     cin >> N_size;
 
     unsigned long n;
-    cout << endl << "n is the dimension of the lattice (default is n = 90)" << endl << endl;
+    cout << "\nn is the dimension of the lattice (default is n = 90)\n\n";
     cout << "n = ";
     cin >> n;
 
     RR c;
-    cout << endl << "c is a parameter of the lattice (default c = 0.714)" << endl << endl;
+    cout << "\nc is a parameter of the lattice (default c = 0.714)\n\n";
     cout << "c = ";
     cin >> c;
 
     long s;
-    cout << endl << "s is the pruning level (default s = 14)" << endl << endl;
+    cout << "\ns is the pruning level (default s = 14)\n\n";
     cout << "s = ";
     cin >> s;
 
     double reduce_ratio;
-    cout << endl << "reduce_ratio: bypass not-reducing the minimal distance if it is lower than reduce_ratio*current minimal distance  (0 = never bypass, 1 = always bypass, default = 0.85)" << endl << endl;
+    cout << "\nreduce_ratio: bypass not-reducing the minimal distance if it is lower than reduce_ratio*current minimal distance  (0 = never bypass, 1 = always bypass, default = 0.85)\n\n";
     cout << "reduce_ratio = ";
     cin >> reduce_ratio;
 
     long bkz_strong;
     long bkz_slight;
-    cout << endl << "Block sizes of the strong (default 32) and slight (default 20) BKZ-reduce:" << endl << endl;
+    cout << "\nBlock sizes of the strong (default 32) and slight (default 20) BKZ-reduce:\n\n";
     cout << "strong BKZ block size: ";
     cin >> bkz_strong;
     cout << "slight BKZ block size: ";
     cin >> bkz_slight;
 
     double A_factor;
-    cout << endl << "A_factor controls the maximum start value of A = A_factor * 0.25 * sum(r_ii^2) (default alpha = 0.2)" << endl << endl;
+    cout << "\nA_factor controls the maximum start value of A = A_factor * 0.25 * sum(r_ii^2) (default alpha = 0.2)\n\n";
     cout << "A_factor = ";
     cin >> A_factor;
 
     unsigned long min_eqns;
-    cout << endl << "How many equations should be found before stopping the program and calculating statistics" << endl << endl;
-    cout << "Min. equations = ";
+    cout << "\nHow many equations should be found before stopping the program and calculating statistics\n\n"
+            "Min. equations = ";
     cin >> min_eqns;
 
     long long int seed_type;
-    cout << endl << "Choose a seed for the random number generator:" << endl
-         << "-2 = timestamp (default)" << endl
-         << "-1 = random device (sometimes buggy)" << endl
-         << "any non negative number: this number is used as seed" << endl << endl
-         << "Seed type: ";
+    cout << "\nChoose a seed for the random number generator:\n"
+            "-2 = timestamp (default)\n"
+            "-1 = random device (sometimes buggy)\n"
+            "any non negative number: this number is used as seed\n\n"
+            "Seed type: ";
     cin >> seed_type;
 
     char cf;
-    cout << endl << "Use continued fractions (y/n) (defaults to yes): ";
+    cout << "\nUse continued fractions (y/n) (defaults to yes): ";
     cin >> cf;
 
     int scalingType;
-    cout << endl << "Choose the scaling type:" << endl
-         << "0 = mixed (default)" << endl
-         << "1 = every row with probability 1/2" << endl
-         << "2 = every row with probability 1/4" << endl
-         << "3 = every row with probability 3/4" << endl
-         << "4 = first n/2 rows with prop. 1/4, other with prop. 1/2" << endl
-         << "5 = first n/2 rows with prop. 1/2, other with prop. 1/4" << endl
-         << "Scaling type: ";
+    cout << "\nChoose the scaling type:\n"
+            "0 = mixed (default)\n"
+            "1 = every row with probability 1/2\n"
+            "2 = every row with probability 1/4\n"
+            "3 = every row with probability 3/4\n"
+            "4 = first n/2 rows with prop. 1/4, other with prop. 1/2\n"
+            "5 = first n/2 rows with prop. 1/2, other with prop. 1/4\n"
+            "Scaling type: ";
     cin >> scalingType;
 
-    cout << endl << endl;
+    cout << "\n\n";
 
     Factoring(FactoringSettings(getN(N_size), n, c, s, A_factor, reduce_ratio, 10000, bkz_strong, bkz_slight, min_eqns, seed_type,cf =='y',scalingType));
 }
@@ -130,26 +130,47 @@ void speedTestBig()
     Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,1448682782,true,0));
 }
 
+void randomSpeedTestsSmall()
+{
+    unsigned int k;
+    cout << "Number of runs to make: ";
+    cin >> k;
+
+    for(unsigned int i = 0; i < k; i++)
+        Factoring(FactoringSettings(getN(14), 90, conv<RR>(5.0/7.0), 14, 0.2, 0.8, 10000, 32, 20, 91,-2,true,0));
+}
+
+void randomSpeedTestsBig()
+{
+    unsigned int k;
+    cout << "Number of runs to make: ";
+    cin >> k;
+
+    for(unsigned int i = 0; i < k; i++)
+        Factoring(FactoringSettings(getN(20), 150, conv<RR>(1/2.0), 17, 0.2, 0.8, 10000, 32, 20, 25,-2,true,0));
+}
+
 void menu()
 {
     short choice;
-    cout << "Choose what to do:" << endl
-         << "(  0) Run with custom settings" << endl
-         << "(  1) Run the speedTest (N~10^14)" << endl
-         << "(  2) Run the speedTest (N~10^20)" << endl
-         << endl
-         << "Test series" << endl
-         << "( 10) n test series" << endl
-         << "( 11) c test series" << endl
-         << "( 12) Prune test series" << endl
-         << "( 13) Scaling test series" << endl
-         << "( 14) Start Factor test series" << endl
-         << endl
-         << "(100) Custom Prime Lattice Basis Test" << endl
-         << "(101) Prime Lattice Basis Testseries" << endl << endl
-         << "Quit by [Ctrl]+[C]" << endl
-         << "Selection: ";
-        cin >> choice;
+    cout << "Choose what to do:\n"
+            "(  0) Run with custom settings\n"
+            "(  1) Run the speedTest (N~10^14)\n"
+            "(  2) Run the speedTest (N~10^20)\n\n"
+            "Performance Tests\n"
+            "(  5) Run multiple speedTests with random seeds (N~10^14)\n"
+            "(  6) Run multiple speedTests with random seeds (N~10^20)\n\n"
+            "Test series\n"
+            "( 10) n test series\n"
+            "( 11) c test series\n"
+            "( 12) Prune test series\n"
+            "( 13) Scaling test series\n"
+            "( 14) Start Factor test series\n\n"
+            "(100) Custom Prime Lattice Basis Test\n"
+            "(101) Prime Lattice Basis Testseries\n\n"
+            "Quit by [Ctrl]+[C]\n"
+            "Selection: ";
+    cin >> choice;
 
     switch(choice)
     {
@@ -161,6 +182,12 @@ void menu()
         break;
     case 2:
         speedTestBig();
+        break;
+    case 5:
+        randomSpeedTestsSmall();
+        break;
+    case 6:
+        randomSpeedTestsBig();
         break;
     case 10:
         test_series_n();
@@ -264,8 +291,6 @@ void menu()
             Factoring(FactoringSettings(getN(20), 140, conv<RR>(0.5), 17, 0.25, 0.82, 10000, 32, 20, 25, -2, true, FS_SCALING_MIXED));
         }
 
-
-
         break;
     }
     default:
@@ -278,8 +303,8 @@ int main()
     RR::SetPrecision(150);
     RR::SetOutputPrecision(20);
 
-    cout << "GCC: " << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__ << endl;
-    cout << "NTL: " << NTL_VERSION << endl << endl;
+    cout << "GCC: " << __GNUC__ << "." <<__GNUC_MINOR__ << "."  << __GNUC_PATCHLEVEL__
+         << "\nNTL: " << NTL_VERSION << "\n" << endl;
 
     menu();
 
