@@ -177,7 +177,7 @@ protected:
      * so the basis is multiplied by accuracy_factor before rounding.
      * @param accuracy_factor
      */
-    void setBasis(const long accuracy_factor)
+    void setBasis(const long /*accuracy_factor*/)
     {
         cout << "Setting Prime Lattice Basis: ";
         long n = primes.length();
@@ -189,8 +189,8 @@ protected:
         // Setting the basis
         for(long i = 1; i <= n; i++)
         {
-            conv(B(i, i), accuracy_factor * sqrt(log(primes(i))));
-            conv(B(i, n + 1), NpC * accuracy_factor * log(primes(i)));
+            conv(B(i, i), 1);
+            conv(B(i, n + 1), NpC * log(primes(i)));
         }
 
         cout << "finished" << endl;
@@ -206,20 +206,29 @@ protected:
     Vec<RR> orthogonalProjection_pl() const
     {
         Vec<RR> orth_target;
-        long n = primes.length();
+        const long n = primes.length();
         orth_target.SetLength(n);
 
-        RR N_RR = conv<RR>(N);
-        RR N_RR_2c = pow(N_RR, 2 * c);
+        const RR N_RR = conv<RR>(N);
+        const RR N_RR_2c = pow(N_RR, 2 * c);
+        const RR log_N_RR = log(N_RR);
 
-        double log_prim_prod = 0;
+        vector<double> log_primes(static_cast<unsigned long>(primes.length()));
+
+
+        double log_square_prim_sum = 0;
+        for(long i = 0; i < n; i++)
+        {
+            log_primes[i] = log(primes[i]);
+            log_square_prim_sum += log_primes[i] * log_primes[i];
+        }
+
+        RR d = (N_RR_2c * log(N_RR)) / (1 + N_RR_2c * log_square_prim_sum);
+
         for(long i = 1; i <= n; i++)
-            log_prim_prod += log(primes(i));
-
-        RR a = (N_RR_2c * log(N_RR)) / (1 + N_RR_2c * log_prim_prod);
-
-        for(long i = 1; i <= n; i++)
-            orth_target(i) = a;
+        {
+            orth_target(i) = d * log_primes[i-1];
+        }
 
         return orth_target;
     }
@@ -233,7 +242,7 @@ protected:
     {
         // getting the coordinates respecting the prime number lattice
         // and taking care of the strong reduction
-        mul(this->target_coordinates, conv<Mat<RR>>(U_inv), orthogonalProjection_pl());
+        mul(target_coordinates, conv<Mat<RR>>(U_inv), orthogonalProjection_pl());
 
         // make the shift
         long n = primes.length();
