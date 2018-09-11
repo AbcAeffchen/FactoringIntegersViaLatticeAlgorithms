@@ -315,8 +315,7 @@ protected:
             stats.newSlightBkzTime(slightBkzTime);
             stats.newNewEnumTime(newEnumTime, !newEquations.empty());
             file.statisticsDelayedStagesOnLevel(settings.max_level,
-                                                newEnum.L.maxDelayedAndPerformedStages,
-                                                newEnum.L.delayedStages,
+                                                newEnum.L,
                                                 newEnum.L.totalDelayedAndPerformedStages);
             file.statisticSlightBKZ(slightBkzTime, newEnumTime);
             file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);

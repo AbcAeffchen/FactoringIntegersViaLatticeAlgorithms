@@ -5,6 +5,7 @@
 #include "Equation.h"
 #include "Statistics.h"
 #include "FactoringSettings.h"
+#include "StageStorage.h"
 
 #include <NTL/RR.h>
 #include <NTL/matrix.h>
@@ -205,9 +206,8 @@ public:
                "\\end{tabular}}\\end{longtable}\n";
     }
 
-    void statisticsDelayedStagesOnLevel(int max_level,
-                                        const vector<vector<vector<unsigned long long>>>& delayedAndPerformedStages,
-                                        const vector<vector<vector<unsigned long long>>>& delayedStages,
+    void statisticsDelayedStagesOnLevel(unsigned int max_level,
+                                        const StageStorage& L,
                                         unsigned long long totalDelayedAndPerformedStages)
     {
         vector<vector<long long>> sumDelayedStagesOverAlpha2(3,vector<long long>(max_level- 10,0));
@@ -218,14 +218,14 @@ public:
         vector<vector<long long>> sumDelayedAndPerformedStagesOverT(3,vector<long long>(max_level- 10,0));
         vector<long long> totalSumDelayedAndPerformedStages = vector<long long>(max_level- 10,0);
 
-        for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
-            for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-                for(long level = 0; level < max_level- 10; level++)
+        for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
+            for(unsigned long t_indicator = 0; t_indicator < 3; t_indicator++)
+                for(unsigned long level = 0; level < max_level - 10; level++)
                 {
-                    sumDelayedAndPerformedStagesOverAlpha2[t_indicator][level] += delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
-                    sumDelayedAndPerformedStagesOverT[alpha_2_indicator][level] += delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
-                    sumDelayedStagesOverAlpha2[t_indicator][level] += delayedStages[alpha_2_indicator][t_indicator][level];
-                    sumDelayedStagesOverT[alpha_2_indicator][level] += delayedStages[alpha_2_indicator][t_indicator][level];
+                    sumDelayedAndPerformedStagesOverAlpha2[t_indicator][level] += L.maxDelayedAndPerformedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
+                    sumDelayedAndPerformedStagesOverT[alpha_2_indicator][level] += L.maxDelayedAndPerformedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
+                    sumDelayedStagesOverAlpha2[t_indicator][level] += L.delayedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
+                    sumDelayedStagesOverT[alpha_2_indicator][level] += L.delayedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
                 }
 
         for(long level = 0; level < max_level- 10; level++)
@@ -244,25 +244,25 @@ public:
                    << "}}, \\textbf{\\red{" << totalDelayedStages << "}}& " << t_indicator[0]
                    << "&" << t_indicator[1] << "&"  << t_indicator[2] << "&\\\\\\midrule\n";
 
-        for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
+        for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
         {
             statistics << alpha_2_indicator_text[alpha_2_indicator];
-            for(long t_indicator = 0; t_indicator < 3; t_indicator++)
+            for(unsigned long t_indicator = 0; t_indicator < 3; t_indicator++)
             {
                 // delayed and performed (green)
                 statistics << "& \\green{";
-                statistics << delayedAndPerformedStages[alpha_2_indicator][t_indicator][0];
-                for (long level = 1; level < max_level - 10; level++)
+                statistics << L.maxDelayedAndPerformedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,0)];
+                for (unsigned long level = 1; level < max_level - 10; level++)
                 {
-                    statistics << "," << delayedAndPerformedStages[alpha_2_indicator][t_indicator][level];
+                    statistics << "," << L.maxDelayedAndPerformedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
                 }
 
                 statistics << "} \\newline\n\\red{";
                 // delayed stages (red)
-                statistics << delayedStages[alpha_2_indicator][t_indicator][0];
-                for (long level = 1; level < max_level - 10; level++)
+                statistics << L.delayedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,0)];
+                for (unsigned long level = 1; level < max_level - 10; level++)
                 {
-                    statistics << "," << delayedStages[alpha_2_indicator][t_indicator][level];
+                    statistics << "," << L.delayedStages[L.coordinatesToIndex<true>(t_indicator,alpha_2_indicator,level)];
                 }
 
                 statistics << "}";

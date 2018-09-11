@@ -1,357 +1,24 @@
 
 #ifndef NEWENUM_H
-#define    NEWENUM_H
+#define NEWENUM_H
 
 #include "Equation.h"
 #include "Timer.h"
 #include "Statistics.h"
 #include "FileOutput.h"
+#include "NewEnumStage.h"
+#include "StageStorage.h"
 
 #include <NTL/RR.h>
 #include <NTL/ZZ.h>
-#include <NTL/matrix.h>
 #include <NTL/LLL.h>
 #include <cmath>
-#include <list>
 #include <queue>
 #include <utility>
 #include <vector>
-#include <iostream>
-#include <algorithm>
 
 using namespace std;
 using namespace NTL;
-
-/**
- * struct NewEnumStage This is a data structure to save a stage of NewEnum
- */
-struct NewEnumStage
-{
-    RR y_t;                     // equals y(t)
-    RR c_tp1;                   // equals c(t+1)
-    Vec<double> u;              // equals Vec<RR> u but need less memory. u contains only integers, so it's not important if they are stored in RR or double
-    long t;                     // current coordinate
-
-    NewEnumStage() : y_t(conv<RR>(0)), c_tp1(conv<RR>(0)), t(0)
-    {}
-
-    NewEnumStage(RR y_t, RR c_tp1, const Vec<RR>& u, long t)
-        : y_t(std::move(y_t)), c_tp1(std::move(c_tp1)), u(conv<Vec<double>>(u)), t(t)
-    {}
-
-    void set(const RR& y_t, const RR& c_tp1, const Vec<RR>& u, long t)
-    {
-        this->y_t = y_t;
-        this->c_tp1 = c_tp1;
-        conv(this->u, u);
-        this->t = t;
-    }
-
-    /**
-     * Converts the stored Vec<double> u to a Vec<RR> u, that is required by NewEnum
-     * @return
-     */
-    void get_u(Vec<RR>& u) const
-    {
-        conv(u, this->u);
-    }
-
-
-};
-
-class StageStorage
-{
-public:
-    // todo improve this storage by flattening. This should reduce the access times.
-    // statistics
-    /**
-     * Contains the number of stages stored for the level
-     * at the moment this level gets performed.
-     * Organized as [alpha_2_indicator][t_indicator][level-11]
-     */
-    std::vector<std::vector<std::vector<unsigned long long>>> maxDelayedAndPerformedStages;
-    unsigned long long totalDelayedAndPerformedStages = 0;
-    /**
-     * Contains the number of stages stored for the level (performed and deleted)
-     * Organized as [alpha_2_indicator][t_indicator][level-11]
-     */
-    std::vector<std::vector<std::vector<unsigned long long>>> delayedStages;
-
-    explicit StageStorage(unsigned long pruningLevel)
-        : pruningLevel(pruningLevel), min_level(10),
-          stageCounterByLevel(vector<unsigned long long>(pruningLevel - min_level, 0))
-    {
-        storage = std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>>(3,
-                                                                                  std::vector<std::vector<std::list<NewEnumStage*>>>(
-                                                                                      3,
-                                                                                      std::vector<std::list<NewEnumStage*>>(
-                                                                                          pruningLevel - min_level)));
-        maxDelayedAndPerformedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3,
-                                                                                                 std::vector<std::vector<unsigned long long>>(
-                                                                                                     3,
-                                                                                                     std::vector<unsigned long long>(
-                                                                                                         pruningLevel -
-                                                                                                         min_level,
-                                                                                                         0)));
-        delayedStages = std::vector<std::vector<std::vector<unsigned long long>>>(3,
-                                                                                  std::vector<std::vector<unsigned long long>>(
-                                                                                      3,
-                                                                                      std::vector<unsigned long long>(
-                                                                                          pruningLevel - min_level,
-                                                                                          0)));
-        alpha_2_min = std::vector<std::vector<std::vector<double>>>(3, std::vector<std::vector<double>>(3,
-                                                                                                        std::vector<double>(
-                                                                                                            pruningLevel -
-                                                                                                            min_level,
-                                                                                                            2.0)));
-        // allocate 1000 stages for the beginning
-        for(int i = 0; i < 200000; ++i)
-            pool.push_back(new NewEnumStage);
-    }
-
-    ~StageStorage()
-    {
-        resetStorage();   // return all stages to the pool
-        NewEnumStage* temp;
-        // delete all stages
-        while(!pool.empty())
-        {
-            temp = pool.front();
-            pool.pop_front();
-            delete temp;
-        }
-    }
-
-    bool getNext(NewEnumStage*& stage)
-    {
-        if(stageCounterByLevel[currentLevel - min_level - 1] <= 0 || stageCounterTotal >= stageCounterThreshold)
-            return false;
-
-        for(unsigned long t_indicator = 0; t_indicator < 3; ++t_indicator)
-        {
-            for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; ++alpha_2_indicator)
-            {
-                if(!storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].empty())
-                {
-                    stage = storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].front();
-                    storage[t_indicator][alpha_2_indicator][currentLevel - min_level - 1].pop_front();
-                    stageCounterByLevel[currentLevel - min_level - 1]--;
-                    stageCounterTotal--;
-                    return true;
-                }
-            }
-        }
-
-        // It never should come this far, but who knows...
-        return false;
-    }
-
-    void incrementCurrentLevel()
-    {
-        currentLevel++;
-
-        for(unsigned long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
-            for(unsigned long t_indicator = 0; t_indicator < 3; t_indicator++)
-            {
-                maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][currentLevel - min_level -
-                                                                             1] = storage[t_indicator][alpha_2_indicator][
-                    currentLevel - min_level - 1].size();
-                totalDelayedAndPerformedStages += storage[t_indicator][alpha_2_indicator][currentLevel - min_level -
-                                                                                          1].size();
-            }
-    }
-
-    bool storeStage(const RR& y_t, const RR& c_t, const RR& c_tp1, const Vec<RR>& u, long t, long level)
-    {
-        NewEnumStage* stage = getStage();
-        stage->set(y_t, c_tp1, u, t);
-
-        double alpha_2;
-        conv(alpha_2, c_t / maxDistance);
-        long alpha_2_indicator = this->alpha_2_indicator(alpha_2);
-        long t_indicator = this->t_indicator(stage->t);
-        storage[t_indicator][alpha_2_indicator][level - min_level - 1].push_back(stage);
-
-        if(alpha_2_min[alpha_2_indicator][t_indicator][level - min_level - 1] > alpha_2)
-            alpha_2_min[alpha_2_indicator][t_indicator][level - min_level - 1] = alpha_2;
-
-        stageCounterTotal++;
-        stageCounterByLevel[level - min_level - 1]++;
-
-        // statistics
-        delayedStages[alpha_2_indicator][t_indicator][level - min_level - 1]++;
-
-        return stageCounterTotal >= stageCounterThreshold;      // about 6 GB of RAM depending on the dimension
-    }
-
-    void updateMaxDistance(const RR& distance)
-    {
-        double alpha_1;
-        conv(alpha_1, distance / maxDistance);
-
-        if(alpha_1 < alpha_1_threshold && stageCounterTotal > 100)
-            recalculateLevels(alpha_1);
-
-        for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
-            for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-                for(long s = std::max(0L, currentLevel - min_level - 1); s < pruningLevel - min_level; s++)
-                    alpha_2_min[alpha_2_indicator][t_indicator][s] /= alpha_1;
-
-        maxDistance = distance;
-    }
-
-    void resetStorage(const RR& A = conv<RR>(0))
-    {
-        // reset counters/statistics
-        totalDelayedAndPerformedStages = 0;
-        stageCounterTotal = 0;
-        for(int level = 0; level < pruningLevel - min_level; level++)
-            stageCounterByLevel[level] = 0;
-
-        for(long alpha_2_indicator = 0; alpha_2_indicator < 3; alpha_2_indicator++)
-            for(long t_indicator = 0; t_indicator < 3; t_indicator++)
-                for(int level = 0; level < pruningLevel - min_level; level++)
-                {
-                    maxDelayedAndPerformedStages[alpha_2_indicator][t_indicator][level] = 0;
-                    delayedStages[alpha_2_indicator][t_indicator][level] = 0;
-                    alpha_2_min[alpha_2_indicator][t_indicator][level] = 2.0;
-                    returnStages(storage[t_indicator][alpha_2_indicator][level]);
-                }
-
-        maxDistance = A;
-        currentLevel = min_level;
-    }
-
-    /**
-     * returns the stage to the pool of available stages. This prevents to much allocating
-     */
-    void returnStage(NewEnumStage* stage)
-    {
-        pool.push_back(stage);
-    }
-
-    unsigned long long getTotalDelayedStages()
-    {
-        return stageCounterTotal;
-    }
-
-private:
-    const double alpha_1_threshold = 0.99;      /**< A_new/A_old = alpha_1 < alpha_1_threshold.
-                                                     Used to prevent to much useless level recalculations. */
-    const unsigned long long stageCounterThreshold = 2500000;   // About 6 GB of RAM depending on the dimension
-    const long pruningLevel;
-    const long min_level = 10;                  /**< minimum level */
-
-    unsigned long long stageCounterTotal = 0;
-    vector<unsigned long long> stageCounterByLevel;
-
-    long currentLevel = 10;
-
-    RR maxDistance;
-
-    std::vector<std::vector<std::vector<double>>> alpha_2_min;     /**< organized as alpha_2_min[alpha_2_indicator][t_indicator][level] */
-
-    list<NewEnumStage*> pool;
-    std::vector<std::vector<std::vector<std::list<NewEnumStage*>>>> storage;        /**< A queue of stages for every level s and projection t
-                                                                                         organized as storage[t_indicator][alpha_2_indicator][s-11]. */
-
-    inline long alpha_2_indicator(const double alpha_2) const
-    {
-//        const bool a = alpha_2 > 0.65;
-        // return static_cast<long>(a) * 2 + static_cast<long>(!a) * static_cast<long>(alpha_2 > 0.4);
-        return (alpha_2 > 0.65) ? 2 : (alpha_2 > 0.4 ? 1 : 0);
-    }
-
-    inline long t_indicator(const long t) const
-    {
-//        const bool a = t >= 40;
-        // return static_cast<long>(a) * 2 + static_cast<long>(!a) * static_cast<long>(t >= 18);
-
-        return (t >= 40) ? 2 : (t >= 18 ? 1 : 0);
-    }
-
-    NewEnumStage* getStage()
-    {
-        if(pool.empty())
-        {
-            for(long i = 0; i < 10000; i++)
-                pool.push_back(new NewEnumStage);
-        }
-
-        NewEnumStage* stage = pool.front();
-        pool.pop_front();
-        return stage;
-    }
-
-    void recalculateLevels(const double alpha_1)
-    {
-        double new_alpha_2;
-        long new_alpha_2_indicator;
-        long level_change;
-        long s_max = pruningLevel - min_level - 1;
-        long s_min = currentLevel - min_level - 1;
-
-        /**
-         * skip t_indicator = 0, since the stages here have t between 4 and 20.
-         * So in almost all cases the will be no change.
-         */
-        for(int t_indicator = 2; t_indicator >= 1; t_indicator--)
-        {
-            for(int alpha_2_indicator = 2; alpha_2_indicator >= 0; alpha_2_indicator--)
-            {
-                for(long s = s_max; s > s_min; s--)
-                {
-                    if(storage[t_indicator][alpha_2_indicator][s].size() < 10)
-                        continue;
-
-                    level_change = levelChange(alpha_1, alpha_2_min[alpha_2_indicator][t_indicator][s], t_indicator);
-                    if(level_change <= 0)
-                        continue;
-
-                    new_alpha_2 = alpha_2_min[alpha_2_indicator][t_indicator][s] / alpha_1;
-                    new_alpha_2_indicator = this->alpha_2_indicator(new_alpha_2);
-
-                    if(s + level_change > pruningLevel - 11)
-                    {   // return stages
-                        stageCounterByLevel[s] -= storage[t_indicator][alpha_2_indicator][s].size();
-                        stageCounterTotal -= storage[t_indicator][alpha_2_indicator][s].size();
-                        returnStages(storage[t_indicator][alpha_2_indicator][s]);
-                        alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
-                    }
-                    else
-                    {   // move stages
-                        stageCounterByLevel[s] -= storage[t_indicator][alpha_2_indicator][s].size();
-                        stageCounterByLevel[s + level_change] += storage[t_indicator][alpha_2_indicator][s].size();
-                        storage[t_indicator][new_alpha_2_indicator][s + level_change].splice(
-                            storage[t_indicator][new_alpha_2_indicator][s + level_change].end(),
-                            storage[t_indicator][alpha_2_indicator][s]);
-                        alpha_2_min[t_indicator][alpha_2_indicator][s + level_change] = std::min(
-                            alpha_2_min[t_indicator][alpha_2_indicator][s + level_change],
-                            alpha_2_min[t_indicator][alpha_2_indicator][s]);
-                        alpha_2_min[t_indicator][alpha_2_indicator][s] = 2.0;
-                    }
-                }
-            }
-        }
-    }
-
-    inline unsigned long levelChange(const double alpha_1, const double alpha_2, const long t_indicator) const
-    {
-        return static_cast<unsigned long>(t_indicator == 0
-                                          ? 0
-                                          : (alpha_1 <= alpha_2
-                                             ? pruningLevel - min_level -
-                                               1        // 2*log(2)= 1.386294361119890..., 39=40-1
-                                             : ceil(
-                    (t_indicator == 2 ? 39.0 : 17.0) * 1.38629436111989 / log((1.0 - alpha_2) / (alpha_1 - alpha_2))) -
-                                               1));
-    }
-
-    inline void returnStages(list<NewEnumStage*>& stages)
-    {
-        pool.splice(pool.end(), stages);
-    }
-};
 
 class NewEnum
 {
@@ -402,7 +69,6 @@ private:
     ZZ u, vN, h_n, k_n, h_nm1, k_nm1, h_nm2,
         k_nm2, a_nm1, left_side, right_side, ride_side_factor;
     RR v, d, alpha_nm1;
-
 
     void prepare(unsigned long round, const Mat<ZZ>& newBasis_transposed, const Mat<ZZ>& newU_scaled,
                  const Vec<RR>& new_target_coordinates)
@@ -908,7 +574,7 @@ public:
         return equations;
     }
 
-    void getDistances(RR& theoretical, RR& heuristic, RR& reduced)
+    void getDistances(RR& theoretical, RR& heuristic, RR& reduced) const
     {
         theoretical = theoreticalMaxDistance;
         heuristic = heuristicMaxDistance;
