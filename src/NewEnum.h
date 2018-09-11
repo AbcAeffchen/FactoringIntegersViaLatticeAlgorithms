@@ -55,9 +55,9 @@ private:
     Vec<double> log_V_minus_log_R_prod_minus_log_t;     /**< Contains the values \f$log(V_t / (r_{1,1} * ... * r_{t,t}))\f$ */
     const Vec<double> log_t;                /**< contains the values log(t) for t = 1...n */
 
-    const int min_level = 10;               /**< minimum level */
-    const int max_level;                    /**< maximum level */
-    int current_level = 10;                 /**< current level */
+    const unsigned int min_level = 10;      /**< minimum level */
+    const unsigned int max_level;           /**< maximum level */
+    unsigned int current_level = 10;        /**< current level */
     RR A_curr;
     RR theoreticalMaxDistance;
     RR heuristicMaxDistance;
@@ -226,7 +226,7 @@ private:
             // the program comes only this far, if level > current_s holds
             if(level <= max_level)
             {
-                if(L.storeStage(y(t), c(t), c(t + 1), u, t, level))      // store the stage for later
+                if(L.storeStage(y(t), c(t), c(t + 1), u, t, static_cast<unsigned long>(level)))      // store the stage for later
                     return;
             }
 
@@ -278,7 +278,7 @@ private:
 
         for(long i = 1; i <= n; i++)
         {
-            log_R_diag_prod(i) = log(log_R_diag_prod(i)) / 2.0;
+            log_R_diag_prod(i) = log(log_R_diag_prod(i)) * 0.5;
         }
 
         for(long i = 2; i <= n; i++)
@@ -529,8 +529,8 @@ private:
     inline long calculateLevel(long t, const RR& c_t) const
     {
         return conv<long>(floor(
-            -((t - 1) / 2.0 * log(conv<double>(A_curr - c_t)) + log_V_minus_log_R_prod_minus_log_t(t - 1)) /
-            0.693147180559945));    // log(2) = 0.69314...
+            -((t - 1) * 0.5 * log(conv<double>(A_curr - c_t)) + log_V_minus_log_R_prod_minus_log_t(t - 1)) *
+                1.4426950408889634));    // log(2) = 0.69314..., 1/log(2) = 1.4426950408889634
     }
 
 public:
