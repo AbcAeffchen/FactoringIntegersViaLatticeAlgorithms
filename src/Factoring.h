@@ -57,15 +57,15 @@ protected:
 
     // Data often used
     Mat<ZZ> B,                          /**< The used strong reduced prim lattice basis */
-        U,                          /**< The transition matrix with B_old*U = BKZ */
-        U_inv;                      /**< The inverse of U */
+            U,                          /**< The transition matrix with B_old*U = BKZ */
+            U_inv;                      /**< The inverse of U */
     Vec<RR> target_coordinates,         /**< The coordinates of th target vector (reduced and shifted) */
-        shift;                      /**< The shift */
+            shift;                      /**< The shift */
 
     // Buffer
     Mat<ZZ> B_scaled_transposed,        /**< The scaled BKZ-basis */
-        U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
-        U_scaled_inv;               /**< The inverse of U_scale */
+            U_scaled,                   /**< The transition matrix to the scaled BKZ basis */
+            U_scaled_inv;               /**< The inverse of U_scale */
     Vec<RR> target_scaled_coordinates;  /**< The scaled shifted target vector coordinates */
     vector<bool> scaled_primes;
 
@@ -233,7 +233,7 @@ protected:
     {
         // getting the coordinates respecting the prime number lattice
         // and taking care of the strong reduction
-        mul(this->target_coordinates, conv<Mat<RR> >(U_inv), orthogonalProjection_pl());
+        mul(this->target_coordinates, conv<Mat<RR>>(U_inv), orthogonalProjection_pl());
 
         // make the shift
         long n = primes.length();
@@ -314,9 +314,7 @@ protected:
             stats.updateStagesCheckedForEquations(newEnum.stagesCheckedForEquations, !newEquations.empty());
             stats.newSlightBkzTime(slightBkzTime);
             stats.newNewEnumTime(newEnumTime, !newEquations.empty());
-            file.statisticsDelayedStagesOnLevel(settings.max_level,
-                                                newEnum.L,
-                                                newEnum.L.totalDelayedAndPerformedStages);
+            file.statisticsDelayedStagesOnLevel(settings.max_level, newEnum.L);
             file.statisticSlightBKZ(slightBkzTime, newEnumTime);
             file.statisticsWriteStagesChecked(newEnum.stagesCheckedForEquations);
             file.statisticsDistances(theoretical, heuristic, reduced);

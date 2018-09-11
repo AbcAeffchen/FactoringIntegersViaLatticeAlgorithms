@@ -155,8 +155,8 @@ private:
         long max_t = current_stage->t;
         long t = current_stage->t;          // projection to the n-t-1 last coordinates
         Vec<RR> c,                          // Length in the projection
-            u,                          // coordinates of a close vector
-            y;                          // uncovered parts of the target vector
+                u,                          // coordinates of a close vector
+                y;                          // uncovered parts of the target vector
         c.SetLength(t + 1);
         c(t + 1) = current_stage->c_tp1;
         current_stage->get_u(u);
@@ -427,7 +427,7 @@ private:
             }
 
             cf_equation = true;
-        }
+        }   // end of do-while loop
 #ifndef FS_CCF
         while(k_n < threshold && settings.useContinuedFractions);
 #else
@@ -454,8 +454,7 @@ private:
      * @param [in,out] a_nm1
      * @param [in,out] alpha_nm1
      */
-    void
-    nextContinuedFraction(ZZ& h_n, ZZ& k_n, ZZ& h_nm1, ZZ& k_nm1, ZZ& h_nm2, ZZ& k_nm2, ZZ& a_nm1, RR& alpha_nm1) const
+    inline void nextContinuedFraction(ZZ& h_n, ZZ& k_n, ZZ& h_nm1, ZZ& k_nm1, ZZ& h_nm2, ZZ& k_nm2, ZZ& a_nm1, RR& alpha_nm1) const
     {
 //    h_n = a_nm1 * h_nm1 + h_nm2;
         mul(h_n, a_nm1, h_nm1);
@@ -503,10 +502,7 @@ private:
         if(k_n > 1)        // if not smooth
             return false;
 
-        if(right_side < 0)
-            equation(n + 1) = 1;
-        else
-            equation(n + 1) = 0;
+        equation(n + 1) = right_side < 0;
 
         ZZ right_side_abs = abs(right_side);
 
@@ -526,9 +522,9 @@ private:
         return !(right_side_abs > 1 || left_side == 1);     // if not smooth or the equation is 1 = 1
     }
 
-    inline long calculateLevel(long t, const RR& c_t) const
+    inline long calculateLevel(const long t, const RR& c_t) const
     {
-        return conv<long>(floor(
+        return static_cast<long>(floor(
             -((t - 1) * 0.5 * log(conv<double>(A_curr - c_t)) + log_V_minus_log_R_prod_minus_log_t(t - 1)) *
                 1.4426950408889634));    // log(2) = 0.69314..., 1/log(2) = 1.4426950408889634
     }

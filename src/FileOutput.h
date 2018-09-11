@@ -206,9 +206,7 @@ public:
                "\\end{tabular}}\\end{longtable}\n";
     }
 
-    void statisticsDelayedStagesOnLevel(unsigned int max_level,
-                                        const StageStorage& L,
-                                        unsigned long long totalDelayedAndPerformedStages)
+    void statisticsDelayedStagesOnLevel(unsigned int max_level, const StageStorage& L)
     {
         vector<vector<long long>> sumDelayedStagesOverAlpha2(3,vector<long long>(max_level- 10,0));
         vector<vector<long long>> sumDelayedStagesOverT(3,vector<long long>(max_level- 10,0));
@@ -240,7 +238,7 @@ public:
 
         statistics << "\\textbf{Delayed Stages}\\newline\\resizebox{\\linewidth}{!}{%\n"
                       "\\begin{tabular}[t]{c|C{4cm}C{4cm}C{4cm}|C{4cm}}\n"
-                      "\\textbf{\\green{" << totalDelayedAndPerformedStages
+                      "\\textbf{\\green{" << L.totalDelayedAndPerformedStages
                    << "}}, \\textbf{\\red{" << totalDelayedStages << "}}& " << t_indicator[0]
                    << "&" << t_indicator[1] << "&"  << t_indicator[2] << "&\\\\\\midrule\n";
 
