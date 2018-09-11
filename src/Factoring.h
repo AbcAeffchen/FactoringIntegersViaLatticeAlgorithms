@@ -332,8 +332,8 @@ protected:
 
         stats.closeStatistics(round, uniqueEquations.size(), eqnDuplicates);
 
-        file.writeFormattedEquationList(uniqueEquations, primes);
         file.writeSummary(stats, timer.getTotalTime(), settings.n, uniqueEquations);
+        file.writeFormattedEquationList(uniqueEquations, primes);
 
         file.texToPdf();
     }

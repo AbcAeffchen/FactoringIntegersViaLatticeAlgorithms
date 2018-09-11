@@ -518,11 +518,8 @@ public:
             }
         }
 
-        const auto tmpSummary = writeSummary(stats, time, n, eqnList, eqnList_cf, v_avg, v_cf_avg, v_min,
-                                             v_cf_min, v_max, v_cf_max, v_median, v_cf_median);
-
-        statistics << tmpSummary;
-        summary << tmpSummary;
+        summary << writeSummary(stats, time, n, eqnList, eqnList_cf, v_avg, v_cf_avg, v_min,
+                                v_cf_min, v_max, v_cf_max, v_median, v_cf_median);
     }
 
 private:
@@ -538,7 +535,7 @@ private:
     {
         std::stringstream o;
 
-        o << "\n\n\\newpage\n"
+        o << "\n\n"
              "\\section*{Summary}\n"
              "\\resizebox{\\textwidth}{!}{\n"
              "\\begin{tabular}{llll}\n"
