@@ -1,8 +1,22 @@
 cmake_minimum_required(VERSION 3.1)
 project(FactoringIntegersViaLatticeAlgorithms C CXX)
 
+set(CMAKE_CONFIGURATION_TYPES "EXPERIMENT;DEBUG" CACHE STRING "" FORCE)
+
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -lpthread -m64 -fpermissive -Wall -Wextra -Wold-style-cast -Wuseless-cast")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -m64 -fpermissive -Wall -Wextra -Wold-style-cast -Wuseless-cast")
+
+if(DEFINED CMAKE_BUILD_TYPE)
+else()
+    set(CMAKE_BUILD_TYPE "EXPERIMENT")
+endif()
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+
+if(CMAKE_BUILD_TYPE MATCHES "EXPERIMENT")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+endif()
 
 set(SOURCE_FILES src/startProgram.cpp)
 
