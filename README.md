@@ -1,3 +1,9 @@
+
+
+[![DOI](https://zenodo.org/badge/30722436.svg)](https://zenodo.org/badge/latestdoi/30722436)
+
+
+
 This program is part of a research project about factoring integers via lattice algorithms.
 
 ### Compiling
